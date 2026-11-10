@@ -1,0 +1,19 @@
+# Chat history: local only, prompts can contain secrets (only the README is committed)
+docs/chat-history/*
+!docs/chat-history/README.md
+
+# Portable tools, downloaded locally
+.tools/
+
+# Environment files can hold secrets; only an example file may be committed
+.env
+.env.*
+!.env.example
+
+# Personal Claude Code settings for this repository
+.claude/settings.local.json
+
+# Operating system files
+Thumbs.db
+desktop.ini
+.DS_Store
