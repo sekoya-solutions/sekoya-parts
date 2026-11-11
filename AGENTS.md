@@ -27,6 +27,11 @@ Standing rules for every AI agent working on this repository. Read this file and
 - **Decisions for the owner:** explain each option in plain language (what a visitor sees, or what changes in the code), give pros and cons, and recommend one when it is clearly better, briefly saying why. Ask one or two questions per turn, never a long list.
 - **ADRs first:** every significant technical choice is written as an ADR with the options considered, and only the owner marks it Accepted. Experiments and implementation come after.
 - **No software installs without approval:** never install, upgrade or uninstall software on the owner's machine. Use portable tools only, in the git-ignored `.tools/` folder. This repository gets its own versions, chosen for its stack; never copy a tool from another project. Before any download, state the file name, source and size, and wait for approval.
+- **Never get the owner blocked (owner rule):** an agent's requests leave from the owner's IP address, so a block, ban, challenge or throttle on it also hits the owner's own browsing and accounts. On 2026-11-11, an agent testing the production rate-limiting rule sent 310 requests in parallel; Vercel's platform protection challenged the IP address, and a second test of 400 requests sent while still blocked only prolonged the block.
+  - No bursts, load tests or request loops against any site or API, this project's included. A check is a few single requests, spaced out.
+  - Before any check that could trigger a firewall, rate limit, bot protection, anti-abuse system or quota, explain the risk and wait for the owner's go. Prefer reading the configuration, dashboards or logs over triggering a protection to see it work.
+  - At the first sign of mitigation (403, 429, a challenge page, a `Retry-After` header or a quota error), stop: no retry and no second test. Report it to the owner, with what was sent.
+  - Stay within each service's terms and published limits, and never change identity (user agent, address, account) to get around a limit.
 - **Spell out acronyms** the first time they appear in a document or reply.
 
 ## 3. Quality rules
