@@ -1,6 +1,6 @@
 # ADR 0010: Search
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -43,7 +43,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Algolia's free plan, hosted in EU West,** with one index of up to 45,000 products. That leaves a margin under the 50,000 records.
   - The showcase products are always included; the others are the most popular.
