@@ -5,6 +5,10 @@ docs/chat-history/*
 # Portable tools, downloaded locally
 .tools/
 
+# Dependencies and the Next.js build output
+/node_modules/
+/.next/
+
 # Environment files can hold secrets; only an example file may be committed
 .env
 .env.*

@@ -6,9 +6,9 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
 - **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
+- **Phase 1 started:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30). Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
 - **Nothing built yet:**
-  - no code, no `package.json`, no CI workflow;
-  - no tool downloaded;
+  - no application code, no npm package installed, no CI workflow;
   - no Vercel, Neon, Algolia or DeepL account set up for the project.
 
 ## Next phases
@@ -17,11 +17,10 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 
 ### Phase 1: setup and the first CI check
 
-1. **Downloads, each approved first:** the Node 26 Windows archive, its signed checksums and Node's release keys ([ADR 0003](adr/0003-toolchain.md)). The archive is checked with `gpgv`, then unpacked into `.tools/node`. If a Node security release has replaced 26.13.0, its file name, size and checksum are given again.
-2. **Toolchain files:**
+1. **Done: downloads, each approved first.** The Node 26.13.1 Windows archive, its signed checksums and Node's release keys ([ADR 0003](adr/0003-toolchain.md)). The checksum list was verified with `gpgv` and the archive against it, then the archive was unpacked into `.tools/node`. A later Node security release is downloaded the same way, with its file name, size and checksum given again.
+2. **Done: toolchain files.**
    - `.node-version` and `.npmrc` (install scripts off, a three-day minimum release age, exact versions);
    - a `package.json` with `engines.node` set to `26.x`;
-   - the session-only `PATH` helper script;
    - `node_modules` and the Next.js build folder added to `.gitignore`.
 3. **Markdown lint:** the markdownlint-cli2 workflow, made a required check on `main` ([ADR 0004](adr/0004-testing-and-ci.md)). It replaces the manual Markdown check in `AGENTS.md`, section 4.
 4. **Accounts, created by the owner:**

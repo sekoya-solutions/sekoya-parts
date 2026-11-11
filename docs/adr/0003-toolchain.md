@@ -47,7 +47,7 @@ Sources: Node's [release schedule](https://github.com/nodejs/Release/blob/main/s
 
 - **Node** comes as an official zip archive for Windows, with npm inside ([release index](https://nodejs.org/dist/index.json)). It unpacks into `.tools/node`.
 - **Verifying the archive.** Node publishes a signed list of SHA-256 checksums and the keys that sign it ([verifying binaries](https://github.com/nodejs/node/blob/main/README.md#verifying-binaries)). The `gpgv` signature checker is already on the machine with Git for Windows.
-- **Locally,** a committed helper script puts `.tools/node` first on the `PATH` of the current terminal only, so nothing changes system-wide.
+- **Locally,** agents put `.tools/node` first on the `PATH` of each command they run, so nothing changes system-wide.
 - **In CI,** `actions/setup-node` reads the exact version from a `.node-version` file ([setup-node](https://github.com/actions/setup-node)).
 
 ### Package manager (3)
@@ -101,7 +101,7 @@ Sources: Node's [release schedule](https://github.com/nodejs/Release/blob/main/s
 Chosen:
 
 - **Node 26.**
-  - The exact release is pinned in `.node-version`, which the local tools and CI both read: 26.13.0 today, replaced by the security release announced for 2026-11-11.
+  - The exact release is pinned in `.node-version`, which the local tools and CI both read: 26.13.1, the security release of 2026-11-10 that replaced 26.13.0.
   - `package.json` sets `engines.node` to `26.x`, so Vercel runs the same major version with its own latest patch.
 - **npm, the copy that ships with Node.** A committed `.npmrc`:
   - turns on `ignore-scripts`, so no dependency runs code at install;
@@ -138,13 +138,13 @@ What it costs, and where each cost is checked:
 
 | File | Source | Size | Purpose |
 | --- | --- | --- | --- |
-| `node-v26.13.0-win-x64.zip`, or the 26.x security release that replaces it | [nodejs.org/dist/v26.13.0](https://nodejs.org/dist/v26.13.0/) | 41,157,375 bytes | Node and npm |
-| `SHASUMS256.txt.asc` | Same folder | 4,053 bytes | Signed SHA-256 checksums |
+| `node-v26.13.1-win-x64.zip` | [nodejs.org/dist/v26.13.1](https://nodejs.org/dist/v26.13.1/) | 41,166,246 bytes | Node and npm |
+| `SHASUMS256.txt.asc` | Same folder | 3,449 bytes | Signed SHA-256 checksums |
 | `pubring.kbx` | [nodejs/release-keys](https://github.com/nodejs/release-keys/blob/main/gpg/pubring.kbx) | 95,960 bytes | Keys of Node's release team |
 | The packages in the lockfile (Next.js, React, TypeScript, Biome and their dependencies) | [npm public registry](https://docs.npmjs.com/about-the-public-npm-registry) | Known at the first install | Installed into `node_modules`, git-ignored |
 
-- **Today's checksum.** The SHA-256 of `node-v26.13.0-win-x64.zip` is `dcc60d59a0746999f99064a01c020445d54d84228c691cdbf25b49ac3b59150a`.
-- **If a security release replaces it,** its file name, size and checksum are given again before it is downloaded.
+- **Checksum.** The SHA-256 of `node-v26.13.1-win-x64.zip` is `e2edda75bfb089654705cf65a13b58933bfd5f57148e8ebda916f58a2474f1f7`. The owner approved these downloads on 2026-11-11, and the checksum list's signature was verified with `gpgv`.
+- **When a later security release replaces it,** its file name, size and checksum are given again before it is downloaded.
 
 ## Consequences
 
@@ -166,7 +166,7 @@ Follow-up:
 
 - **Implementation, after each download is approved:**
   - the archive is verified, then unpacked into `.tools/node`;
-  - `.node-version`, `.npmrc`, `engines.node` and the `PATH` helper script are written;
+  - `.node-version`, `.npmrc` and `engines.node` are written;
   - `node_modules` and the Next.js build folder are added to `.gitignore`.
 - **Testing and CI record:**
   - `setup-node` reading `.node-version`, then `npm ci`;

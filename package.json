@@ -1,0 +1,10 @@
+{
+  "name": "sekoya-parts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Spare-parts catalog, a portfolio project showing the feasibility of a very large catalog.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "26.x"
+  }
+}
