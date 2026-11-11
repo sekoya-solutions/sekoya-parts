@@ -1,6 +1,6 @@
 # ADR 0006: Content management
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -45,7 +45,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed: **Payload 3.93 inside the Next.js application,** on Neon through `@payloadcms/db-postgres`.
+Chosen: **Payload 3.93 inside the Next.js application,** on Neon through `@payloadcms/db-postgres`.
 
 - **Payload manages what is edited:** products (price, names and descriptions in ten languages), categories and admin users.
 - **Models and compatibility** live in the project's own tables, filled by the data generator and never edited in the admin.
