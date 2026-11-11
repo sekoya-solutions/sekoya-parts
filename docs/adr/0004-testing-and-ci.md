@@ -1,6 +1,6 @@
 # ADR 0004: Testing and continuous integration
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -54,7 +54,7 @@ Facts and versions were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **On every push to a pull request,** a `pull_request` workflow runs:
   - Biome, the TypeScript check and markdownlint-cli2;
