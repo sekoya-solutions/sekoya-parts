@@ -1,6 +1,6 @@
 # ADR 0008: Caching and partial refresh
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -45,7 +45,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Each part of a page is its own cached component** with `"use cache: remote"` and an explicit `cacheLife('max')`. On the product page, the parts are the price, the description and the reference list. Model and category pages follow the same pattern. Content changes only through edits and new generations, which refresh it by tag.
 - **Tags per part:** `product:<id>:price`, `product:<id>:description`, `product:<id>:references`, `model:<id>`, `category:<id>`, plus one `catalog` tag for a whole new generation. A category listing also carries the price tags of the products it shows.
