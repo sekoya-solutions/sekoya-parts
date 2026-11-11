@@ -1,0 +1,12 @@
+// markdownlint-cli2 configuration, decided in docs/adr/0004-testing-and-ci.md.
+{
+  "config": {
+    "default": true,
+    // Paragraphs are written as one line each, so line length is not limited.
+    "MD013": false
+  },
+  "globs": ["**/*.md"],
+  // Files git ignores are skipped, such as node_modules, .tools and the local
+  // chat-history entries, so the linted set is the committed Markdown.
+  "gitignore": ".gitignore"
+}

@@ -50,7 +50,7 @@ Standing rules for every AI agent working on this repository. Read this file and
 - **ADR index integrity:** exactly one index row per ADR, with title, link and status matching the ADR file.
 - **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
 - Standard Markdown only (relative links, no tool-specific syntax), diagrams as Mermaid code blocks, so documents render on GitHub and in Obsidian.
-- **Markdown checks:** until the markdownlint-cli2 workflow chosen in ADR 0004 exists, read every new or changed Markdown file and issue or pull request body to check its headings, lists, tables and checkboxes.
+- **Markdown checks:** before each commit that touches Markdown, run `npm run lint:md` with `.tools/node` first on the `PATH`, and fix every finding; the Markdown lint check runs it again on each pull request and is required on `main`. The linter does not see issue and pull request bodies, so read those to check their headings, lists, tables and checkboxes.
 
 ## 5. Git and GitHub
 
