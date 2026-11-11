@@ -15,3 +15,4 @@ One record per significant technical choice, written with the options considered
 | [0009](0009-compatible-references.md) | Compatible references | Accepted |
 | [0010](0010-search.md) | Search | Accepted |
 | [0011](0011-languages-and-seo.md) | Languages and search engine optimization | Accepted |
+| [0012](0012-front-end-assets.md) | Front-end assets | Accepted |
