@@ -48,6 +48,10 @@ Proposed:
 - **Algolia's free plan, hosted in EU West,** with one index of up to 45,000 products. That leaves a margin under the 50,000 records.
   - The showcase products are always included; the others are the most popular.
 - **One record per product:** reference, brand, category, price and popularity, plus one name field per language. Each query restricts the searched fields to the visitor's language, and the index and query languages are set explicitly, as Algolia recommends.
+- **The record also holds the product's 500 most popular compatible model references,** normalised like the model search below. This mirrors the product page's list in ADR 0009.
+  - A search for a model reference then finds the parts that fit it.
+  - At about 12 bytes per reference, 500 references take about 6 KB, which keeps the record under Algolia's 10 KB.
+  - Most products have only a few models, so their records hold all of them.
 - **Queries go through the site's own server route,** never from the browser.
   - A search is a plain form that renders a server-side results page, so the browser runs no search code and talks to no third party.
   - The route sends a hashed visitor token with each query. Its search key allows 60 queries per hour for each token, and the key is never shown to the browser.
@@ -62,7 +66,7 @@ Proposed:
 Why:
 
 - **The only confirmed permanent free plan.** It fits the owner's mandate and the 50,000-product cap.
-- **One record per product** keeps the record count equal to the product count.
+- **One record per product** keeps the record count equal to the product count. Capping its references at 500 keeps its size within the free plan's 10 KB limit: a million references would take about 12 MB.
 - **The server route** keeps the browser free of third-party requests and search code. It hides the key, and limits each visitor.
 - **PostgreSQL** already holds the million models and answers a prefix search by index.
 
@@ -72,6 +76,8 @@ What it costs, and where each cost is checked:
 - **Conflicting free-plan figures.** Algolia's pages disagree on the number of indices (10 or 20) and show other plans elsewhere. The free plan terms above are taken as the reference, and the dashboard confirms them when the account is created.
 - **Attribution.** Algolia's support pages, which could not be read, may ask free plans for its logo. The text link covers that without a script.
 - **Search route cost.** Each search costs one Vercel function invocation.
+- **Less popular models of a large product.** Searching for one of them does not find the product through Algolia. The model search finds the model, and its page lists the product.
+- **Record size.** The generator checks each record's size before sending it, so a long name never pushes a record over 10 KB.
 
 ## Consequences
 
