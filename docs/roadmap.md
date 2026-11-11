@@ -6,16 +6,20 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
 - **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
-- **Phase 1 started:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30). Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)). The first CI workflow runs Markdown lint on every pull request, as a required check ([#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)).
+- **Phase 1 done:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30).
+  - Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
+  - The first CI workflow runs Markdown lint on every pull request, as a required check ([#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)).
+  - The Neon database exists, created by the owner through the Storage tab of their Vercel account, on Neon's free plan, in AWS Europe Central 1 (Frankfurt), with PostgreSQL 18 ([#35](https://github.com/sekoya-solutions/sekoya-parts/issues/35)). It holds no data yet.
 - **Nothing built yet:**
   - no application code; the only npm package is markdownlint-cli2;
-  - no Vercel, Neon, Algolia or DeepL account set up for the project.
+  - no Vercel project for Sekoya Parts, and no Algolia or DeepL account set up for it.
+- **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
 ## Next phases
 
 Each step follows the usual flow: an issue, a branch, a pull request, then the owner's go ([AGENTS.md](../AGENTS.md), section 5). Each phase gets an epic issue on the board when it starts.
 
-### Phase 1: setup and the first CI check
+### Phase 1, done: setup and the first CI check
 
 1. **Done: downloads, each approved first.** The Node 26.13.1 Windows archive, its signed checksums and Node's release keys ([ADR 0003](adr/0003-toolchain.md)). The checksum list was verified with `gpgv` and the archive against it, then the archive was unpacked into `.tools/node`. A later Node security release is downloaded the same way, with its file name, size and checksum given again.
 2. **Done: toolchain files.**
@@ -23,29 +27,38 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - a `package.json` with `engines.node` set to `26.x`;
    - `node_modules` and the Next.js build folder added to `.gitignore`.
 3. **Done: Markdown lint.** The markdownlint-cli2 workflow, made a required check on `main` ([ADR 0004](adr/0004-testing-and-ci.md), [#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)). It replaces the manual check of Markdown files in `AGENTS.md`, section 4. `package.json` overrides markdownlint to 0.42.1 for a re2js security fix; the override is removed once markdownlint-cli2 requires 0.42.1 or later.
-4. **Accounts, created by the owner:**
-   - Vercel project in `fra1`, with protected previews, a bypass secret and the firewall rules ([ADR 0002](adr/0002-hosting-and-environments.md));
-   - Neon project in Frankfurt, with `preview` and `dev` branches ([ADR 0005](adr/0005-database.md)).
+4. **Done: the Neon database,** created by the owner in Frankfurt with PostgreSQL 18 ([ADR 0005](adr/0005-database.md)). The Vercel project and the Neon branches moved to phase 2: before an app exists, importing the repository would publish its files on a public production address, and a branch of the empty database would hold nothing.
 
 ### Phase 2: a walking skeleton and the two experiments
 
-1. **A minimal app:**
+1. **Hosting, with the first app pull request:**
+   - **The Vercel project, created by the owner** in their Hobby account from this repository, with access to this repository only ([ADR 0002](adr/0002-hosting-and-environments.md)):
+     - functions in `fra1`, set in a committed `vercel.json`;
+     - previews protected by Vercel Authentication, the default for new projects;
+     - the firewall's Bot Protection and AI Bots rule sets, and one rate-limiting rule per IP address, its numbers proposed then;
+     - Protection Bypass for Automation, its secret added by the owner as a GitHub Actions secret when the Lighthouse job is built.
+   - **The database connected to the project** (ADR 0005):
+     - environment variables for Production only;
+     - no database branch per deployment, for Production or Preview;
+     - the `preview` branch's connection string set by the owner as a Secret variable for Preview in Vercel, and the `dev` branch's in a git-ignored `.env.local` for local development.
+   - **The `preview` and `dev` branches,** created in the Neon console from `main` once the generator has loaded it, with auto-delete off; Neon's dialog defaults to one day.
+2. **A minimal app:**
    - Next.js 16.4 with Payload 3, one product page built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md);
    - the generator at a small scale, plus the product with a million models ([ADR 0007](adr/0007-catalog-data-model.md));
    - deployed to a protected preview.
-2. **Experiment 1, partial refresh** (ADR 0008):
+3. **Experiment 1, partial refresh** (ADR 0008):
    - only the edited part is recomputed;
    - the first-visit HTML is complete without JavaScript;
    - Runtime Cache usage is measured.
 
    If it fails, a new ADR replaces ADR 0008 with whole-page caching.
-3. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
+4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
    - bytes per reference;
    - PageSpeed and element count for 250 to 2,000 references;
    - query times for the first and last reference pages.
 
    The number of references is set from the results.
-4. **The remaining CI jobs,** as their code appears:
+5. **The remaining CI jobs,** as their code appears:
    - Biome, TypeScript and Vitest;
    - Playwright and the 2 MB test;
    - Lighthouse on previews.
