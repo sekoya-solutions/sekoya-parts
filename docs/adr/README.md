@@ -7,3 +7,4 @@ One record per significant technical choice, written with the options considered
 | [0001](0001-framework-and-rendering.md) | Framework and rendering | Accepted |
 | [0002](0002-hosting-and-environments.md) | Hosting and environments | Accepted |
 | [0003](0003-toolchain.md) | Toolchain | Accepted |
+| [0004](0004-testing-and-ci.md) | Testing and continuous integration | Accepted |
