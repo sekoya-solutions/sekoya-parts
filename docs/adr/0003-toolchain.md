@@ -1,6 +1,6 @@
 # ADR 0003: Toolchain
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -98,7 +98,7 @@ Sources: Node's [release schedule](https://github.com/nodejs/Release/blob/main/s
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Node 26.**
   - The exact release is pinned in `.node-version`, which the local tools and CI both read: 26.13.0 today, replaced by the security release announced for 2026-11-11.
