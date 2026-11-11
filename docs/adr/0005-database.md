@@ -1,6 +1,6 @@
 # ADR 0005: Database
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -56,7 +56,7 @@ The data-model record refines the estimate.
 
 ## Decision
 
-Proposed: **Neon's free plan, PostgreSQL 18, in AWS Frankfurt** (`aws-eu-central-1`).
+Chosen: **Neon's free plan, PostgreSQL 18, in AWS Frankfurt** (`aws-eu-central-1`).
 
 - **Production** uses the main branch.
 - **All Vercel previews share one `preview` branch.** The per-preview integration is not used: each preview would hold a branch until Vercel deletes it, and the ten-branch limit would soon be reached.
