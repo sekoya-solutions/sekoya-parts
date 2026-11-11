@@ -45,7 +45,8 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 ## 4. Documentation
 
-- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/chat-history/` (local log, see section 6).
+- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/chat-history/` (local log, see section 6), and [docs/roadmap.md](docs/roadmap.md) (current status and next steps).
+- **Roadmap:** read [docs/roadmap.md](docs/roadmap.md) at the start of each session, and update it in the same pull request whenever a step is done or the plan changes.
 - **ADR index integrity:** exactly one index row per ADR, with title, link and status matching the ADR file.
 - **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
 - Standard Markdown only (relative links, no tool-specific syntax), diagrams as Mermaid code blocks, so documents render on GitHub and in Obsidian.
