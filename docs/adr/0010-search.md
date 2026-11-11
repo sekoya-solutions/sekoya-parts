@@ -61,6 +61,11 @@ Proposed:
   - The generator fills the index in batches of 1,000.
   - A whole new generation replaces records in place, so the index never holds two copies of the catalog.
 - **Model search in PostgreSQL,** by prefix on the model reference normalised to upper case without spaces or dashes, through an index with a pattern operator class. Results link to the model pages.
+- **One search box, one flow** on the server route:
+  1. **Exact match first.** The query is normalised. If it is exactly a model reference in PostgreSQL, the visitor goes straight to that model's page, which lists every compatible part. No Algolia search is spent.
+  2. **Otherwise, both searches at once,** shown on one results page:
+     - matching appliance models first, from PostgreSQL's prefix lookup, each linking to its page;
+     - then parts from Algolia, matched by name, reference or one of their top model references, with typo tolerance.
 - **A small "Search by Algolia" text link** on the results page, plain text with no script.
 
 Why:
@@ -69,6 +74,7 @@ Why:
 - **One record per product** keeps the record count equal to the product count. Capping its references at 500 keeps its size within the free plan's 10 KB limit: a million references would take about 12 MB.
 - **The server route** keeps the browser free of third-party requests and search code. It hides the key, and limits each visitor.
 - **PostgreSQL** already holds the million models and answers a prefix search by index.
+- **The flow** gives each engine what it does best. PostgreSQL gives the complete, exact list of models; Algolia gives typo-tolerant search across parts in ten languages. The PostgreSQL lookup costs nothing against the quota, and the exact-match redirect saves Algolia searches on the most common query, a reference read off an appliance's label.
 
 What it costs, and where each cost is checked:
 
