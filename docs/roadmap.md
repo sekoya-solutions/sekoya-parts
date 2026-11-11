@@ -13,7 +13,9 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
 - **Phase 2 started:** epic [#37](https://github.com/sekoya-solutions/sekoya-parts/issues/37).
   - A bare Next.js skeleton: one placeholder page, `vercel.json` with functions in `fra1`, and a CI job running Biome, the type check and the build ([#38](https://github.com/sekoya-solutions/sekoya-parts/issues/38)).
   - It runs Next.js 16.4.5 until 16.4.6, the version ADR 0003 pins, passes the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
-- **Not set up yet:** no Vercel project for Sekoya Parts, and no Algolia or DeepL account set up for it.
+  - The Vercel project serves the placeholder page at `https://sekoya-parts.vercel.app/`, behind the firewall settings of phase 2, step 1, and the Neon database is connected for Production ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)). PageSpeed Insights scores the placeholder 100 in all four categories, on mobile and desktop.
+  - Required checks on `main`: "Markdown lint" and "Lint, types and build".
+- **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
 ## Next phases
@@ -32,17 +34,14 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 
 ### Phase 2: a walking skeleton and the two experiments
 
-1. **Hosting, once the skeleton is merged** ([#38](https://github.com/sekoya-solutions/sekoya-parts/issues/38)):
-   - **The Vercel project, created by the owner** in their Hobby account from this repository, with access to this repository only ([ADR 0002](adr/0002-hosting-and-environments.md)):
-     - functions in `fra1`, set in a committed `vercel.json`;
-     - previews protected by Vercel Authentication, the default for new projects;
-     - the firewall's Bot Protection and AI Bots rule sets, and one rate-limiting rule per IP address, its numbers proposed then;
-     - Protection Bypass for Automation, its secret added by the owner as a GitHub Actions secret when the Lighthouse job is built.
-   - **The database connected to the project** (ADR 0005):
-     - environment variables for Production only;
-     - no database branch per deployment, for Production or Preview;
-     - the `preview` branch's connection string set by the owner as a Secret variable for Preview in Vercel, and the `dev` branch's in a git-ignored `.env.local` for local development.
-   - **The `preview` and `dev` branches,** created in the Neon console from `main` once the generator has loaded it, with auto-delete off; Neon's dialog defaults to one day.
+1. **Hosting** ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)):
+   - **Done: the Vercel project,** created by the owner in their Hobby account from this repository, with the Vercel GitHub app limited to selected repositories ([ADR 0002](adr/0002-hosting-and-environments.md)):
+     - production at `https://sekoya-parts.vercel.app/`, with functions in `fra1`, set by the committed `vercel.json`;
+     - previews protected by Vercel Authentication, Standard Protection;
+     - the firewall: Bot Protection on Log, AI Crawlers denied, and one rate-limiting rule (per IP address, 300 requests in a fixed 60-second window, answered with 429, on every path except `/_next/static/`). The rule is checked on its configuration only: a test from one machine was challenged by Vercel's platform protection before the rule reached 300.
+   - **Done: the database connected to the project** (ADR 0005): environment variables for Production only, under the `DATABASE_` prefix, and no database branch per deployment. The app reads `DATABASE_URL` (pooled) at runtime and `DATABASE_URL_UNPOOLED` for migrations and bulk loads.
+   - **Later: the `preview` and `dev` branches,** created in the Neon console from `main` once the generator has loaded it, with auto-delete off, since Neon's dialog defaults to one day. The owner then sets the `preview` branch's connection string as a sensitive variable for Preview in Vercel, and the `dev` branch's in a git-ignored `.env.local`.
+   - **Later: Protection Bypass for Automation,** its secret added by the owner as a GitHub Actions secret when the Lighthouse job is built.
 2. **A minimal app:**
    - Next.js 16.4 with Payload 3, one product page built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md);
    - the generator at a small scale, plus the product with a million models ([ADR 0007](adr/0007-catalog-data-model.md));
@@ -60,7 +59,8 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 
    The number of references is set from the results.
 5. **The remaining CI jobs,** as their code appears:
-   - Vitest, Biome and TypeScript already running with the skeleton (#38);
+   - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check;
+   - Vitest, with the first tests;
    - Playwright and the 2 MB test;
    - Lighthouse on previews.
 
@@ -73,6 +73,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 - Translated addresses, `hreflang`, the showcase sitemap and `robots.txt` (ADR 0011).
 - Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured.
 - The design, images and fonts ([ADR 0012](adr/0012-front-end-assets.md)).
+- Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
 
 ## Decisions open for the owner
 
