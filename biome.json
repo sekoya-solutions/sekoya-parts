@@ -7,7 +7,12 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/*.md"]
+    "includes": [
+      "**",
+      "!**/*.md",
+      "!cms/payload-types.ts",
+      "!app/(payload)/admin/importMap.js"
+    ]
   },
   "formatter": {
     "enabled": true,

@@ -18,7 +18,10 @@
       }
     ],
     "allowJs": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@payload-config": ["./payload.config.ts"]
+    }
   },
   "include": [
     "next-env.d.ts",
