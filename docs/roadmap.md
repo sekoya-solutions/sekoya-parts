@@ -2,7 +2,7 @@
 
 Where Sekoya Parts stands and what comes next. Agents read this file at the start of a session, after [AGENTS.md](../AGENTS.md), and update it whenever a step is done or the plan changes.
 
-## Status on 2026-11-11
+## Status on 2026-11-12
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
 - **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
@@ -14,6 +14,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - A bare Next.js skeleton: one placeholder page, `vercel.json` with functions in `fra1`, and a CI job running Biome, the type check and the build ([#38](https://github.com/sekoya-solutions/sekoya-parts/issues/38)).
   - It runs Next.js 16.4.5 until 16.4.6, the version ADR 0003 pins, passes the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
   - The Vercel project serves the placeholder page at `https://sekoya-parts.vercel.app/`, behind the firewall settings of phase 2, step 1, and the Neon database is connected for Production ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)). PageSpeed Insights scores the placeholder 100 in all four categories, on mobile and desktop.
+  - Payload 3.93.0 runs inside the app, with the catalog schema created by committed migrations ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)). The admin is at `/admin`; the database holds no catalog data yet.
   - Required checks on `main`: "Markdown lint" and "Lint, types and build".
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
@@ -40,12 +41,18 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - previews protected by Vercel Authentication, Standard Protection;
      - the firewall: Bot Protection on Log, AI Crawlers denied, and one rate-limiting rule (per IP address, 300 requests in a fixed 60-second window, answered with 429, on every path except `/_next/static/`). The rule is checked on its configuration only: a test from one machine was challenged by Vercel's platform protection before the rule reached 300.
    - **Done: the database connected to the project** (ADR 0005): environment variables for Production only, under the `DATABASE_` prefix, and no database branch per deployment. The app reads `DATABASE_URL` (pooled) at runtime and `DATABASE_URL_UNPOOLED` for migrations and bulk loads.
-   - **Later: the `preview` and `dev` branches,** created in the Neon console from `main` once the generator has loaded it, with auto-delete off, since Neon's dialog defaults to one day. The owner then sets the `preview` branch's connection string as a sensitive variable for Preview in Vercel, and the `dev` branch's in a git-ignored `.env.local`.
+   - **Done: the `dev` branch,** created by the owner from the empty `main` with auto-delete off (Neon's dialog defaults to one day), its connection strings and `PAYLOAD_SECRET` in a git-ignored `.env.local`. It is reset from `main` once the generator has loaded `main`.
+   - **Later: the `preview` branch,** created from the loaded `main` the same way. The owner then sets its connection string as a sensitive variable for Preview in Vercel.
    - **Later: Protection Bypass for Automation,** its secret added by the owner as a GitHub Actions secret when the Lighthouse job is built.
-2. **A minimal app:**
-   - Next.js 16.4 with Payload 3, one product page built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md);
-   - the generator at a small scale, plus the product with a million models ([ADR 0007](adr/0007-catalog-data-model.md));
-   - deployed to a protected preview.
+2. **A minimal app,** in three issues:
+   - **Done: Payload 3 and the catalog schema** ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)):
+     - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
+     - the collections of [ADR 0007](adr/0007-catalog-data-model.md) in ten languages, and the project tables `appliance_models` and `compatibility` in a hand-written migration;
+     - the schema only from committed migrations, run by `npm run payload -- migrate` over `DATABASE_URL_UNPOOLED`;
+     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); previews, CI and local builds need no database;
+     - `package.json` overrides `dompurify` to 3.4.17, since `monaco-editor` 0.57.0 pins a version with known flaws; the override is removed once `monaco-editor` requires a fixed version.
+   - **Next: the generator at a small scale,** plus the product with a million models, with Vitest and the first tests ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)).
+   - **Then: one product page** built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md), deployed to a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)).
 3. **Experiment 1, partial refresh** (ADR 0008):
    - only the edited part is recomputed;
    - the first-visit HTML is complete without JavaScript;
