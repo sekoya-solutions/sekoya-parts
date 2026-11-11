@@ -1,6 +1,6 @@
 # ADR 0012: Front-end assets
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -47,7 +47,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Styling: Tailwind CSS 4,** the usual utility framework of real e-commerce sites, with the design tokens (colours, spacing, type scale, radii) in its theme. Long lists, like the 500 references, are styled through a single class on their container rather than classes on each item, which keeps their HTML short.
 - **Fonts: one brand typeface, self-hosted through `next/font`.**
