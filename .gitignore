@@ -9,6 +9,10 @@ docs/chat-history/*
 /node_modules/
 /.next/
 
+# Files Next.js and TypeScript regenerate on each build or type check
+/next-env.d.ts
+*.tsbuildinfo
+
 # Environment files can hold secrets; only an example file may be committed
 .env
 .env.*

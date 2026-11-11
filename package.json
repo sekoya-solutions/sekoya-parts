@@ -11,9 +11,25 @@
     "markdownlint": "0.42.1"
   },
   "devDependencies": {
-    "markdownlint-cli2": "0.24.0"
+    "@biomejs/biome": "2.6.6",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "markdownlint-cli2": "0.24.0",
+    "typescript": "7.0.2"
   },
   "scripts": {
-    "lint:md": "markdownlint-cli2"
+    "lint:md": "markdownlint-cli2",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.4.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   }
 }
