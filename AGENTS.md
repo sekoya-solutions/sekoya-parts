@@ -19,7 +19,7 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **Requirements:** PageSpeed 95 to 100, checked on every commit; fine-grained cache invalidation (a price or description change refreshes only that part of a page); full non-regression tests; automatic Vercel deployments for branches and `main`.
   - **Brand:** "Sekoya Parts", with an original design: nothing taken from other sites' names, branding or texts.
   - **Repository:** public from the start. Whether a freelance portfolio fits Vercel's non-commercial Hobby plan is the owner's call.
-- **Stack:** proposed in conversation (Next.js on Vercel, PostgreSQL on Neon, Payload CMS, Algolia) but not adopted. Nothing is implemented before its ADR is accepted.
+- **Stack:** decided one ADR at a time, listed in the [ADR index](docs/adr/README.md). Accepted so far: Next.js 16 with the App Router and Cache Components (ADR 0001), hosted on Vercel (owner decision). Proposed in conversation but not adopted yet: PostgreSQL on Neon, Payload CMS, Algolia. Nothing is implemented before its ADR is accepted.
 
 ## 2. Working with the owner
 

@@ -4,4 +4,4 @@ One record per significant technical choice, written with the options considered
 
 | ADR | Title | Status |
 | --- | --- | --- |
-| [0001](0001-framework-and-rendering.md) | Framework and rendering | Proposed |
+| [0001](0001-framework-and-rendering.md) | Framework and rendering | Accepted |

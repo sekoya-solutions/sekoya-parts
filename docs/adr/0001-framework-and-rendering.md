@@ -1,6 +1,6 @@
 # ADR 0001: Framework and rendering
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -106,7 +106,7 @@ Version 8.5.1 ([changelog](https://reactrouter.com/changelog)).
 
 ## Decision
 
-Proposed: **Next.js 16 with the App Router and Cache Components**, at the current 16.x release (16.4.6 on 2026-11-11). The toolchain record pins the exact version.
+Chosen: **Next.js 16 with the App Router and Cache Components**, at the current 16.x release (16.4.6 on 2026-11-11). The toolchain record pins the exact version.
 
 Why:
 
