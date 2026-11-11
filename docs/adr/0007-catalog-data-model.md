@@ -1,6 +1,6 @@
 # ADR 0007: Catalog data model
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -43,7 +43,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Payload collections** (Payload stores localized fields in separate `_locales` tables ([PostgreSQL adapter](https://payloadcms.com/docs/database/postgres))):
   - `categories`: the part type, with a name and slug in ten languages;
