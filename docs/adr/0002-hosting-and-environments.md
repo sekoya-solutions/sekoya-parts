@@ -1,6 +1,6 @@
 # ADR 0002: Hosting and environments
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -119,7 +119,7 @@ The fair-use guidelines restrict Hobby to non-commercial personal use ([fair use
 
 ## Decision
 
-Proposed: **option B**, the Hobby plan with crawlers limited to a showcase, protected previews, and functions in `fra1` (Frankfurt). If the owner judges the portfolio commercial, or a Hobby limit blocks the demonstration itself, the fallback is Pro (option C), keeping option B's crawl limits.
+Chosen: **option B**, the Hobby plan with crawlers limited to a showcase, protected previews, and functions in `fra1` (Frankfurt). If the owner judges the portfolio commercial, or a Hobby limit blocks the demonstration itself, the fallback is Pro (option C), keeping option B's crawl limits.
 
 Why:
 
