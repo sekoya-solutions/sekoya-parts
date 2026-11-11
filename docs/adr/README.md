@@ -9,3 +9,4 @@ One record per significant technical choice, written with the options considered
 | [0003](0003-toolchain.md) | Toolchain | Accepted |
 | [0004](0004-testing-and-ci.md) | Testing and continuous integration | Accepted |
 | [0005](0005-database.md) | Database | Accepted |
+| [0006](0006-content-management.md) | Content management | Accepted |
