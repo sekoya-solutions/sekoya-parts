@@ -1,0 +1,92 @@
+# ADR 0010: Search
+
+- Status: Proposed
+- Date: 2026-11-11
+- Deciders: Owner
+
+## Context
+
+This Architecture Decision Record (ADR) chooses the hosted search engine and how the catalog is searched. The forces:
+
+- **Owner decisions** ([AGENTS.md](../../AGENTS.md), section 1):
+  - a hosted search engine like Algolia is mandatory;
+  - it stays on a free plan unless that severely blocks feasibility;
+  - about 50,000 searchable products is acceptable;
+  - no third-party scripts, and a PageSpeed score of 95 or more.
+- **Data.** Search fields per product: reference, generated name in ten languages, brand, category, price and popularity ([ADR 0007](0007-catalog-data-model.md)). Edits go through Payload's save hooks ([ADR 0006](0006-content-management.md)).
+- **Model lookup.** Finding an appliance model among a million by its reference was left to this record ([ADR 0009](0009-compatible-references.md)).
+- **Hosting.** Vercel's Hobby plan has one firewall rate-limiting rule, and secrets stay out of the public repository ([ADR 0002](0002-hosting-and-environments.md)).
+
+### Criteria
+
+1. Free-plan limits.
+2. Ten languages.
+3. Protecting the quota.
+4. PageSpeed and no third-party scripts.
+5. Keeping the index in sync.
+6. Model search.
+7. Region and lock-in.
+
+## Options considered
+
+Facts were checked on 2026-11-11.
+
+- **Algolia.**
+  - **Free plan.** 50,000 records and 10,000 searches a month. At the limit, Algolia may suspend the service or add its own attribution to the results ([free plan terms](https://www.algolia.com/policies/free-plan-details)). Records are limited to 10 KB, and the plan offers US, UK and EU West hosting ([pricing](https://www.algolia.com/pricing/)).
+  - **Languages.** Algolia offers one index per language, or one index with a field per language that each query restricts to its own language ([multilingual search](https://www.algolia.com/doc/guides/managing-results/optimize-search-results/handling-natural-languages-nlp/how-to/multilingual-search)). Ten indices would split the records across indices, so the 50,000 records would no longer cover 50,000 products.
+  - **Abuse.** A search key can be limited per IP address or per user token per hour ([API keys](https://www.algolia.com/doc/rest-api/search/add-api-key)).
+  - **Server-side queries.** Queries sent from a server can pass the visitor's user token, so these limits apply to each visitor ([extra headers](https://www.algolia.com/doc/api-reference/api-methods/set-extra-header)).
+- **Meilisearch Cloud** starts at $20 a month after a 14-day trial ([Meilisearch pricing](https://www.meilisearch.com/pricing)).
+- **Elastic Cloud** offers a 14-day trial ([Elastic trial](https://www.elastic.co/cloud/cloud-trial-overview)), then usage-based pricing.
+- **Typesense Cloud** offers a free cluster, but its permanence and limits were not confirmed.
+- **Model lookup in PostgreSQL.** An index with a pattern operator class serves `LIKE` prefix searches ([operator classes](https://www.postgresql.org/docs/current/indexes-opclass.html)). A million models would exceed any free search plan, but PostgreSQL already holds them.
+
+## Decision
+
+Proposed:
+
+- **Algolia's free plan, hosted in EU West,** with one index of up to 45,000 products. That leaves a margin under the 50,000 records.
+  - The showcase products are always included; the others are the most popular.
+- **One record per product:** reference, brand, category, price and popularity, plus one name field per language. Each query restricts the searched fields to the visitor's language, and the index and query languages are set explicitly, as Algolia recommends.
+- **Queries go through the site's own server route,** never from the browser.
+  - A search is a plain form that renders a server-side results page, so the browser runs no search code and talks to no third party.
+  - The route sends a hashed visitor token with each query. Its search key allows 60 queries per hour for each token, and the key is never shown to the browser.
+  - There is no search as you type, so each submitted search costs one request. Results pages are kept out of search engines.
+- **Index sync.**
+  - Payload's save hook updates the edited product's record.
+  - The generator fills the index in batches of 1,000.
+  - A whole new generation replaces records in place, so the index never holds two copies of the catalog.
+- **Model search in PostgreSQL,** by prefix on the model reference normalised to upper case without spaces or dashes, through an index with a pattern operator class. Results link to the model pages.
+- **A small "Search by Algolia" text link** on the results page, plain text with no script.
+
+Why:
+
+- **The only confirmed permanent free plan.** It fits the owner's mandate and the 50,000-product cap.
+- **One record per product** keeps the record count equal to the product count.
+- **The server route** keeps the browser free of third-party requests and search code. It hides the key, and limits each visitor.
+- **PostgreSQL** already holds the million models and answers a prefix search by index.
+
+What it costs, and where each cost is checked:
+
+- **A small monthly quota.** 10,000 searches is about 330 a day. When it runs out, the results page says search is unavailable until the next month, rather than failing.
+- **Conflicting free-plan figures.** Algolia's pages disagree on the number of indices (10 or 20) and show other plans elsewhere. The free plan terms above are taken as the reference, and the dashboard confirms them when the account is created.
+- **Attribution.** Algolia's support pages, which could not be read, may ask free plans for its logo. The text link covers that without a script.
+- **Search route cost.** Each search costs one Vercel function invocation.
+
+## Consequences
+
+Positive:
+
+- Search adds no script, no key and no third-party request to the browser.
+- The model lookup costs nothing extra.
+
+Negative:
+
+- About 55,000 products are not searchable by name, only reachable by browsing.
+- The monthly quota is small, and a determined bot spread over many addresses could still use it up.
+
+Follow-up:
+
+- **Implementation, with the owner's account:** create the Algolia application in EU West. Store its admin key and the limited search key as Vercel secrets.
+- **Data model:** add the normalised model reference with its index.
+- **Languages and search engine optimization record:** keep search results pages out of crawling and indexing.
