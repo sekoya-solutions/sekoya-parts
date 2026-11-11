@@ -8,3 +8,4 @@ One record per significant technical choice, written with the options considered
 | [0002](0002-hosting-and-environments.md) | Hosting and environments | Accepted |
 | [0003](0003-toolchain.md) | Toolchain | Accepted |
 | [0004](0004-testing-and-ci.md) | Testing and continuous integration | Accepted |
+| [0005](0005-database.md) | Database | Proposed |
