@@ -1,6 +1,6 @@
 # ADR 0009: Compatible references
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -39,7 +39,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **500 references as text on the product page,** most popular first, in a plain list of links to the model pages. No code runs in the browser for the list.
 - **Reference pages for the rest,** at `/<lang>/<product path>/models/<n>`, 500 references each. Ranks are numbered from 1 for each product, so page `n` reads ranks `(n − 1) × 500 + 1` to `n × 500` straight from the index, with no `OFFSET`.

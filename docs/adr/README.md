@@ -12,4 +12,4 @@ One record per significant technical choice, written with the options considered
 | [0006](0006-content-management.md) | Content management | Accepted |
 | [0007](0007-catalog-data-model.md) | Catalog data model | Accepted |
 | [0008](0008-caching-and-partial-refresh.md) | Caching and partial refresh | Accepted |
-| [0009](0009-compatible-references.md) | Compatible references | Proposed |
+| [0009](0009-compatible-references.md) | Compatible references | Accepted |
