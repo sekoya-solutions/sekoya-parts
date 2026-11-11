@@ -10,9 +10,10 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
   - The first CI workflow runs Markdown lint on every pull request, as a required check ([#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)).
   - The Neon database exists, created by the owner through the Storage tab of their Vercel account, on Neon's free plan, in AWS Europe Central 1 (Frankfurt), with PostgreSQL 18 ([#35](https://github.com/sekoya-solutions/sekoya-parts/issues/35)). It holds no data yet.
-- **Nothing built yet:**
-  - no application code; the only npm package is markdownlint-cli2;
-  - no Vercel project for Sekoya Parts, and no Algolia or DeepL account set up for it.
+- **Phase 2 started:** epic [#37](https://github.com/sekoya-solutions/sekoya-parts/issues/37).
+  - A bare Next.js skeleton: one placeholder page, `vercel.json` with functions in `fra1`, and a CI job running Biome, the type check and the build ([#38](https://github.com/sekoya-solutions/sekoya-parts/issues/38)).
+  - It runs Next.js 16.4.5 until 16.4.6, the version ADR 0003 pins, passes the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
+- **Not set up yet:** no Vercel project for Sekoya Parts, and no Algolia or DeepL account set up for it.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
 ## Next phases
@@ -31,7 +32,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 
 ### Phase 2: a walking skeleton and the two experiments
 
-1. **Hosting, with the first app pull request:**
+1. **Hosting, once the skeleton is merged** ([#38](https://github.com/sekoya-solutions/sekoya-parts/issues/38)):
    - **The Vercel project, created by the owner** in their Hobby account from this repository, with access to this repository only ([ADR 0002](adr/0002-hosting-and-environments.md)):
      - functions in `fra1`, set in a committed `vercel.json`;
      - previews protected by Vercel Authentication, the default for new projects;
@@ -59,7 +60,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 
    The number of references is set from the results.
 5. **The remaining CI jobs,** as their code appears:
-   - Biome, TypeScript and Vitest;
+   - Vitest, Biome and TypeScript already running with the skeleton (#38);
    - Playwright and the 2 MB test;
    - Lighthouse on previews.
 
