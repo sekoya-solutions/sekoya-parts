@@ -14,4 +14,4 @@ One record per significant technical choice, written with the options considered
 | [0008](0008-caching-and-partial-refresh.md) | Caching and partial refresh | Accepted |
 | [0009](0009-compatible-references.md) | Compatible references | Accepted |
 | [0010](0010-search.md) | Search | Accepted |
-| [0011](0011-languages-and-seo.md) | Languages and search engine optimization | Proposed |
+| [0011](0011-languages-and-seo.md) | Languages and search engine optimization | Accepted |

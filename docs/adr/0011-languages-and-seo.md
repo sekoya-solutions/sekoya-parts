@@ -1,6 +1,6 @@
 # ADR 0011: Languages and search engine optimization
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-11
 - Deciders: Owner
 
@@ -48,7 +48,7 @@ Facts were checked on 2026-11-11.
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Routing** follows Next.js's own pattern, with no library: `app/[lang]` for the ten languages and dictionaries loaded on the server.
 - **The bare domain `/`** is a small page listing the ten languages. It is the `x-default` for the home page. Nothing redirects by the browser's language, and addresses without a language return 404.
