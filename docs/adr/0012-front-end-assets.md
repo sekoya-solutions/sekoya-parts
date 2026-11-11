@@ -49,11 +49,11 @@ Facts were checked on 2026-11-11.
 
 Proposed:
 
-- **Styling: CSS Modules plus one global stylesheet** of design tokens as CSS custom properties (colours, spacing, type scale, radii). There is no CSS framework. Long lists, like the 500 references, carry a single class on their container rather than one on each item.
-- **Fonts: the system font stack.**
-  - Nothing is downloaded, and there is no layout shift.
-  - The brand comes from colour, spacing and an SVG logo.
-  - If the design later calls for a typeface, it is self-hosted with `next/font/local`, and its source, licence and size are submitted for approval first.
+- **Styling: Tailwind CSS 4,** the usual utility framework of real e-commerce sites, with the design tokens (colours, spacing, type scale, radii) in its theme. Long lists, like the 500 references, are styled through a single class on their container rather than classes on each item, which keeps their HTML short.
+- **Fonts: one brand typeface, self-hosted through `next/font`.**
+  - It is served from the site itself, with no layout shift.
+  - Only the weights and the Latin character set the ten languages need are kept.
+  - The typeface is the owner's design choice. Its source, licence and size are stated before it is used.
 - **Images, resized at build time by a script using sharp:**
   - The originals, with their licence notes, are committed in the repository.
   - The script produces a few fixed widths in AVIF, WebP and JPEG, served as static files.
@@ -67,34 +67,33 @@ Proposed:
 
 Why:
 
-- **Plain, scoped CSS keeps pages light.** There is nothing to download beyond a small stylesheet, and the HTML stays short.
-- **System fonts** remove font downloads, and the layout shift a late font can cause.
+- **A realistic stack that still scores 95.** Tailwind's stylesheet holds only the classes the site uses, and the container class keeps the long lists light. `next/font` serves the brand font from the site without layout shift.
 - **Images resized at build time** never touch Hobby's transformation limit or Blob's operations. Images are served from the site, as files cached by Vercel's network.
 - **Links and forms** work without code in the browser, which helps both PageSpeed and visitors on slow phones.
 
 What it costs, and where each cost is checked:
 
-- **Hand-written CSS** takes more effort than utility classes. The design tokens keep it consistent.
-- **System fonts** look different on each device, which the brand accepts.
+- **Class bytes.** Utility classes add bytes to every element. The pages stay light because the long lists use their container class, and experiment 2 measures the product page with them.
+- **Font weight.** A font file is part of the first load. Keeping one family, few weights and the Latin set keeps it small, and Lighthouse measures it on every preview.
 - **Images ship in three formats,** which costs a few files per image at build time, so that every browser gets an image.
 - **Build time.** Resizing runs on each build. With about 50 images this stays small, and the build log shows it.
 
-No download is needed on the owner's machine. sharp comes with the lockfile.
+No separate download is needed on the owner's machine. Tailwind and sharp come with the lockfile, and the font, once chosen, is stated for approval.
 
 ## Consequences
 
 Positive:
 
-- The first load carries the HTML, one small stylesheet, the images in view and Next.js's own runtime, and nothing else.
+- A realistic e-commerce stack, with a brand typeface and utility classes.
 - Every asset comes from the site itself.
 
 Negative:
 
-- No ready-made component library or utility classes.
-- A typeface, if one is wanted later, needs its own approval.
+- Long lists must keep to their container class, which code review watches.
+- The typeface needs the owner's choice and approval before the design is finished.
 
 Follow-up:
 
-- **Design work, by the owner:** the colours, logo and layouts that fill the tokens.
+- **Design work, by the owner:** the typeface, colours, logo and layouts that fill the tokens.
 - **Testing and CI:** the accessibility threshold in Lighthouse CI, next to the performance one.
 - **Implementation:** the image script, its originals with licence notes, and the `<picture>` component.
