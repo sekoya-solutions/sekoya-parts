@@ -6,9 +6,9 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
 - **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
-- **Phase 1 started:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30). Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
+- **Phase 1 started:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30). Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)). The first CI workflow runs Markdown lint on every pull request, as a required check ([#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)).
 - **Nothing built yet:**
-  - no application code, no npm package installed, no CI workflow;
+  - no application code; the only npm package is markdownlint-cli2;
   - no Vercel, Neon, Algolia or DeepL account set up for the project.
 
 ## Next phases
@@ -22,7 +22,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - `.node-version` and `.npmrc` (install scripts off, a three-day minimum release age, exact versions);
    - a `package.json` with `engines.node` set to `26.x`;
    - `node_modules` and the Next.js build folder added to `.gitignore`.
-3. **Markdown lint:** the markdownlint-cli2 workflow, made a required check on `main` ([ADR 0004](adr/0004-testing-and-ci.md)). It replaces the manual Markdown check in `AGENTS.md`, section 4.
+3. **Done: Markdown lint.** The markdownlint-cli2 workflow, made a required check on `main` ([ADR 0004](adr/0004-testing-and-ci.md), [#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)). It replaces the manual check of Markdown files in `AGENTS.md`, section 4. `package.json` overrides markdownlint to 0.42.1 for a re2js security fix; the override is removed once markdownlint-cli2 requires 0.42.1 or later.
 4. **Accounts, created by the owner:**
    - Vercel project in `fra1`, with protected previews, a bypass secret and the firewall rules ([ADR 0002](adr/0002-hosting-and-environments.md));
    - Neon project in Frankfurt, with `preview` and `dev` branches ([ADR 0005](adr/0005-database.md)).

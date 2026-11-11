@@ -6,5 +6,14 @@
   "license": "UNLICENSED",
   "engines": {
     "node": "26.x"
+  },
+  "overrides": {
+    "markdownlint": "0.42.1"
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "0.24.0"
+  },
+  "scripts": {
+    "lint:md": "markdownlint-cli2"
   }
 }
