@@ -34,7 +34,8 @@ Facts were checked on 2026-11-11.
   - next-intl 4.15.0 supports Cache Components through Next.js root parameters ([next-intl issue 1493](https://github.com/amannn/next-intl/issues/1493)). It adds a dependency, for helpers a server-rendered site barely needs.
 - **Redirects and addresses.**
   - Google advises against automatically redirecting visitors between language versions. Localized words in addresses are fine ([multilingual sites](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites?hl=en)).
-  - Translated path words would need a translation table between the address and the route. The same words in every language keep each page's ten versions at the same path, with only the prefix changing.
+  - Translated path words read naturally for visitors and carry a light ranking signal. They need each page to be found by a stable key, since its words differ in each language. Categories already have a slug in each language ([ADR 0007](0007-catalog-data-model.md)).
+  - The same words in every language would keep each page's ten versions at the same path, but read poorly outside one language.
 - **Language tags.** Google reads `hreflang` from HTML, HTTP headers or sitemaps. Each version lists every version, itself included, and `x-default` names the fallback ([localized versions](https://developers.google.com/search/docs/specialty/international/localized-versions)). Next.js writes these links from `alternates.languages` ([generateMetadata](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)).
 - **Sitemaps.** A sitemap holds at most 50,000 addresses or 50 MB uncompressed ([build a sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)). Next.js splits large ones with `generateSitemaps` ([generateSitemaps](https://nextjs.org/docs/app/api-reference/functions/generate-sitemaps)).
 - **Crawl control.**
@@ -51,14 +52,13 @@ Proposed:
 
 - **Routing** follows Next.js's own pattern, with no library: `app/[lang]` for the ten languages and dictionaries loaded on the server.
 - **The bare domain `/`** is a small page listing the ten languages. It is the `x-default` for the home page. Nothing redirects by the browser's language, and addresses without a language return 404.
-- **Addresses use the same words in every language,** and only the prefix changes:
-  - products at `/<lang>/p/<brand>-<reference>`;
-  - reference pages at `/<lang>/p/<brand>-<reference>/<n>`;
-  - models at `/<lang>/m/<brand>-<reference>`;
-  - categories at `/<lang>/c/<code>`.
-
-  Titles and text are translated; the paths are not.
-- **Language tags** go in each page's head through `alternates.languages`, for all ten versions, with `x-default` pointing to the French source. The sitemaps do not repeat them.
+- **Addresses are translated:**
+  - categories at `/<lang>/<category slug>`, for example `/fr/refrigerateur` and `/en/fridge`;
+  - products at `/<lang>/<category slug>/<words>-<reference>`, the words taken from the product's generated name in that language;
+  - reference pages at the product's address followed by `/<n>`;
+  - models at `/<lang>/<model word>/<brand>-<model reference>`, the section word translated, for example `/fr/appareil/...` and `/de/geraet/...`.
+- **Each page is found by its stable key:** the product or model reference, or the category slug in a small table per language. An address whose words differ, after a renamed category for example, is permanently redirected to the correct one, so old links keep working.
+- **Language tags** go in each page's head through `alternates.languages`, each version pointing to its own translated address, with `x-default` pointing to the French source. The sitemaps do not repeat them.
 - **One sitemap** lists the showcase only, a few thousand addresses within the 50,000 limit. It is linked from `robots.txt`.
 - **`robots.txt`** disallows everything, then allows the showcase by path. Search results pages and `/admin` stay blocked, so crawlers never spend Algolia's quota.
 - **Translation:** DeepL's free API, called by Payload's translation job with a key kept as a Vercel secret.
@@ -66,14 +66,15 @@ Proposed:
 
 Why:
 
-- **Simple language versions.** Same paths in every language make each page's language versions a prefix swap. That keeps the language tags simple and matches ADR 0008's cache keys.
+- **Readable addresses.** Translated words suit an e-commerce site, as visitors and search engines read them in their own language. Finding pages by stable keys keeps the cache keys of ADR 0008 unchanged: identifiers and the language.
 - **No guessed language:** no redirect by browser language, as Google advises.
 - **Search pages stay uncrawled,** which protects the search quota. `noindex` alone would let crawlers fetch them.
 - **DeepL** is free without a card, covers the ten languages and stops rather than charges at its limit.
 
 What it costs, and where each cost is checked:
 
-- **Non-French addresses** carry no words of their language, which matters little for a demonstration.
+- **More routing logic.** The route resolves the stable key and checks the words before rendering. Each version's translated address comes from data the page already loads, and a test covers the redirects.
+- **The section word for models** and the allow list in `robots.txt` exist in ten languages.
 - **Blocked pages could still be indexed.** A disallowed page linked from elsewhere could appear without content in results, which Google allows. That is acceptable for search pages and the admin.
 - **DeepL's free allowance and data use on the free plan** are confirmed in the owner's DeepL account when it is created.
 - **Sitemaps for the whole catalog** would only need `generateSitemaps` at 50,000 addresses each, if the crawl showcase is ever widened.
@@ -82,12 +83,12 @@ What it costs, and where each cost is checked:
 
 Positive:
 
-- One route per page type serves ten languages, and every address is predictable.
+- Every address reads in its own language, and old addresses redirect to the current ones.
 - Search engines see a clean showcase, with correct language links.
 
 Negative:
 
-- Paths are not translated.
+- Routing resolves keys and redirects, which adds code and tests.
 - The `robots.txt` allow list must follow the showcase as it changes.
 
 Follow-up:
