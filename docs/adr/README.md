@@ -1,0 +1,8 @@
+# Architecture Decision Records
+
+One record per significant technical choice, written with the options considered before anything is implemented. Only the owner marks a record Accepted. New records start from [template.md](template.md) and are numbered in order (`0001-short-title.md`).
+
+| ADR | Title | Status |
+| --- | --- | --- |
+
+No record yet: the stack ADRs come next.
