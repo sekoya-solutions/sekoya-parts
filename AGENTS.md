@@ -19,7 +19,7 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **Requirements:** PageSpeed 95 to 100, checked on every commit; fine-grained cache invalidation (a price or description change refreshes only that part of a page); full non-regression tests; automatic Vercel deployments for branches and `main`.
   - **Brand:** "Sekoya Parts", with an original design: nothing taken from other sites' names, branding or texts.
   - **Repository:** public from the start. Whether a freelance portfolio fits Vercel's non-commercial Hobby plan is the owner's call.
-- **Stack:** decided one ADR at a time, listed in the [ADR index](docs/adr/README.md). Accepted so far: Next.js 16 with the App Router and Cache Components (ADR 0001); Vercel's Hobby plan, with search engines limited to a showcase and functions in Frankfurt (ADR 0002; Vercel itself is an owner decision). Proposed in conversation but not adopted yet: PostgreSQL on Neon, Payload CMS, Algolia. Nothing is implemented before its ADR is accepted.
+- **Stack:** decided one ADR at a time, listed in the [ADR index](docs/adr/README.md). Accepted so far: Next.js 16 with the App Router and Cache Components (ADR 0001); Vercel's Hobby plan, with search engines limited to a showcase and functions in Frankfurt (ADR 0002; Vercel itself is an owner decision); Node 26 with its bundled npm, TypeScript 7 and Biome (ADR 0003). Proposed in conversation but not adopted yet: PostgreSQL on Neon, Payload CMS, Algolia. Nothing is implemented before its ADR is accepted.
 
 ## 2. Working with the owner
 
@@ -47,6 +47,7 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 - **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/chat-history/` (local log, see section 6).
 - **ADR index integrity:** exactly one index row per ADR, with title, link and status matching the ADR file.
+- **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
 - Standard Markdown only (relative links, no tool-specific syntax), diagrams as Mermaid code blocks, so documents render on GitHub and in Obsidian.
 - **Markdown checks:** until lint tooling exists (it comes with the CI ADR), read every new or changed Markdown file and issue or pull request body to check its headings, lists, tables and checkboxes.
 
