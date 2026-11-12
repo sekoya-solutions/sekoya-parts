@@ -45,7 +45,8 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - **Done: the database connected to the project** (ADR 0005): environment variables for Production only, under the `DATABASE_` prefix, and no database branch per deployment. The app reads `DATABASE_URL` (pooled) at runtime and `DATABASE_URL_UNPOOLED` for migrations and bulk loads.
    - **Done: the `dev` branch,** created by the owner from the empty `main` with auto-delete off (Neon's dialog defaults to one day), its connection strings and `PAYLOAD_SECRET` in a git-ignored `.env.local`. Reset from the loaded `main` after #46.
    - **Done: the `preview` branch,** reset from the loaded `main` after #46, with auto-delete off. Vercel's Preview environment has its own sensitive `DATABASE_URL`, `DATABASE_URL_UNPOOLED` and `PAYLOAD_SECRET`, set by hand: the Neon integration can only give previews `main` or a new branch per deployment.
-   - **Later: Protection Bypass for Automation,** its secret added by the owner as a GitHub Actions secret when the Lighthouse job is built.
+   - **Done: Protection Bypass for Automation** (#47). The owner created an "Agent checks" secret, kept in the git-ignored `.env.local` as `VERCEL_AUTOMATION_BYPASS_SECRET`, so agents read protected previews without a sign-in: a Vercel sign-in in the desktop app's browser pane did not carry over to the next session. The secret also skips the firewall's mitigations and bot protection, so it never goes in a URL or a reply.
+   - **Later: a separate bypass secret for CI,** added by the owner as a GitHub Actions secret when the Lighthouse job is built, so each can be revoked on its own.
 2. **A minimal app,** in three issues:
    - **Done: Payload 3 and the catalog schema** ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)):
      - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
@@ -116,5 +117,6 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
   - set its status and its index row to Accepted;
   - change its decision line from Proposed to Chosen;
   - update the stack line in `AGENTS.md`.
+- **Checking a protected preview:** single `curl` requests with the `x-vercel-protection-bypass` header, its value read from `.env.local` and never printed; the preview's address is in Vercel's comment on the pull request.
 - **The board** sometimes adds new issues by itself. Look up the item before adding it, and set its Status.
 - **Research:** facts come from official pages only, with a subagent on Sonnet for broad reading. Decisive facts are re-checked on the page before an ADR cites them.
