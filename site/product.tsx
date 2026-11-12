@@ -8,11 +8,17 @@ import { cacheLife, cacheTag } from "next/cache";
 import { getPayload } from "payload";
 import { placeholderDescription, productName } from "../catalog/text.ts";
 import type { Locale } from "../cms/locales.ts";
+import { CATALOG_TAG, productTags } from "./tags.ts";
 
 /** References rendered as text on the product page (docs/adr/0009-compatible-references.md). */
 export const PRODUCT_PAGE_REFERENCES = 500;
 
-const CATALOG_TAG = "catalog";
+/**
+ * When a part was computed, rendered as a data-computed-at attribute. It shows
+ * which parts a refresh re-ran (experiment 1, docs/experiments/) and stays for
+ * the end-to-end test that checks a price edit changes nothing else.
+ */
+const computedAt = () => new Date().toISOString();
 
 /**
  * The product's heading data, or null when the product does not exist. The
@@ -23,10 +29,10 @@ const CATALOG_TAG = "catalog";
 export async function getProductHeading(
   id: number,
   locale: Locale,
-): Promise<{ name: string } | null> {
+): Promise<{ name: string; computedAt: string } | null> {
   "use cache: remote";
   cacheLife("max");
-  cacheTag(`product:${id}:description`, CATALOG_TAG);
+  cacheTag(productTags(id).description, CATALOG_TAG);
 
   const payload = await getPayload({ config });
   const product = await payload.findByID({
@@ -37,11 +43,15 @@ export async function getProductHeading(
     disableErrors: true,
   });
   if (!product) return null;
-  if (product.showcase && product.name) return { name: product.name };
+  if (product.showcase && product.name)
+    return { name: product.name, computedAt: computedAt() };
   const brand = typeof product.brand === "object" ? product.brand.name : "";
   const category =
     typeof product.category === "object" ? product.category.name : "";
-  return { name: productName(category, brand, product.reference) };
+  return {
+    name: productName(category, brand, product.reference),
+    computedAt: computedAt(),
+  };
 }
 
 export async function ProductPrice({
@@ -53,7 +63,7 @@ export async function ProductPrice({
 }) {
   "use cache: remote";
   cacheLife("max");
-  cacheTag(`product:${id}:price`, CATALOG_TAG);
+  cacheTag(productTags(id).price, CATALOG_TAG);
 
   const payload = await getPayload({ config });
   const product = await payload.findByID({
@@ -68,7 +78,7 @@ export async function ProductPrice({
     style: "currency",
     currency: "EUR",
   }).format(product.priceCents / 100);
-  return <p>{price}</p>;
+  return <p data-computed-at={computedAt()}>{price}</p>;
 }
 
 export async function ProductDescription({
@@ -80,7 +90,7 @@ export async function ProductDescription({
 }) {
   "use cache: remote";
   cacheLife("max");
-  cacheTag(`product:${id}:description`, CATALOG_TAG);
+  cacheTag(productTags(id).description, CATALOG_TAG);
 
   const payload = await getPayload({ config });
   const product = await payload.findByID({
@@ -98,7 +108,7 @@ export async function ProductDescription({
     product.showcase && product.description
       ? product.description
       : placeholderDescription(id, locale);
-  return <p>{text}</p>;
+  return <p data-computed-at={computedAt()}>{text}</p>;
 }
 
 type ReferenceRow = { id: number; brand: string; reference: string };
@@ -109,7 +119,7 @@ type ReferenceRow = { id: number; brand: string; reference: string };
 export async function ProductReferences({ id }: { id: number }) {
   "use cache: remote";
   cacheLife("max");
-  cacheTag(`product:${id}:references`, CATALOG_TAG);
+  cacheTag(productTags(id).references, CATALOG_TAG);
 
   const payload = await getPayload({ config });
   const { drizzle } = payload.db as unknown as PostgresAdapter;
@@ -127,7 +137,7 @@ export async function ProductReferences({ id }: { id: number }) {
   // Plain links, so the list runs no code in the browser (ADR 0009). The
   // model pages come with the phase 3 templates.
   return (
-    <ul>
+    <ul data-computed-at={computedAt()}>
       {rows.map((row) => (
         <li key={row.id}>
           <a href={`/model/${row.id}`}>

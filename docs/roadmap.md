@@ -67,13 +67,13 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - placeholder descriptions from `catalog/text.ts`, seeded by the product and the language;
      - product 1, with a million models, is built in advance, so every build reads the catalog: the "Lint, types and build" job now loads the small catalog into its own PostgreSQL container first;
      - the HTML of product 1 is 117,828 bytes with its 500 references, about 235 bytes per reference, against ADR 0009's estimate of 150.
-   - **Next: experiment 1** on that page.
+   - **Next: experiment 1** on that page, in progress ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)).
 3. **Experiment 1, partial refresh** (ADR 0008):
    - only the edited part is recomputed;
    - the first-visit HTML is complete without JavaScript;
    - Runtime Cache usage is measured.
 
-   If it fails, a new ADR replaces ADR 0008 with whole-page caching.
+   If it fails, a new ADR replaces ADR 0008 with whole-page caching. In progress in [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55): the parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md).
 4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
    - bytes per reference;
    - PageSpeed and element count for 250 to 2,000 references;
