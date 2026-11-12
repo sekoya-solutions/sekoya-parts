@@ -18,6 +18,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - The seeded catalog generator loaded Neon's `main` at the small scale, and the `preview` and `dev` branches were reset from it ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Each holds 1,000 products, 1,000,000 appliance models and 1,004,373 compatibility rows, in 220 MB of the free plan's 1 GB. The generator and Vitest also run in CI against a PostgreSQL 18 container.
   - Required checks on `main`: "Markdown lint", "Lint, types and build" and "Generator and tests" ([#50](https://github.com/sekoya-solutions/sekoya-parts/issues/50)).
   - A product page at the temporary address `/product/<id>`, built from three cached parts, runs on a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)). The minimal app is complete.
+  - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -67,13 +68,13 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - placeholder descriptions from `catalog/text.ts`, seeded by the product and the language;
      - product 1, with a million models, is built in advance, so every build reads the catalog: the "Lint, types and build" job now loads the small catalog into its own PostgreSQL container first;
      - the HTML of product 1 is 117,828 bytes with its 500 references, about 235 bytes per reference, against ADR 0009's estimate of 150.
-   - **Next: experiment 1** on that page, in progress ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)).
-3. **Experiment 1, partial refresh** (ADR 0008):
-   - only the edited part is recomputed;
-   - the first-visit HTML is complete without JavaScript;
-   - Runtime Cache usage is measured.
+   - **Next: experiment 2** on that page.
+3. **Done: experiment 1, partial refresh** (ADR 0008, [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55), [report](experiments/0001-partial-refresh.md)):
+   - only the edited part is recomputed: the parts are stored in Vercel's Runtime Cache in `fra1` (Next.js's debug log), and a price edit re-runs the price only; on a page built in advance, the first refresh after each deployment re-runs every part once;
+   - the first-visit HTML holds every part as HTML elements;
+   - a first visit costs about 4 Runtime Cache reads and 4 writes, so the showcase fits Hobby's limits many times over.
 
-   If it fails, a new ADR replaces ADR 0008 with whole-page caching. In progress in [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55): the parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md). Agents edit prices through Payload's API as an automation user, which every Preview build creates or updates with the Preview variable `AUTOMATION_API_KEY`; production has no such user. Since all previews share the `preview` branch, a migration from an unmerged branch stays applied there until the branch is reset.
+   ADR 0008 holds. The parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md). Agents edit prices through Payload's API as an automation user, which every Preview build creates or updates with the Preview variable `AUTOMATION_API_KEY`; production has no such user. Since all previews share the `preview` branch, a migration from an unmerged branch stays applied there until the branch is reset.
 4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
    - bytes per reference;
    - PageSpeed and element count for 250 to 2,000 references;
