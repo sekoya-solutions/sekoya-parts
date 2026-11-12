@@ -55,6 +55,7 @@ Product 1, built in advance, with 500 references:
 
 - On a page rendered at run time, a price edit re-ran the price only, and the next request showed the new price.
 - On a page built in advance, the first edit after the deployment re-ran every part, the 500-reference query included; from the second edit on, only the price re-ran.
+
 ### Where the parts were cached
 
 Vercel's dashboard, read at 10:26 UTC for the last 12 hours, shows **no Runtime Cache reads or writes at all**, on Preview and on Production. Its ISR view for Preview does show the morning's activity (3 tag revalidations, writes for `/product/1` and `/product/[id]`), so the dashboard is not lagging.
