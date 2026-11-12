@@ -10,9 +10,9 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
   - The first CI workflow runs Markdown lint on every pull request, as a required check ([#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)).
   - The Neon database exists, created by the owner through the Storage tab of their Vercel account, on Neon's free plan, in AWS Europe Central 1 (Frankfurt), with PostgreSQL 18 ([#35](https://github.com/sekoya-solutions/sekoya-parts/issues/35)). It holds no data yet.
-- **Phase 2 started:** epic [#37](https://github.com/sekoya-solutions/sekoya-parts/issues/37).
+- **Phase 2 done:** epic [#37](https://github.com/sekoya-solutions/sekoya-parts/issues/37).
   - A bare Next.js skeleton: one placeholder page, `vercel.json` with functions in `fra1`, and a CI job running Biome, the type check and the build ([#38](https://github.com/sekoya-solutions/sekoya-parts/issues/38)).
-  - It runs Next.js 16.4.5 until 16.4.6, the version ADR 0003 pins, passes the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
+  - It runs Next.js 16.4.6, the version ADR 0003 pins, installed once it passed the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
   - The Vercel project serves the placeholder page at `https://sekoya-parts.vercel.app/`, behind the firewall settings of phase 2, step 1, and the Neon database is connected for Production ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)). PageSpeed Insights scores the placeholder 100 in all four categories, on mobile and desktop.
   - Payload 3.93.0 runs inside the app, with the catalog schema created by committed migrations ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)). The admin is at `/admin`.
   - The seeded catalog generator loaded Neon's `main` at the small scale, and the `preview` and `dev` branches were reset from it ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Each holds 1,000 products, 1,000,000 appliance models and 1,004,373 compatibility rows, in 220 MB of the free plan's 1 GB. The generator and Vitest also run in CI against a PostgreSQL 18 container.
@@ -24,7 +24,6 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Each preview's Lighthouse scores, in the four categories, appear in a "Lighthouse scores" check and in one comment on the pull request, with the redacted reports to download ([#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)).
   - The "Lighthouse" check fails below a median mobile performance of 95, and is required on `main` ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61)).
   - Lighthouse also measures each Production deployment of `main`, at the public address ([#67](https://github.com/sekoya-solutions/sekoya-parts/issues/67)).
-  - Phase 2 is complete once Next.js 16.4.6 replaces 16.4.5 ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -42,7 +41,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 3. **Done: Markdown lint.** The markdownlint-cli2 workflow, made a required check on `main` ([ADR 0004](adr/0004-testing-and-ci.md), [#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)). It replaces the manual check of Markdown files in `AGENTS.md`, section 4. `package.json` overrides markdownlint to 0.42.1 for a re2js security fix; the override is removed once markdownlint-cli2 requires 0.42.1 or later.
 4. **Done: the Neon database,** created by the owner in Frankfurt with PostgreSQL 18 ([ADR 0005](adr/0005-database.md)). The Vercel project and the Neon branches moved to phase 2: before an app exists, importing the repository would publish its files on a public production address, and a branch of the empty database would hold nothing.
 
-### Phase 2: a walking skeleton and the two experiments
+### Phase 2, done: a walking skeleton and the two experiments
 
 1. **Hosting** ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)):
    - **Done: the Vercel project,** created by the owner in their Hobby account from this repository, with the Vercel GitHub app limited to selected repositories ([ADR 0002](adr/0002-hosting-and-environments.md)):
@@ -54,7 +53,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - **Done: the `preview` branch,** reset from the loaded `main` after #46, with auto-delete off. Vercel's Preview environment has its own sensitive `DATABASE_URL`, `DATABASE_URL_UNPOOLED` and `PAYLOAD_SECRET`, set by hand: the Neon integration can only give previews `main` or a new branch per deployment.
    - **Done: Protection Bypass for Automation** (#47). The owner created an "Agent checks" secret, kept in the git-ignored `.env.local` as `VERCEL_AUTOMATION_BYPASS_SECRET`, so agents read protected previews without a sign-in: a Vercel sign-in in the desktop app's browser pane did not carry over to the next session. The secret also skips the firewall's mitigations and bot protection, so it never goes in a URL or a reply.
    - **Done: the Vercel Toolbar off for pre-production deployments** (project settings, owner, 2026-11-12, [#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)). Its script, from `vercel.live`, set a third-party cookie in some Lighthouse runs and cost about 23 best-practices points. The documented `x-vercel-skip-toolbar` header did not keep it out of Lighthouse's browser. Each Lighthouse run now fails if the page requests `vercel.live`.
-   - **Later: a separate bypass secret for CI,** added by the owner as a GitHub Actions secret when the Lighthouse job is built, so each can be revoked on its own.
+   - **Done: a separate bypass secret for CI** ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)): the owner's "CI checks" secret, the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET`, so it can be revoked apart from the agents' "Agent checks" secret.
 2. **A minimal app,** in three issues:
    - **Done: Payload 3 and the catalog schema** ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)):
      - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
