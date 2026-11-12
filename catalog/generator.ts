@@ -13,6 +13,13 @@ export const MODEL_COUNT = 1_000_000;
 /** The product compatible with every model, at every scale. */
 export const MILLION_PRODUCT_ID = 1;
 
+/**
+ * A generated product's reference, such as SP000001: uppercase letters and
+ * digits only, the rule every product reference follows (site/addresses.ts).
+ */
+export const productReference = (id: number): string =>
+  `SP${String(id).padStart(6, "0")}`;
+
 export const scales = {
   small: { products: 1_000, brands: 20 },
   full: { products: 100_000, brands: 60 },
@@ -353,7 +360,7 @@ export function* productRows(
     const priceCents = Math.floor(cents / 100) * 100 + 90;
     yield [
       id,
-      `SP${String(id).padStart(6, "0")}`,
+      productReference(id),
       1 + randomInt(rng, brands),
       1 + randomInt(rng, categoryCount),
       priceCents,

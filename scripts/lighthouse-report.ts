@@ -47,6 +47,27 @@ export function targetOf(environment: string): Target {
   throw new Error(`Unknown deployment environment: ${environment}.`);
 }
 
+/**
+ * The path a redirect's Location header points to, when it stays on the
+ * requested address's origin and is not the same address; otherwise null, so
+ * a run never measures another site or loops (issue #73).
+ */
+export function sameOriginPath(
+  requested: URL,
+  location: string | null,
+): string | null {
+  if (!location) return null;
+  let target: URL;
+  try {
+    target = new URL(location, requested);
+  } catch {
+    return null;
+  }
+  if (target.origin !== requested.origin) return null;
+  const path = `${target.pathname}${target.search}`;
+  return path === `${requested.pathname}${requested.search}` ? null : path;
+}
+
 /** The audits a target leaves out. */
 export const skippedAudits = (target: Target) =>
   target === "preview" ? PREVIEW_SKIPPED_AUDITS : [];

@@ -41,6 +41,7 @@ import {
   PRODUCTION_URL,
   REPORTS_DIR,
   reportFiles,
+  sameOriginPath,
   scoresTable,
   skippedAudits,
   splitWarmUp,
@@ -119,14 +120,13 @@ if (
 rmSync(REPORTS_DIR, { recursive: true, force: true });
 rmSync(FIGURES_FILE, { force: true });
 
-// The first request: one per address, which checks the deployment answers before
-// Chrome loads it, and gives the uncompressed HTML size (fetch decompresses
-// the body). A mitigation stops everything at once, with no retry
-// (AGENTS.md, section 2).
-const figures: Figures[] = [];
-for (const path of paths) {
-  const response = await fetch(new URL(path, base), { headers });
-  const html = await response.text();
+// One request, without following redirects. A mitigation stops everything at
+// once, with no retry (AGENTS.md, section 2).
+async function request(path: string): Promise<Response> {
+  const response = await fetch(new URL(path, base), {
+    headers,
+    redirect: "manual",
+  });
   const blocked =
     response.status === 403 ||
     response.status === 429 ||
@@ -137,6 +137,36 @@ for (const path of paths) {
     );
     process.exit(1);
   }
+  return response;
+}
+
+// The first request: one per address, which checks the deployment answers before
+// Chrome loads it, and gives the uncompressed HTML size (fetch decompresses
+// the body). An address may be a lookup address, such as /fr/p/sp000001,
+// which the site redirects permanently to the product's address (issue #73):
+// the address measured is then the redirect's target, on the same origin,
+// after one more request, so its words never need to be known here.
+const figures: Figures[] = [];
+for (const requested of paths) {
+  let path = requested;
+  let response = await request(path);
+  if (response.status === 308) {
+    const next = sameOriginPath(
+      new URL(path, base),
+      response.headers.get("location"),
+    );
+    await response.body?.cancel();
+    if (!next) {
+      console.error(
+        `Stopped: ${path} redirects outside the deployment or to nowhere.`,
+      );
+      process.exit(1);
+    }
+    console.log(`${path} redirects to ${next}, which is measured.`);
+    path = next;
+    response = await request(path);
+  }
+  const html = await response.text();
   if (response.status !== 200) {
     console.error(`Stopped: ${path} answered ${response.status}.`);
     process.exit(1);
@@ -184,7 +214,7 @@ try {
     JSON.stringify({
       ci: {
         collect: {
-          url: paths.map((path) => new URL(path, base).href),
+          url: figures.map(({ path }) => new URL(path, base).href),
           numberOfRuns: RUNS + 1,
           settings: {
             ...(Object.keys(headers).length > 0 && { extraHeaders: headers }),

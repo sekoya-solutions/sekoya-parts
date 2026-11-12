@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { isProductReference } from "../../site/addresses.ts";
 import {
   revalidateProductAfterChange,
   revalidateProductAfterDelete,
@@ -29,6 +30,15 @@ export const Products: CollectionConfig = {
       type: "text",
       required: true,
       unique: true,
+      // The stable key at the end of the product's address
+      // (docs/adr/0011-languages-and-seo.md). A custom validate replaces
+      // Payload's own, so it checks both rules.
+      validate: (value: string | null | undefined) => {
+        if (!value) return "A reference is required.";
+        return isProductReference(value)
+          ? true
+          : "Use uppercase letters and digits only, such as SP000123.";
+      },
     },
     {
       name: "brand",

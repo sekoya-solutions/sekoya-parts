@@ -6,10 +6,17 @@ import config from "@payload-config";
 import { type PostgresAdapter, sql } from "@payloadcms/db-postgres";
 import { cacheLife, cacheTag } from "next/cache";
 import { getPayload } from "payload";
-import { placeholderDescription, productName } from "../catalog/text.ts";
+import { placeholderDescription } from "../catalog/text.ts";
 import type { Locale } from "../cms/locales.ts";
+import { productAddresses } from "./addresses.ts";
 import { PRODUCT_PAGE_REFERENCES } from "./references.ts";
-import { CATALOG_TAG, productTags } from "./tags.ts";
+import {
+  brandTag,
+  CATALOG_TAG,
+  categoryTag,
+  productTags,
+  referenceTag,
+} from "./tags.ts";
 
 /**
  * When a part was computed, rendered as a data-computed-at attribute. It shows
@@ -18,38 +25,80 @@ import { CATALOG_TAG, productTags } from "./tags.ts";
  */
 const computedAt = () => new Date().toISOString();
 
+/** A product found by its reference: its id, and its name and address in each language. */
+export type ProductRoute = {
+  id: number;
+  names: Record<Locale, string>;
+  paths: Record<Locale, string>;
+  computedAt: string;
+};
+
+// With locale "all", Payload returns each localized field as an object keyed
+// by language.
+type AllLocales = Record<string, string | null | undefined>;
+const allLocales = (value: unknown): AllLocales =>
+  value !== null && typeof value === "object" ? (value as AllLocales) : {};
+
 /**
- * The product's heading data, or null when the product does not exist. The
- * page reads it first, so a missing product gets a 404 before any part
- * renders. A showcase product's name is edited like its description, so it
- * shares the description's tag.
+ * Reads a product by its reference, with no cache: the cached lookup below
+ * and the build's list of pages built in advance both use it. Null when no
+ * product has that reference.
  */
-export async function getProductHeading(
-  id: number,
-  locale: Locale,
-): Promise<{ name: string; computedAt: string } | null> {
+export async function readProductRoute(reference: string): Promise<{
+  route: ProductRoute;
+  brandId: number;
+  categoryId: number;
+} | null> {
+  const payload = await getPayload({ config });
+  const { docs } = await payload.find({
+    collection: "products",
+    where: { reference: { equals: reference } },
+    locale: "all",
+    depth: 1,
+    limit: 1,
+    pagination: false,
+  });
+  const product = docs[0];
+  if (!product) return null;
+  if (typeof product.brand !== "object" || typeof product.category !== "object")
+    throw new Error(`Product ${reference}: brand or category not populated.`);
+  const { names, paths } = productAddresses({
+    reference: product.reference,
+    showcaseNames: product.showcase ? allLocales(product.name) : null,
+    categoryNames: allLocales(product.category.name),
+    categorySlugs: allLocales(product.category.slug),
+    brand: product.brand.name,
+  });
+  return {
+    route: { id: product.id, names, paths, computedAt: computedAt() },
+    brandId: product.brand.id,
+    categoryId: product.category.id,
+  };
+}
+
+/**
+ * The product with this reference, or null, which the page answers with a
+ * 404. One entry per reference, shared by the ten languages. It is refreshed
+ * by the reference's tag (a new or renamed product), the description's tag,
+ * which covers the product's name, reference, brand and category, and the
+ * category's and brand's tags, since an ordinary product's name and address
+ * are built from them. The page's heading reads its names.
+ */
+export async function getProductRoute(
+  reference: string,
+): Promise<ProductRoute | null> {
   "use cache: remote";
   cacheLife("max");
-  cacheTag(productTags(id).description, CATALOG_TAG);
+  cacheTag(referenceTag(reference), CATALOG_TAG);
 
-  const payload = await getPayload({ config });
-  const product = await payload.findByID({
-    collection: "products",
-    id,
-    locale,
-    depth: 1,
-    disableErrors: true,
-  });
-  if (!product) return null;
-  if (product.showcase && product.name)
-    return { name: product.name, computedAt: computedAt() };
-  const brand = typeof product.brand === "object" ? product.brand.name : "";
-  const category =
-    typeof product.category === "object" ? product.category.name : "";
-  return {
-    name: productName(category, brand, product.reference),
-    computedAt: computedAt(),
-  };
+  const found = await readProductRoute(reference);
+  if (!found) return null;
+  cacheTag(
+    productTags(found.route.id).description,
+    categoryTag(found.categoryId),
+    brandTag(found.brandId),
+  );
+  return found.route;
 }
 
 export async function ProductPrice({
