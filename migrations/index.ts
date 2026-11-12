@@ -1,5 +1,6 @@
 import * as migration_20261111_231404_initial from "./20261111_231404_initial";
 import * as migration_20261111_231500_project_tables from "./20261111_231500_project_tables";
+import * as migration_20261112_100026_api_keys from "./20261112_100026_api_keys";
 
 export const migrations = [
   {
@@ -11,5 +12,10 @@ export const migrations = [
     up: migration_20261111_231500_project_tables.up,
     down: migration_20261111_231500_project_tables.down,
     name: "20261111_231500_project_tables",
+  },
+  {
+    up: migration_20261112_100026_api_keys.up,
+    down: migration_20261112_100026_api_keys.down,
+    name: "20261112_100026_api_keys",
   },
 ];

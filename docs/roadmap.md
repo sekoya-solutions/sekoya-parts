@@ -18,6 +18,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - The seeded catalog generator loaded Neon's `main` at the small scale, and the `preview` and `dev` branches were reset from it ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Each holds 1,000 products, 1,000,000 appliance models and 1,004,373 compatibility rows, in 220 MB of the free plan's 1 GB. The generator and Vitest also run in CI against a PostgreSQL 18 container.
   - Required checks on `main`: "Markdown lint", "Lint, types and build" and "Generator and tests" ([#50](https://github.com/sekoya-solutions/sekoya-parts/issues/50)).
   - A product page at the temporary address `/product/<id>`, built from three cached parts, runs on a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)). The minimal app is complete.
+  - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -52,7 +53,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
      - the collections of [ADR 0007](adr/0007-catalog-data-model.md) in ten languages, and the project tables `appliance_models` and `compatibility` in a hand-written migration;
      - the schema only from committed migrations, run by `npm run payload -- migrate` over `DATABASE_URL_UNPOOLED`;
-     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); previews, CI and local builds skip them;
+     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); CI and local builds skip them, and since [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55) Preview builds apply them to the shared `preview` branch too;
      - `package.json` overrides `dompurify` to 3.4.17, since `monaco-editor` 0.57.0 pins a version with known flaws; the override is removed once `monaco-editor` requires a fixed version.
    - **Done: the generator at a small scale** ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)):
      - `catalog/generator.ts` builds every row from a seed and a scale, without a database; `npm run generate` (`scripts/generate.ts`) loads them with `COPY` in one transaction over `DATABASE_URL_UNPOOLED`, and refuses a filled catalog without `--replace`;
@@ -67,13 +68,13 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - placeholder descriptions from `catalog/text.ts`, seeded by the product and the language;
      - product 1, with a million models, is built in advance, so every build reads the catalog: the "Lint, types and build" job now loads the small catalog into its own PostgreSQL container first;
      - the HTML of product 1 is 117,828 bytes with its 500 references, about 235 bytes per reference, against ADR 0009's estimate of 150.
-   - **Next: experiment 1** on that page.
-3. **Experiment 1, partial refresh** (ADR 0008):
-   - only the edited part is recomputed;
-   - the first-visit HTML is complete without JavaScript;
-   - Runtime Cache usage is measured.
+   - **Next: experiment 2** on that page.
+3. **Done: experiment 1, partial refresh** (ADR 0008, [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55), [report](experiments/0001-partial-refresh.md)):
+   - only the edited part is recomputed: the parts are stored in Vercel's Runtime Cache in `fra1` (Next.js's debug log), and a price edit re-runs the price only; on a page built in advance, the first refresh after each deployment re-runs every part once;
+   - the first-visit HTML holds every part as HTML elements;
+   - a first visit costs about 4 Runtime Cache reads and 4 writes, so the showcase fits Hobby's limits many times over.
 
-   If it fails, a new ADR replaces ADR 0008 with whole-page caching.
+   ADR 0008 holds. The parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md). Agents edit prices through Payload's API as an automation user, which every Preview build creates or updates with the Preview variable `AUTOMATION_API_KEY`; production has no such user. Since all previews share the `preview` branch, a migration from an unmerged branch stays applied there until the branch is reset.
 4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
    - bytes per reference;
    - PageSpeed and element count for 250 to 2,000 references;
@@ -118,5 +119,9 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
   - change its decision line from Proposed to Chosen;
   - update the stack line in `AGENTS.md`.
 - **Checking a protected preview:** single `curl` requests with the `x-vercel-protection-bypass` header, its value read from `.env.local` and never printed; the preview's address is in Vercel's comment on the pull request.
+- **Checking caching on a preview:**
+  - Vercel's Preview environment keeps `NEXT_PRIVATE_DEBUG_CACHE=1`, never Production. Next.js then logs, in the deployment's runtime logs, which cache handler it uses (`setting "remote" cache handler from symbol` means Vercel's Runtime Cache) and its cache endpoint. It is a private Next.js flag, so its lines may change between versions.
+  - Conclusions about caching come from those logs and the `data-computed-at` markers. The Runtime Cache dashboard (Observability, Runtime Cache, Preview) shows totals only on Hobby and can lag by more than 20 minutes, so a missing figure is checked again, not read as no use.
+  - Content edits on a preview go through Payload's REST API as the automation user, with `AUTOMATION_API_KEY` from `.env.local`.
 - **The board** sometimes adds new issues by itself. Look up the item before adding it, and set its Status.
 - **Research:** facts come from official pages only, with a subagent on Sonnet for broad reading. Decisive facts are re-checked on the page before an ADR cites them.

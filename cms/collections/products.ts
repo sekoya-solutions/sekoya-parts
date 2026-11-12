@@ -1,10 +1,18 @@
 import type { CollectionConfig } from "payload";
+import {
+  revalidateProductAfterChange,
+  revalidateProductAfterDelete,
+} from "../hooks/revalidate-product.ts";
 
 // Products as docs/adr/0007-catalog-data-model.md defines them. Names and
 // descriptions are stored only for showcase products; the others are
 // generated at render time.
 export const Products: CollectionConfig = {
   slug: "products",
+  hooks: {
+    afterChange: [revalidateProductAfterChange],
+    afterDelete: [revalidateProductAfterDelete],
+  },
   admin: {
     useAsTitle: "reference",
     defaultColumns: [

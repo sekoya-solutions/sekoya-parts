@@ -43,6 +43,7 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **Prove it:** add a regression test that fails without the change and passes with it. When something cannot be tested automatically, say so and say what was checked instead.
   - **No half-measures shipped as fixes:** if the only solution is a workaround or heuristic, tell the owner before implementing it, with its limits and the robust alternative.
   - **Claim only what is guaranteed** in comments, documentation, pull request text and ticked checkboxes.
+- **Automate repeatable steps (owner rule):** when planning a check, a test or an environment, work out what must happen again on each preview, deployment, database reset or run, and automate it from the start, with secrets per environment. Never plan a recurring manual step for the owner, and never use a default or committed password.
 - **Small, reviewable changes:** weigh optional cleanup or tooling against its measurable benefit, and ask before doing work whose benefit is unclear.
 - **Cost-efficient execution:** no repeated CI polling or redundant reads. Give self-contained, mechanical or read-heavy subtasks to a subagent on an economical model (Sonnet or Haiku) when quality holds, and say so in the reply (model and task). Keep design decisions, ADRs, hard debugging and final review on the main model.
 - **Public repository:** never commit secrets, keys, tokens or personal data. Environment files stay git-ignored (only `.env.example` may be committed).
@@ -50,7 +51,7 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 ## 4. Documentation
 
-- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/chat-history/` (local log, see section 6), and [docs/roadmap.md](docs/roadmap.md) (current status and next steps).
+- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/experiments/` (one report per experiment, with its setup, results and conclusion), `docs/chat-history/` (local log, see section 6), and [docs/roadmap.md](docs/roadmap.md) (current status and next steps).
 - **Roadmap:** read [docs/roadmap.md](docs/roadmap.md) at the start of each session, and update it in the same pull request whenever a step is done or the plan changes.
 - **ADR index integrity:** exactly one index row per ADR, with title, link and status matching the ADR file.
 - **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.

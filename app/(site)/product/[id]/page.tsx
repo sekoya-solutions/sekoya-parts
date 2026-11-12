@@ -33,7 +33,7 @@ export default async function ProductPage({
 
   return (
     <main>
-      <h1>{heading.name}</h1>
+      <h1 data-computed-at={heading.computedAt}>{heading.name}</h1>
       <ProductPrice id={id} locale={locale} />
       <ProductDescription id={id} locale={locale} />
       <h2>Modèles compatibles</h2>
