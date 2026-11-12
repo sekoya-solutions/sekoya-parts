@@ -27,7 +27,7 @@ test("product 1 shows its heading, price, description and references", async ({
 
   // Product 1 is compatible with every model, so it reaches the cap.
   const links = main.locator("ul > li > a");
-  await expect(links).toHaveCount(PRODUCT_PAGE_REFERENCES);
+  await expect(links).toHaveCount(PRODUCT_PAGE_REFERENCES + 1);
   for (const href of await links.evaluateAll((anchors) =>
     anchors.map((a) => a.getAttribute("href")),
   )) {
