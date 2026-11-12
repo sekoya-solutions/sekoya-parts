@@ -1,4 +1,4 @@
-// The Lighthouse check's helpers (issues #59, #61 and #67): no report is saved
+// The Lighthouse check's helpers (issues #59, #61, #67 and #73): no report is saved
 // with the bypass secret, the warm-up run is not counted, the 95 threshold
 // fails a low median, and the texts carry the medians and the verdict.
 import { describe, expect, it } from "vitest";
@@ -18,6 +18,7 @@ import {
   PRODUCTION_URL,
   redact,
   reportFiles,
+  sameOriginPath,
   scoresTable,
   skippedAudits,
   splitWarmUp,
@@ -303,5 +304,46 @@ describe("commitHeaders", () => {
   it("adds no rule when the build has no commit", () => {
     expect(commitHeaders(undefined)).toEqual([]);
     expect(commitHeaders("")).toEqual([]);
+  });
+});
+
+describe("sameOriginPath", () => {
+  const requested = new URL("https://preview.example/fr/p/sp000001");
+
+  it("follows a redirect on the same origin, absolute or relative", () => {
+    expect(
+      sameOriginPath(
+        requested,
+        "https://preview.example/fr/courroie/courroie-x-sp000001",
+      ),
+    ).toBe("/fr/courroie/courroie-x-sp000001");
+    expect(sameOriginPath(requested, "/fr/courroie/courroie-x-sp000001")).toBe(
+      "/fr/courroie/courroie-x-sp000001",
+    );
+  });
+
+  it("accepts a repeated Location header only when every value is the same", () => {
+    expect(
+      sameOriginPath(
+        requested,
+        "/fr/courroie/courroie-x-sp000001, /fr/courroie/courroie-x-sp000001",
+      ),
+    ).toBe("/fr/courroie/courroie-x-sp000001");
+    expect(
+      sameOriginPath(
+        requested,
+        "/fr/courroie/a-sp000001, /fr/joint/b-sp000001",
+      ),
+    ).toBeNull();
+  });
+
+  it("refuses another origin, the same address or no address", () => {
+    expect(
+      sameOriginPath(requested, "https://elsewhere.example/fr"),
+    ).toBeNull();
+    expect(sameOriginPath(requested, "http://preview.example/fr")).toBeNull();
+    expect(sameOriginPath(requested, "/fr/p/sp000001")).toBeNull();
+    expect(sameOriginPath(requested, null)).toBeNull();
+    expect(sameOriginPath(requested, "")).toBeNull();
   });
 });

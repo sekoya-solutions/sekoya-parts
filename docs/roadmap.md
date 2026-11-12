@@ -24,6 +24,8 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Each preview's Lighthouse scores, in the four categories, appear in a "Lighthouse scores" check and in one comment on the pull request, with the redacted reports to download ([#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)).
   - The "Lighthouse" check fails below a median mobile performance of 95, and is required on `main` ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61)).
   - Lighthouse also measures each Production deployment of `main`, at the public address ([#67](https://github.com/sekoya-solutions/sekoya-parts/issues/67)).
+- **Phase 3 in progress:** epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72).
+  - Every page is under its language, with translated addresses and language tags; the product page is at its final address, and `/` lists the ten languages ([#73](https://github.com/sekoya-solutions/sekoya-parts/issues/73)).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -92,7 +94,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 5. **The remaining CI jobs,** as their code appears:
    - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check, against the small catalog since #47;
    - Vitest, with the first tests, in the "Generator and tests" job since #46, required on `main` since #50;
-   - Playwright and the 2 MB test, in the "End-to-end tests" job since [#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60): Playwright 1.65.0 runs Chromium's headless shell, installed on the runner only, against the job's own build and small catalog. The 2 MB test measures `/product/1`, which renders the full 1,000 references (228,324 bytes); phase 3 extends it to the ten languages, and end-to-end tests of partial refresh and of the templates come with their code;
+   - Playwright and the 2 MB test, in the "End-to-end tests" job since [#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60): Playwright 1.65.0 runs Chromium's headless shell, installed on the runner only, against the job's own build and small catalog. The 2 MB test measured `/product/1`, which renders the full 1,000 references (228,324 bytes); since [#73](https://github.com/sekoya-solutions/sekoya-parts/issues/73) it measures product 1 in the ten languages, and end-to-end tests of partial refresh and of the templates come with their code;
    - Lighthouse on previews, as a "Lighthouse" check that appears on the pull request (seen on #58). Since [#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61), it fails when an address's median mobile performance is below 95, and the summary names the address and its score. Each address gets one request to check the preview answers, one Lighthouse warm-up run that is not counted, then five runs, one after another. It is required on `main`, with Vercel's "Vercel" status, each pinned to its app (GitHub Actions, Vercel): a pull request merges only once its preview is deployed and measured. A pull request from a fork stays blocked until the owner lets Vercel deploy it, and a failed deployment fails the "Vercel" status. Since [#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59), the workflow also:
      - posts a "Lighthouse scores" check, passing or failing with the threshold, whose title gives the median of each category (performance, accessibility, best practices, SEO), and keeps one comment up to date on the open pull request whose head is the deployed commit, through the workflow's own token;
      - uploads the HTML and JSON reports of every run as the `lighthouse-reports-<commit>` artifact, kept 30 days and downloadable by any signed-in GitHub user. Each report is rebuilt from its result with the extra headers removed, then checked for the secret and the header's name; no other report leaves the job (`scripts/lighthouse-report.ts`, tested by Vitest);
@@ -110,14 +112,27 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - the first request checks the `x-sekoya-commit` header, which every Vercel build sends with its commit (`site/commit.ts`, through `next.config.ts`), and stops the run when the public address serves another commit, with no retry;
      - the scores go to the job summary and the "Lighthouse scores" check on `main`'s commit, with the reports, and no comment. A low score only marks `main`'s commit red (owner decision): GitHub notifies whoever started the run, here Vercel's app.
 
-### Phase 3: the catalog
+### Phase 3, in progress: the catalog
 
-- The full generator, the four page templates and the reference pages.
-- Payload's admin, its hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), [ADR 0011](adr/0011-languages-and-seo.md)).
-- Translated addresses, `hreflang`, the showcase sitemap and `robots.txt` (ADR 0011).
-- Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured.
-- The design, images and fonts ([ADR 0012](adr/0012-front-end-assets.md)).
-- Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
+Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the order the owner set on 2026-11-12. Each step gets its issue when its work starts.
+
+1. **Done: language routing** ([#73](https://github.com/sekoya-solutions/sekoya-parts/issues/73), [ADR 0011](adr/0011-languages-and-seo.md)):
+   - every site page is under `app/(site)/[lang]`, whose root layout sets `<html lang>`; any other first segment, and any address without a language, returns Next.js's default 404 until the design step brings a designed one;
+   - `/` lists the ten languages and is the `x-default` of the home pages; each `/<lang>` is a placeholder home page until the home template;
+   - the product page is at `/<lang>/<category slug>/<words>-<reference>`, in lowercase ASCII (`site/addresses.ts`), and `/product/<id>` is gone. A product is found by its reference, so product references are uppercase letters and digits only, and category slugs lowercase words joined by hyphens, both checked by Payload on save;
+   - any other words, category slug or letter case before a valid reference redirect permanently (308) to the address. The tests and the Lighthouse check use the lookup address `/fr/p/sp000001` and follow its redirect, so they never depend on the catalog's words;
+   - a cached lookup, one entry per reference for the ten languages, gives the product's id, names and addresses. It is tagged with the reference, the product's description tag, its category and its brand; save hooks on categories and brands refresh them, which also refreshes the headings that show them. The price, description and reference list keep the cache keys and tags of ADR 0008;
+   - each page's head lists its ten versions and `x-default` at full addresses, on the origin `site/site-url.ts` gives (the production domain, a preview's branch address, or localhost);
+   - interface labels live in `site/dictionaries/<lang>.json`, and a test checks every key exists in all ten;
+   - product 1 is built in advance in the ten languages, and the 2 MB test covers all ten (about 230 KB each).
+2. The full-scale catalog loaded into Neon's `main`, then `preview` and `dev` reset from it ([ADR 0007](adr/0007-catalog-data-model.md)).
+3. The model page and the numbered reference pages ([ADR 0009](adr/0009-compatible-references.md), ADR 0011). Translated model addresses mean the reference list's links differ by language, so its cache entry can no longer be shared by the ten languages: a decision for the owner when the step starts.
+4. The category listing and the home page.
+5. The design, images and fonts ([ADR 0012](adr/0012-front-end-assets.md)), once the owner has chosen the typeface, colours, logo and images.
+6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), once the owner has a DeepL account.
+7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
+8. The showcase sitemap and `robots.txt` (ADR 0011).
+9. Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
 
 ## Decisions open for the owner
 

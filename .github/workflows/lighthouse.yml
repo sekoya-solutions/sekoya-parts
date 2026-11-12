@@ -46,13 +46,15 @@ jobs:
       # public address serves this commit), one Lighthouse warm-up run that is
       # not counted, then five measured runs. Fails below 95, after writing
       # the figures and the reports. The bypass secret goes to previews only.
+      # /fr/p/sp000001 redirects to the French address of product SP000001,
+      # whose words depend on the catalog; the script measures the target.
       - name: Measure the deployment
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ startsWith(github.event.deployment.environment, 'Preview') && secrets.VERCEL_AUTOMATION_BYPASS_SECRET || '' }}
           DEPLOY_ENVIRONMENT: ${{ github.event.deployment.environment }}
           DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
-        run: node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL" /product/1
+        run: node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL" /fr/p/sp000001
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.
