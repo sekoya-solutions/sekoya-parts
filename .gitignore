@@ -25,3 +25,7 @@ docs/chat-history/*
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Playwright results and traces
+/test-results/
+/playwright-report/

@@ -8,10 +8,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { getPayload } from "payload";
 import { placeholderDescription, productName } from "../catalog/text.ts";
 import type { Locale } from "../cms/locales.ts";
+import { PRODUCT_PAGE_REFERENCES } from "./references.ts";
 import { CATALOG_TAG, productTags } from "./tags.ts";
-
-/** References rendered as text on the product page (docs/adr/0009-compatible-references.md). */
-export const PRODUCT_PAGE_REFERENCES = 1000;
 
 /**
  * When a part was computed, rendered as a data-computed-at attribute. It shows
