@@ -1,0 +1,47 @@
+# Lighthouse on each ready Vercel preview, decided in
+# docs/adr/0004-testing-and-ci.md. During experiment 2 (issue #57) it also
+# measures the temporary reference-count pages, and it reports figures only:
+# failing below 95 and becoming a required check come with the remaining CI
+# jobs. deployment_status runs this file as it is on the deployed commit.
+name: Lighthouse
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.event.deployment.sha }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment.environment, 'Preview')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      # Single loads, one after another: a warm-up request per address, then
+      # five Lighthouse runs each.
+      - name: Measure the preview
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
+        run: >-
+          node scripts/lighthouse.ts "$PREVIEW_URL"
+          /product/1
+          /experiments/references/250
+          /experiments/references/500
+          /experiments/references/1000
+          /experiments/references/2000

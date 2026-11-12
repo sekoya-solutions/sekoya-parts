@@ -7,9 +7,8 @@ import { parseProductId } from "../../../../catalog/text.ts";
 import type { Locale } from "../../../../cms/locales.ts";
 import {
   getProductHeading,
-  ProductDescription,
-  ProductPrice,
-  ProductReferences,
+  PRODUCT_PAGE_REFERENCES,
+  ProductView,
 } from "../../../../site/product.tsx";
 
 // Built in advance: the product with a million compatible models. The others
@@ -32,12 +31,11 @@ export default async function ProductPage({
   if (!heading) notFound();
 
   return (
-    <main>
-      <h1 data-computed-at={heading.computedAt}>{heading.name}</h1>
-      <ProductPrice id={id} locale={locale} />
-      <ProductDescription id={id} locale={locale} />
-      <h2>Modèles compatibles</h2>
-      <ProductReferences id={id} />
-    </main>
+    <ProductView
+      id={id}
+      heading={heading}
+      locale={locale}
+      references={PRODUCT_PAGE_REFERENCES}
+    />
   );
 }
