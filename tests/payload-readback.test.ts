@@ -98,13 +98,22 @@ describe("Payload reads the generated catalog", () => {
     }
   });
 
-  it("gives a new document the next free id", async () => {
+  // The generator moves each sequence past the ids it loaded. A sequence never
+  // goes back, even after the delete below, so the exact next id is known only
+  // once per load; the guarantee checked is that it collides with no row, which
+  // holds on every run, on a fresh or a long-lived database (issue #64).
+  it("gives a new document an id past every existing one", async () => {
+    const { rows } = await client.query<{ max: number }>(
+      `SELECT COALESCE(MAX(id), 0)::int AS max FROM brands`,
+    );
+    const highest = rows[0]?.max ?? 0;
+    expect(highest).toBeGreaterThanOrEqual(scale.brands);
     const brand = await payload.create({
       collection: "brands",
       data: { name: "Readback test brand", slug: "readback-test-brand" },
     });
     try {
-      expect(brand.id).toBe(scale.brands + 1);
+      expect(brand.id).toBeGreaterThan(highest);
     } finally {
       await payload.delete({ collection: "brands", id: brand.id });
     }
