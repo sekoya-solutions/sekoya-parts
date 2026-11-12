@@ -2,7 +2,9 @@
 # docs/adr/0004-testing-and-ci.md. Since issue #61, the job fails when an
 # address's median mobile performance is below 95. Since issue #59, the
 # scores also appear in a "Lighthouse scores" check and in one comment on the
-# pull request, and the redacted reports are uploaded.
+# pull request, and the redacted reports are uploaded. Since issue #67, it also
+# runs on each ready Production deployment of main, at the public address,
+# without the bypass secret and without a comment.
 # deployment_status runs this file as it is on the deployed commit; Vercel
 # sends the event while the project's "deployment_status Events" Git setting
 # is on.
@@ -18,7 +20,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: lighthouse-${{ github.event.deployment.sha }}
+  group: lighthouse-${{ github.event.deployment.environment }}-${{ github.event.deployment.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -26,7 +28,8 @@ jobs:
     name: Lighthouse
     if: >-
       github.event.deployment_status.state == 'success' &&
-      startsWith(github.event.deployment.environment, 'Preview')
+      (startsWith(github.event.deployment.environment, 'Preview') ||
+      github.event.deployment.environment == 'Production')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -39,14 +42,17 @@ jobs:
           cache: npm
       - run: npm ci
       # Single loads, one after another, on the heaviest product page: one
-      # request to check the preview answers, one Lighthouse warm-up run that
-      # is not counted, then five measured runs. Fails below 95, after writing
-      # the figures and the reports.
-      - name: Measure the preview
+      # request to check the deployment answers (on production, that the
+      # public address serves this commit), one Lighthouse warm-up run that is
+      # not counted, then five measured runs. Fails below 95, after writing
+      # the figures and the reports. The bypass secret goes to previews only.
+      - name: Measure the deployment
         env:
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
-        run: node scripts/lighthouse.ts "$PREVIEW_URL" /product/1
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ startsWith(github.event.deployment.environment, 'Preview') && secrets.VERCEL_AUTOMATION_BYPASS_SECRET || '' }}
+          DEPLOY_ENVIRONMENT: ${{ github.event.deployment.environment }}
+          DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+        run: node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL" /product/1
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

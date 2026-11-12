@@ -65,6 +65,13 @@ Chosen:
   - mobile settings, matching PageSpeed Insights;
   - one warm-up run, not counted, then five runs (issue #61: the first Chrome on a fresh runner is slower);
   - the median run must score at least 95 in performance.
+- **On every ready Production deployment of `main`** (issue #67), the same workflow runs the same measurement against the public site:
+  - the same warm-up run, five runs and threshold of 95;
+  - no bypass header, since production is public, and every SEO audit, since nothing protects it;
+  - at the public address, since Vercel's own address for each deployment stays behind its sign-in. The address only serves the new commit once Vercel moves the domain to it, so the first request checks that its `x-sekoya-commit` header names the deployed commit, and the run fails otherwise, with no retry (owner decision);
+  - the scores in the job summary and in a "Lighthouse scores" check on `main`'s commit, with the redacted reports, and no pull request comment.
+
+  It measures the exact merged commit with production's settings. It cannot block a merge that has already happened: a score below 95 fails the check and marks `main`'s commit red. Nothing else signals it (owner decision): GitHub notifies whoever started a run, here Vercel's app.
 - **Required checks on `main`:** every job above, plus Vercel's own deployment status. Each one is required as soon as it exists, starting with Markdown lint, since only documentation exists today.
 - **No retries:** required tests are never retried. A flaky test is fixed at its cause, with Playwright's trace kept on failure.
 
@@ -111,3 +118,4 @@ Follow-up:
 - **Database and data-model records:** catalog data for the production build in CI.
 - **Experiments 1 and 2:** end-to-end tests of partial refresh, and the 2 MB test's target page, set to `/product/1`, which renders the full reference list (issue #60).
 - **The Lighthouse gate (issue #61):** the check showed on pull requests (#58), so no commit status is needed. It fails below a median of 95, after a warm-up run, and is required on `main` with Vercel's deployment status.
+- **Lighthouse on production (issue #67):** the production run goes through the firewall like any visitor. Phase 3's switch of Bot Protection to Challenge checks how it is treated.

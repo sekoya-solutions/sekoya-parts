@@ -1,4 +1,4 @@
-// The Lighthouse check's helpers (issues #59 and #61): no report is saved
+// The Lighthouse check's helpers (issues #59, #61 and #67): no report is saved
 // with the bypass secret, the warm-up run is not counted, the 95 threshold
 // fails a low median, and the texts carry the medians and the verdict.
 import { describe, expect, it } from "vitest";
@@ -9,16 +9,22 @@ import {
   COMMENT_MARKER,
   checkTitle,
   commentBody,
+  commitMismatch,
   type Figures,
   gateText,
   MIN_PERFORMANCE,
   median,
   PREVIEW_SKIPPED_AUDITS,
+  PRODUCTION_URL,
   redact,
   reportFiles,
+  scoresTable,
+  skippedAudits,
   splitWarmUp,
+  targetOf,
   toolbarRequests,
 } from "../scripts/lighthouse-report.ts";
+import { COMMIT_HEADER, commitHeaders } from "../site/commit.ts";
 
 const SECRET = "test-secret-0123456789abcdef";
 
@@ -234,5 +240,68 @@ describe("texts", () => {
     expect(commentBody(figures, 5, "abc", "u", null)).toContain(
       "could not be uploaded",
     );
+  });
+});
+
+// Production (issue #67): the public address, without the secret, with every
+// SEO audit, and only once it serves the deployed commit.
+describe("production target", () => {
+  const sha = "c52f0a476e3633dfb74cf5077b70b2674def698a";
+  it("maps Vercel's environment names, and refuses others", () => {
+    expect(targetOf("Production")).toBe("production");
+    expect(targetOf("Preview")).toBe("preview");
+    expect(targetOf("Preview – sekoya-parts")).toBe("preview");
+    expect(() => targetOf("Staging")).toThrow(/Unknown/);
+  });
+  it("skips the SEO audits on previews only", () => {
+    expect(skippedAudits("preview")).toEqual(PREVIEW_SKIPPED_AUDITS);
+    expect(skippedAudits("production")).toEqual([]);
+  });
+  it("measures the public address, not a deployment's own", () => {
+    expect(PRODUCTION_URL).toBe("https://sekoya-parts.vercel.app");
+  });
+  it("accepts the deployed commit only", () => {
+    expect(commitMismatch(sha, sha)).toBeNull();
+    expect(
+      commitMismatch("1e5854296e9f1b829a4105766dac8845c3578870", sha),
+    ).toMatch(/serves 1e58542, not c52f0a4/);
+    expect(commitMismatch(null, sha)).toMatch(/no commit header/);
+    expect(commitMismatch("", sha)).toMatch(/no commit header/);
+  });
+  it("checks a report for the header's name when there is no secret", () => {
+    expect(() => assertNoSecret("clean", null, "X")).not.toThrow();
+    expect(() =>
+      assertNoSecret("x-vercel-protection-bypass", null, "X"),
+    ).toThrow(/header/);
+    // A production result: Lighthouse sent no extra headers.
+    const production = {
+      ...lhr(),
+      configSettings: { formFactor: "mobile", extraHeaders: undefined },
+    };
+    const { json } = reportFiles(production, null);
+    expect(JSON.parse(json).configSettings.formFactor).toBe("mobile");
+  });
+  it("describes the production run instead of the preview's skipped audits", () => {
+    const table = scoresTable(figures, 5, "production");
+    expect(table).toContain(PRODUCTION_URL);
+    expect(table).toContain("every SEO audit");
+    expect(table).not.toContain("`is-crawlable`");
+    expect(scoresTable(figures, 5, "preview")).toContain("`is-crawlable`");
+  });
+});
+
+describe("commitHeaders", () => {
+  it("sends the commit on every path when the build has one", () => {
+    expect(commitHeaders("abc123")).toEqual([
+      {
+        source: "/:path*",
+        headers: [{ key: COMMIT_HEADER, value: "abc123" }],
+      },
+    ]);
+    expect(COMMIT_HEADER).toBe("x-sekoya-commit");
+  });
+  it("adds no rule when the build has no commit", () => {
+    expect(commitHeaders(undefined)).toEqual([]);
+    expect(commitHeaders("")).toEqual([]);
   });
 });

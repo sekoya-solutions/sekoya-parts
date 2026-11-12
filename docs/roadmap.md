@@ -22,7 +22,9 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Experiment 2 set the product page's reference list to 1,000 references, and Lighthouse runs on every preview ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)).
   - Playwright's end-to-end tests and the 2 MB test run on every pull request, against a production build in CI ([#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60)).
   - Each preview's Lighthouse scores, in the four categories, appear in a "Lighthouse scores" check and in one comment on the pull request, with the redacted reports to download ([#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)).
-  - The "Lighthouse" check fails below a median mobile performance of 95, and is required on `main` ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61)). Phase 2 is complete once it is merged.
+  - The "Lighthouse" check fails below a median mobile performance of 95, and is required on `main` ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61)).
+  - Lighthouse also measures each Production deployment of `main`, at the public address ([#67](https://github.com/sekoya-solutions/sekoya-parts/issues/67)).
+  - Phase 2 is complete once Next.js 16.4.6 replaces 16.4.5 ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -102,6 +104,12 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      Two findings of #61, from the reports of run 43272369772:
      - **The low first run** (92 against 100) came from the runner, not the preview: the same requests and sizes, but twice the main-thread work and a benchmark index of 1,996 against about 2,950. Lighthouse CI starts a new Chrome for every run, and only the first one runs on a cold runner, hence the warm-up run.
      - **The 307** before each page is made by Chrome itself, not by Vercel: HTTP/1.1 with 127 bytes of headers and no body, before an HTTP/2 200 on the same address. It most likely comes from the bypass header, which Lighthouse sends through Chrome's `Network.setExtraHTTPHeaders`. Lighthouse counts it as a redirect of about 770 ms in every run, so preview scores are a little stricter than a visitor's page load. It stays: avoiding it would put the secret in the address.
+
+   - Lighthouse on Production deployments of `main`, since [#67](https://github.com/sekoya-solutions/sekoya-parts/issues/67), in the same workflow and with the same warm-up run, five runs and threshold:
+     - at the public address, `https://sekoya-parts.vercel.app`, since Vercel's own address for each deployment answers with its sign-in, and without the bypass secret, which the job gives previews only;
+     - every SEO audit runs, and the run fails if `is-crawlable` or `robots-txt` is missing;
+     - the first request checks the `x-sekoya-commit` header, which every Vercel build sends with its commit (`site/commit.ts`, through `next.config.ts`), and stops the run when the public address serves another commit, with no retry;
+     - the scores go to the job summary and the "Lighthouse scores" check on `main`'s commit, with the reports, and no comment. A low score only marks `main`'s commit red (owner decision): GitHub notifies whoever started the run, here Vercel's app.
 
 ### Phase 3: the catalog
 
