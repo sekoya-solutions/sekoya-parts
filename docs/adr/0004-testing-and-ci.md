@@ -109,4 +109,4 @@ Follow-up:
   - the Markdown lint workflow first, made required;
   - then the other jobs, as the code they check appears.
 - **Database and data-model records:** catalog data for the production build in CI.
-- **Experiments 1 and 2:** end-to-end tests of partial refresh, and the 2 MB test's target page.
+- **Experiments 1 and 2:** end-to-end tests of partial refresh, and the 2 MB test's target page, set to `/product/1`, which renders the full reference list (issue #60).

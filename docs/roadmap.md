@@ -20,6 +20,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - A product page at the temporary address `/product/<id>`, built from three cached parts, runs on a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)). The minimal app is complete.
   - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
   - Experiment 2 set the product page's reference list to 1,000 references, and Lighthouse runs on every preview ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)).
+  - Playwright's end-to-end tests and the 2 MB test run on every pull request, against a production build in CI ([#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60)).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -87,8 +88,8 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 5. **The remaining CI jobs,** as their code appears:
    - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check, against the small catalog since #47;
    - Vitest, with the first tests, in the "Generator and tests" job since #46, required on `main` since #50;
-   - Playwright and the 2 MB test;
-   - Lighthouse on previews, which reports figures since #57, as a "Lighthouse" check that appears on the pull request (seen on #58); it still has to fail below 95 before it is made required (ADR 0004).
+   - Playwright and the 2 MB test, in the "End-to-end tests" job since [#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60): Playwright 1.65.0 runs Chromium's headless shell, installed on the runner only, against the job's own build and small catalog. The 2 MB test measures `/product/1`, which renders the full 1,000 references (228,324 bytes); phase 3 extends it to the ten languages, and end-to-end tests of partial refresh and of the templates come with their code;
+   - Lighthouse on previews, which reports figures since #57 ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61) makes it fail below 95), as a "Lighthouse" check that appears on the pull request (seen on #58); it still has to fail below 95 before it is made required (ADR 0004).
 
 ### Phase 3: the catalog
 
