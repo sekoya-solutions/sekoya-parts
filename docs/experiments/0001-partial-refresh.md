@@ -58,12 +58,11 @@ Product 1, built in advance, with 500 references:
 
 ### Where the parts were cached
 
-Vercel's dashboard, read at 10:26 UTC for the last 12 hours, shows **no Runtime Cache reads or writes at all**, on Preview and on Production. Its ISR view for Preview does show the morning's activity (3 tag revalidations, writes for `/product/1` and `/product/[id]`), so the dashboard is not lagging.
+- **Next.js's own log.** Next.js's source (`next/dist/server/use-cache/handlers.js`) gives `"use cache: remote"` the handler the platform registers, and otherwise the server's own memory. With `NEXT_PRIVATE_DEBUG_CACHE=1` on Preview, the runtime log of the `2f5442a` preview, for one request to `/product/4` at 11:07 UTC, reads `use-cache: setting "remote" cache handler from symbol` and `using cache endpoint https://fra1.suspense-cache.vercel-infra.com`: the parts go to Vercel's Runtime Cache, in Frankfurt.
+- **The dashboard, which lags.** Read at 10:26 UTC, the Runtime Cache view showed no reads or writes, while the ISR view already showed the 10:05 activity. Read again at 11:10 UTC, it showed for Preview over 12 hours: 22 reads and 15 writes, a 27.2 % hit rate, 3 tag revalidations, and entries keyed by products 1, 3 and 4. The entries of products 1 and 3 each show a 50 % hit rate: one miss when computed, one read on the refresh. On Hobby, per-entry reads, writes and sizes are locked.
+- **Product 1's first refresh.** Vercel's Runtime Cache page says the cache is regional and "may not share the same cache between build time and runtime" when the build's region differs from the functions'. The functions run in `fra1`. That fits product 1's parts, computed during the build, being re-run on the first refresh; where the build ran is not stated in what was read.
 
-- Next.js's source (`next/dist/server/use-cache/handlers.js`) gives `"use cache: remote"` the handler the platform registers on `globalThis[Symbol.for('@next/cache-handlers')]`, and otherwise the server's own memory.
-- So on these deployments the parts were cached in the memory of the function instance, not in the Runtime Cache. The reuse above came from one warm instance serving requests seconds apart; another instance, or a cold start, would have re-run every part.
-- That also explains product 1: the parts computed during the build stayed in the build's memory. Vercel's page also says the Runtime Cache "may not share the same cache between build time and runtime" when the regions differ, which would matter once the Runtime Cache is in use.
-- Why Vercel registers no remote handler for this project is not known yet.
+An earlier version of this report concluded from the 10:26 reading that the parts were cached only in an instance's memory. The log and the later reading show that was wrong.
 
 ### Complete first visit
 
@@ -71,10 +70,10 @@ Product 3's first response (`MISS`, 9,797 bytes) held the heading, the price, th
 
 ### Budget
 
-Not measurable while the Runtime Cache is unused.
+Not measured yet. The dashboard gives only totals on Hobby and lags by more than 20 minutes, so a pass over ten products is read once its figures appear.
 
 ## Conclusion
 
-Not reached. The hook refreshes only the edited part's tag, and a refreshed page shows the new price on the next request. But the reuse of the other parts came from one instance's memory, not from the shared Runtime Cache that ADR 0008 relies on, so partial refresh across instances is not shown. The next step is to find why `"use cache: remote"` does not reach the Runtime Cache on this project.
+ADR 0008 holds for partial refresh: the parts are stored in Vercel's Runtime Cache, a price edit re-runs only the price part, the other parts are read back from that cache, and the new price shows on the next request. One cost to note: on a page built in advance, the first refresh after each deployment re-runs every part once, since the build's entries are not read by the functions. The budget check is still open.
 
 The edits left products 1 and 3 at 10,90 € and 19,90 € on the Neon `preview` branch, until its next reset.
