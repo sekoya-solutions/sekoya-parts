@@ -12,6 +12,7 @@ import {
   PREVIEW_SKIPPED_AUDITS,
   redact,
   reportFiles,
+  toolbarRequests,
 } from "../scripts/lighthouse-report.ts";
 
 const SECRET = "test-secret-0123456789abcdef";
@@ -97,6 +98,30 @@ describe("reportFiles", () => {
     // The HTML report embeds the redacted result.
     expect(html).toContain("<!doctype html>");
     expect(html).toContain('"formFactor":"mobile"');
+  });
+});
+
+describe("toolbarRequests", () => {
+  const withRequests = (urls: string[]) => ({
+    audits: {
+      "network-requests": { details: { items: urls.map((url) => ({ url })) } },
+    },
+  });
+  it("finds the toolbar's requests to vercel.live", () => {
+    expect(
+      toolbarRequests(
+        withRequests([
+          "https://preview.example/product/1",
+          "https://vercel.live/_next-live/feedback/feedback.js",
+        ]),
+      ),
+    ).toEqual(["https://vercel.live/_next-live/feedback/feedback.js"]);
+  });
+  it("finds none on a page without the toolbar, or without the audit", () => {
+    expect(
+      toolbarRequests(withRequests(["https://preview.example/product/1"])),
+    ).toEqual([]);
+    expect(toolbarRequests({ audits: {} })).toEqual([]);
   });
 });
 

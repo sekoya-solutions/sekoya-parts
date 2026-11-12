@@ -26,6 +26,21 @@ export type CategoryId = (typeof CATEGORIES)[number][0];
  */
 export const PREVIEW_SKIPPED_AUDITS = ["is-crawlable", "robots-txt"];
 
+/**
+ * The requests a run made to vercel.live, where Vercel's preview toolbar
+ * comes from: none is expected, since the runs send x-vercel-skip-toolbar.
+ */
+export function toolbarRequests(lhr: {
+  audits: Record<string, { details?: { items?: unknown[] } } | undefined>;
+}) {
+  const items = lhr.audits["network-requests"]?.details?.items ?? [];
+  return items
+    .map((item) => (item as { url?: string }).url ?? "")
+    .filter(
+      (url) => URL.canParse(url) && new URL(url).hostname === "vercel.live",
+    );
+}
+
 const SKIPPED_NOTE =
   "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.";
 

@@ -31,6 +31,7 @@ import {
   REPORTS_DIR,
   reportFiles,
   scoresTable,
+  toolbarRequests,
 } from "./lighthouse-report.ts";
 
 const RUNS = 5;
@@ -44,7 +45,9 @@ type Report = {
   categories: Record<CategoryId, { score: number | null } | undefined>;
   audits: Record<
     string,
-    { details?: { debugData?: { totalElements?: number } } }
+    {
+      details?: { debugData?: { totalElements?: number }; items?: unknown[] };
+    }
   >;
 };
 
@@ -58,7 +61,13 @@ if (!secret) {
   console.error("VERCEL_AUTOMATION_BYPASS_SECRET is not set.");
   process.exit(2);
 }
-const headers = { "x-vercel-protection-bypass": secret };
+// Vercel documents x-vercel-skip-toolbar for automated tests: it keeps its
+// preview toolbar, which sets a third-party cookie, out of the measured page
+// (owner decision on PR #63).
+const headers = {
+  "x-vercel-protection-bypass": secret,
+  "x-vercel-skip-toolbar": "1",
+};
 
 // Nothing from an earlier run is kept or uploaded.
 rmSync(REPORTS_DIR, { recursive: true, force: true });
@@ -149,6 +158,11 @@ try {
     for (const audit of PREVIEW_SKIPPED_AUDITS)
       if (report.audits[audit])
         throw new Error(`${path}: the ${audit} audit ran despite skipAudits.`);
+    const toolbar = toolbarRequests(report);
+    if (toolbar.length > 0)
+      throw new Error(
+        `${path}: Vercel's toolbar loaded despite x-vercel-skip-toolbar (${toolbar[0]}).`,
+      );
     for (const [id, name] of CATEGORIES) {
       const score = report.categories[id]?.score;
       if (score === null || score === undefined)
