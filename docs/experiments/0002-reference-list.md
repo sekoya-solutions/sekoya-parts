@@ -1,6 +1,6 @@
 # Experiment 2: reference list
 
-- Status: In progress
+- Status: Done
 - Issue: [#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)
 - Decision tested: [ADR 0009](../adr/0009-compatible-references.md)
 
@@ -10,7 +10,7 @@ How many compatible references can the product page render as text while keeping
 
 ## Setup
 
-- **Pages.** A temporary page, `/experiments/references/<count>`, shows product 1 with 250, 500, 1,000 or 2,000 references, using the product page's own markup (`ProductView` in `site/product.tsx`). It answers only on Vercel previews (`site/experiment.ts`, covered by `tests/experiment.test.ts`), and is removed once the number is set.
+- **Pages.** A temporary page, `/experiments/references/<count>`, shows product 1 with 250, 500, 1,000 or 2,000 references, using the product page's own markup (`ProductView` in `site/product.tsx`). It answered only on Vercel previews (`site/experiment.ts`, covered by `tests/experiment.test.ts`), and was removed once the number was set.
 - **PageSpeed.** The Lighthouse workflow (`.github/workflows/lighthouse.yml`) runs on each ready preview, on GitHub's runners. `scripts/lighthouse.ts` sends one warm-up request per address, then runs Lighthouse CI 0.16.0 (Lighthouse 13.6.0) five times per address with its default mobile settings, which PageSpeed Insights also uses, and the bypass header. It reports the uncompressed HTML size, the median performance score, the five scores and the element count from Lighthouse's DOM size insight.
 - **Requests.** Six page loads per address and preview, one after another. The reports hold the bypass header, so they are deleted and never uploaded.
 - **Queries.** `EXPLAIN (ANALYZE, BUFFERS)` of the reference list's own query, read-only, for ranks 1 to 500 and 999,501 to 1,000,000 of product 1.
@@ -62,4 +62,6 @@ Run on 2026-11-12 against the Neon `dev` branch, reset from the same loaded `mai
 
 ## Conclusion
 
-To be written once the PageSpeed figures are in.
+ADR 0009's design holds, and the number changes from 500 to 1,000. Every measured count keeps a median mobile score of 95 or more and the HTML under 1.5 MB, so the ADR's rule allows 2,000. The owner chose 1,000 (2026-11-12): it scores 99, against 97 at 2,000, which leaves room for phase 3's styles, fonts and images, with half the elements. The first and last reference pages read from the index as fast as each other.
+
+After the experiment, the temporary page was removed, `PRODUCT_PAGE_REFERENCES` set to 1,000, and the Lighthouse workflow measures `/product/1` only. The reference pages of phase 3 keep 500 references each, as ADR 0009 decides.

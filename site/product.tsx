@@ -11,7 +11,7 @@ import type { Locale } from "../cms/locales.ts";
 import { CATALOG_TAG, productTags } from "./tags.ts";
 
 /** References rendered as text on the product page (docs/adr/0009-compatible-references.md). */
-export const PRODUCT_PAGE_REFERENCES = 500;
+export const PRODUCT_PAGE_REFERENCES = 1000;
 
 /**
  * When a part was computed, rendered as a data-computed-at attribute. It shows
@@ -115,15 +115,8 @@ type ReferenceRow = { id: number; brand: string; reference: string };
 
 // Model names are a brand and a reference, the same in every language
 // (ADR 0009), so the list takes only the product id and the ten languages
-// share one cache entry. The count is an input for experiment 2
-// (docs/experiments/), so each count is its own entry under the same tag.
-export async function ProductReferences({
-  id,
-  count,
-}: {
-  id: number;
-  count: number;
-}) {
+// share one cache entry.
+export async function ProductReferences({ id }: { id: number }) {
   "use cache: remote";
   cacheLife("max");
   cacheTag(productTags(id).references, CATALOG_TAG);
@@ -138,7 +131,7 @@ export async function ProductReferences({
       JOIN appliance_models m ON m.id = c.model_id
       JOIN brands b ON b.id = m.brand_id
      WHERE c.product_id = ${id}
-       AND c.rank BETWEEN 1 AND ${count}
+       AND c.rank BETWEEN 1 AND ${PRODUCT_PAGE_REFERENCES}
      ORDER BY c.rank
   `);
   // Plain links, so the list runs no code in the browser (ADR 0009). The
@@ -153,31 +146,5 @@ export async function ProductReferences({
         </li>
       ))}
     </ul>
-  );
-}
-
-/**
- * The product page's content, shared by the product page and experiment 2's
- * temporary page, so both render the same markup.
- */
-export function ProductView({
-  id,
-  heading,
-  locale,
-  references,
-}: {
-  id: number;
-  heading: { name: string; computedAt: string };
-  locale: Locale;
-  references: number;
-}) {
-  return (
-    <main>
-      <h1 data-computed-at={heading.computedAt}>{heading.name}</h1>
-      <ProductPrice id={id} locale={locale} />
-      <ProductDescription id={id} locale={locale} />
-      <h2>Modèles compatibles</h2>
-      <ProductReferences id={id} count={references} />
-    </main>
   );
 }

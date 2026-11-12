@@ -1,8 +1,9 @@
 # Lighthouse on each ready Vercel preview, decided in
-# docs/adr/0004-testing-and-ci.md. During experiment 2 (issue #57) it also
-# measures the temporary reference-count pages, and it reports figures only:
-# failing below 95 and becoming a required check come with the remaining CI
-# jobs. deployment_status runs this file as it is on the deployed commit.
+# docs/adr/0004-testing-and-ci.md. It reports figures only: failing below 95
+# and becoming a required check come with the remaining CI jobs.
+# deployment_status runs this file as it is on the deployed commit; Vercel
+# sends the event while the project's "deployment_status Events" Git setting
+# is on.
 name: Lighthouse
 
 on:
@@ -32,16 +33,10 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      # Single loads, one after another: a warm-up request per address, then
-      # five Lighthouse runs each.
+      # Single loads, one after another: a warm-up request, then five
+      # Lighthouse runs on the heaviest product page.
       - name: Measure the preview
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
-        run: >-
-          node scripts/lighthouse.ts "$PREVIEW_URL"
-          /product/1
-          /experiments/references/250
-          /experiments/references/500
-          /experiments/references/1000
-          /experiments/references/2000
+        run: node scripts/lighthouse.ts "$PREVIEW_URL" /product/1
