@@ -43,6 +43,7 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **Prove it:** add a regression test that fails without the change and passes with it. When something cannot be tested automatically, say so and say what was checked instead.
   - **No half-measures shipped as fixes:** if the only solution is a workaround or heuristic, tell the owner before implementing it, with its limits and the robust alternative.
   - **Claim only what is guaranteed** in comments, documentation, pull request text and ticked checkboxes.
+- **Automate repeatable steps (owner rule):** when planning a check, a test or an environment, work out what must happen again on each preview, deployment, database reset or run, and automate it from the start, with secrets per environment. Never plan a recurring manual step for the owner, and never use a default or committed password.
 - **Small, reviewable changes:** weigh optional cleanup or tooling against its measurable benefit, and ask before doing work whose benefit is unclear.
 - **Cost-efficient execution:** no repeated CI polling or redundant reads. Give self-contained, mechanical or read-heavy subtasks to a subagent on an economical model (Sonnet or Haiku) when quality holds, and say so in the reply (model and task). Keep design decisions, ADRs, hard debugging and final review on the main model.
 - **Public repository:** never commit secrets, keys, tokens or personal data. Environment files stay git-ignored (only `.env.example` may be committed).
