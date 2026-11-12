@@ -32,7 +32,20 @@ Each reference adds about 220 bytes, browser data included: (449,172 − 63,704)
 
 ### PageSpeed and element count
 
-To be filled from the Lighthouse workflow on the preview.
+Run on 2026-11-12 from 15:16 to 15:23 UTC by the Lighthouse workflow (run 43246063899) against the preview of commit `19e886a`, five mobile runs per address after one warm-up request. Every page was served from the build (`PRERENDER`).
+
+| Address | References | HTML bytes | Median score | Scores | Elements |
+| --- | ---: | ---: | ---: | --- | ---: |
+| `/product/1` | 500 | 118,336 | 99 | 99, 99, 100, 99, 99 | 1,039 |
+| `/experiments/references/250` | 250 | 63,836 | 99 | 99, 99, 100, 99, 99 | 532 |
+| `/experiments/references/500` | 500 | 118,881 | 99 | 100, 99, 99, 99, 99 | 1,039 |
+| `/experiments/references/1000` | 1,000 | 229,003 | 99 | 99, 98, 98, 99, 99 | 2,053 |
+| `/experiments/references/2000` | 2,000 | 449,304 | 97 | 97, 97, 97, 97, 97 | 4,081 |
+
+- **Bytes per reference** on the preview: (449,304 − 63,836) / 1,750, about 220 bytes, browser data included, against ADR 0009's estimate of 150. 2,000 references take 0.45 MB, far below the 1.5 MB margin.
+- **Elements:** 2 per reference, a list item and its link, as ADR 0009 expected, plus 32 to 81 others; 500 references already pass the 800 elements Lighthouse warns about, and 1,000 the 1,400 it flags, without dropping the score below 97.
+- **Scores** stay at 98 to 100 up to 1,000 references, and drop to 97 at 2,000. The page has no styles, fonts or images yet (phase 3).
+- The run's log shows the bypass secret only as GitHub's mask, and the run kept no artifacts.
 
 ### Query times
 
