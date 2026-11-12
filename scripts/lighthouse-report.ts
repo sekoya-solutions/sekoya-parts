@@ -1,6 +1,7 @@
 // Pure helpers for the Lighthouse check (docs/adr/0004-testing-and-ci.md,
-// issue #59): medians, the redaction of the bypass header, and the texts of
-// the job summary, the "Lighthouse scores" check and the pull request comment.
+// issues #59 and #61): the warm-up split, medians and the 95 threshold, the
+// redaction of the bypass header, and the texts of the job summary, the
+// "Lighthouse scores" check and the pull request comment.
 // No input or output here, so Vitest tests it directly.
 import { ReportGenerator } from "lighthouse/report/generator/report-generator.js";
 
@@ -52,10 +53,58 @@ export type Figures = {
   path: string;
   htmlBytes: number;
   cache: string;
-  /** Scores from 0 to 100, one per run, in run order. */
+  /** The discarded warm-up run's performance score, from 0 to 100. */
+  warmUp: number | null;
+  /** Scores from 0 to 100, one per measured run, in run order. */
   scores: Record<CategoryId, number[]>;
   elements: number | null;
 };
+
+/**
+ * The lowest median mobile performance score a measured address may have
+ * (ADR 0004). Below it, the "Lighthouse" check fails.
+ */
+export const MIN_PERFORMANCE = 95;
+
+/**
+ * Splits Lighthouse results by address, in the order they ran: the first run
+ * of each address is the warm-up, which is not counted. Lighthouse CI starts a
+ * new Chrome for every run, and the first one on a fresh runner is slower: in
+ * run 43272369772 it scored 92 against 100, with the same requests and a
+ * benchmark index of 1,996 against about 2,950 (issue #61).
+ */
+export function splitWarmUp<
+  T extends { requestedUrl: string; fetchTime: string },
+>(reports: T[]) {
+  const byPath = new Map<string, T[]>();
+  for (const report of [...reports].sort((a, b) =>
+    a.fetchTime.localeCompare(b.fetchTime),
+  )) {
+    const path = new URL(report.requestedUrl).pathname;
+    byPath.set(path, [...(byPath.get(path) ?? []), report]);
+  }
+  const split = new Map<string, { warmUp: T; runs: T[] }>();
+  for (const [path, [warmUp, ...runs]] of byPath)
+    if (warmUp) split.set(path, { warmUp, runs });
+  return split;
+}
+
+/** The addresses whose median performance is below the threshold. */
+export function belowThreshold(figures: Figures[], min = MIN_PERFORMANCE) {
+  return figures
+    .map((f) => ({ path: f.path, median: median(f.scores.performance) }))
+    .filter((f) => f.median < min);
+}
+
+/** One line saying whether every address passed, and which did not. */
+export function gateText(figures: Figures[], min = MIN_PERFORMANCE) {
+  const failed = belowThreshold(figures, min);
+  if (failed.length === 0)
+    return `Passed: every address has a median performance of at least ${min}.`;
+  return `Failed: ${failed
+    .map((f) => `\`${f.path}\` has a median performance of ${f.median}`)
+    .join("; ")}, below ${min}.`;
+}
 
 /** Where the measuring script leaves the reports and the figures. */
 export const REPORTS_DIR = "lighthouse-reports";
@@ -120,20 +169,23 @@ export function checkTitle(figures: Figures[]) {
     .join("; ");
 }
 
-/** The figures as a Markdown table: medians, then each run's performance. */
+/**
+ * The figures as a Markdown table: medians, then each run's performance,
+ * then the threshold's verdict.
+ */
 export function scoresTable(figures: Figures[], runs: number) {
   const lines = [
-    `Median of ${runs} mobile runs per address, as PageSpeed Insights measures.`,
+    `Median of ${runs} mobile runs per address, as PageSpeed Insights measures, after one warm-up run that is not counted.`,
     "",
-    `| Address | ${CATEGORIES.map(([, name]) => name).join(" | ")} | Performance runs | HTML bytes | Elements |`,
-    `| --- | ${CATEGORIES.map(() => "---:").join(" | ")} | --- | ---: | ---: |`,
+    `| Address | ${CATEGORIES.map(([, name]) => name).join(" | ")} | Performance runs | Warm-up | HTML bytes | Elements |`,
+    `| --- | ${CATEGORIES.map(() => "---:").join(" | ")} | --- | ---: | ---: | ---: |`,
   ];
   for (const f of figures) {
     lines.push(
-      `| \`${f.path}\` | ${medians(f).join(" | ")} | ${f.scores.performance.join(", ")} | ${f.htmlBytes} | ${f.elements ?? "?"} |`,
+      `| \`${f.path}\` | ${medians(f).join(" | ")} | ${f.scores.performance.join(", ")} | ${f.warmUp ?? "?"} | ${f.htmlBytes} | ${f.elements ?? "?"} |`,
     );
   }
-  lines.push("", SKIPPED_NOTE);
+  lines.push("", `**${gateText(figures)}**`, "", SKIPPED_NOTE);
   return `${lines.join("\n")}\n`;
 }
 
