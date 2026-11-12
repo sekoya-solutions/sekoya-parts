@@ -68,19 +68,21 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - placeholder descriptions from `catalog/text.ts`, seeded by the product and the language;
      - product 1, with a million models, is built in advance, so every build reads the catalog: the "Lint, types and build" job now loads the small catalog into its own PostgreSQL container first;
      - the HTML of product 1 is 117,828 bytes with its 500 references, about 235 bytes per reference, against ADR 0009's estimate of 150.
-   - **Next: experiment 2** on that page.
+   - **Next: experiment 2** on that page, in progress ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)).
 3. **Done: experiment 1, partial refresh** (ADR 0008, [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55), [report](experiments/0001-partial-refresh.md)):
    - only the edited part is recomputed: the parts are stored in Vercel's Runtime Cache in `fra1` (Next.js's debug log), and a price edit re-runs the price only; on a page built in advance, the first refresh after each deployment re-runs every part once;
    - the first-visit HTML holds every part as HTML elements;
    - a first visit costs about 4 Runtime Cache reads and 4 writes, so the showcase fits Hobby's limits many times over.
 
    ADR 0008 holds. The parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md). Agents edit prices through Payload's API as an automation user, which every Preview build creates or updates with the Preview variable `AUTOMATION_API_KEY`; production has no such user. Since all previews share the `preview` branch, a migration from an unmerged branch stays applied there until the branch is reset.
-4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
+4. **In progress: experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md), [#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)):
    - bytes per reference;
    - PageSpeed and element count for 250 to 2,000 references;
    - query times for the first and last reference pages.
 
-   The number of references is set from the results.
+   The number of references is set from the results. PageSpeed is measured by Lighthouse CI 0.16.0 in a `deployment_status` workflow on each ready preview, with the owner's "CI checks" bypass secret as a GitHub Actions secret.
+
+   **Accepted audit finding (owner decision, 2026-11-12):** Lighthouse CI brings `basic-ftp` 5.3.1 (through `proxy-agent`, `pac-proxy-agent` and `get-uri`), which `npm audit` flags as high for a slow FTP directory-listing parser. It runs in CI only, never on the site, and only when listing an FTP server's files through a proxy, which Lighthouse CI never does here. No override: the fix is in `basic-ftp` 6, outside the range every `get-uri` release supports. Revisit when `get-uri` requires `basic-ftp` 6.2.1 or later.
 5. **The remaining CI jobs,** as their code appears:
    - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check, against the small catalog since #47;
    - Vitest, with the first tests, in the "Generator and tests" job since #46, required on `main` since #50;
