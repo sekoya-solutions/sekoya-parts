@@ -102,7 +102,7 @@ test("other words, another category slug or other letter cases redirect permanen
   ]) {
     const response = await request.get(wrong, { maxRedirects: 0 });
     expect(response.status(), wrong).toBe(308);
-    expect(locationPath(response.headers().location), wrong).toBe(address);
+    expect(locationPath(response), wrong).toBe(address);
   }
   const final = await request.get(address, { maxRedirects: 0 });
   expect(final.status()).toBe(200);

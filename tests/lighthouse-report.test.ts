@@ -322,6 +322,21 @@ describe("sameOriginPath", () => {
     );
   });
 
+  it("accepts a repeated Location header only when every value is the same", () => {
+    expect(
+      sameOriginPath(
+        requested,
+        "/fr/courroie/courroie-x-sp000001, /fr/courroie/courroie-x-sp000001",
+      ),
+    ).toBe("/fr/courroie/courroie-x-sp000001");
+    expect(
+      sameOriginPath(
+        requested,
+        "/fr/courroie/a-sp000001, /fr/joint/b-sp000001",
+      ),
+    ).toBeNull();
+  });
+
   it("refuses another origin, the same address or no address", () => {
     expect(
       sameOriginPath(requested, "https://elsewhere.example/fr"),

@@ -108,14 +108,20 @@ describe("Payload reads the generated catalog", () => {
     );
     const highest = rows[0]?.max ?? 0;
     expect(highest).toBeGreaterThanOrEqual(scale.brands);
-    const brand = await payload.create({
+    // Through Payload's database adapter, the insert every create runs, but
+    // without the collection's hooks: a brand's save hook refreshes cache
+    // tags, which only works inside a Next.js request (issue #73).
+    const brand = await payload.db.create({
       collection: "brands",
       data: { name: "Readback test brand", slug: "readback-test-brand" },
     });
     try {
       expect(brand.id).toBeGreaterThan(highest);
     } finally {
-      await payload.delete({ collection: "brands", id: brand.id });
+      await payload.db.deleteOne({
+        collection: "brands",
+        where: { id: { equals: brand.id } },
+      });
     }
   });
 });
