@@ -19,6 +19,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Required checks on `main`: "Markdown lint", "Lint, types and build" and "Generator and tests" ([#50](https://github.com/sekoya-solutions/sekoya-parts/issues/50)).
   - A product page at the temporary address `/product/<id>`, built from three cached parts, runs on a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)). The minimal app is complete.
   - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
+  - Experiment 2 set the product page's reference list to 1,000 references, and Lighthouse runs on every preview ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -68,26 +69,26 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - placeholder descriptions from `catalog/text.ts`, seeded by the product and the language;
      - product 1, with a million models, is built in advance, so every build reads the catalog: the "Lint, types and build" job now loads the small catalog into its own PostgreSQL container first;
      - the HTML of product 1 is 117,828 bytes with its 500 references, about 235 bytes per reference, against ADR 0009's estimate of 150.
-   - **Next: experiment 2** on that page.
+   - since experiment 2 ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)), the page renders 1,000 references.
 3. **Done: experiment 1, partial refresh** (ADR 0008, [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55), [report](experiments/0001-partial-refresh.md)):
    - only the edited part is recomputed: the parts are stored in Vercel's Runtime Cache in `fra1` (Next.js's debug log), and a price edit re-runs the price only; on a page built in advance, the first refresh after each deployment re-runs every part once;
    - the first-visit HTML holds every part as HTML elements;
    - a first visit costs about 4 Runtime Cache reads and 4 writes, so the showcase fits Hobby's limits many times over.
 
    ADR 0008 holds. The parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md). Agents edit prices through Payload's API as an automation user, which every Preview build creates or updates with the Preview variable `AUTOMATION_API_KEY`; production has no such user. Since all previews share the `preview` branch, a migration from an unmerged branch stays applied there until the branch is reset.
-4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
-   - bytes per reference;
-   - PageSpeed and element count for 250 to 2,000 references;
-   - query times for the first and last reference pages.
+4. **Done: experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md), [#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57), [report](experiments/0002-reference-list.md)):
+   - about 220 bytes and 2 elements per reference;
+   - a median mobile score of 99 up to 1,000 references, and 97 at 2,000 (449 KB);
+   - the first and last reference pages of product 1 read from the index, 1.4 to 11.6 ms once in memory.
 
-   The number of references is set from the results.
+   The owner set 1,000 references on the product page, keeping a margin for phase 3's design; ADR 0009 is updated. The Lighthouse workflow (Lighthouse CI 0.16.0) runs on each ready preview through `deployment_status`, which Vercel sends only while the project's "`deployment_status` Events" Git setting is on, with the owner's "CI checks" bypass secret as the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET`. It reports figures only.
+
+   **Accepted audit finding (owner decision, 2026-11-12):** Lighthouse CI brings `basic-ftp` 5.3.1 (through `proxy-agent`, `pac-proxy-agent` and `get-uri`), which `npm audit` flags as high for a slow FTP directory-listing parser. It runs in CI only, never on the site, and only when listing an FTP server's files through a proxy, which Lighthouse CI never does here. No override: the fix is in `basic-ftp` 6, outside the range every `get-uri` release supports. Revisit when `get-uri` requires `basic-ftp` 6.2.1 or later.
 5. **The remaining CI jobs,** as their code appears:
    - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check, against the small catalog since #47;
    - Vitest, with the first tests, in the "Generator and tests" job since #46, required on `main` since #50;
    - Playwright and the 2 MB test;
-   - Lighthouse on previews.
-
-   The first pull request after setup checks that the Lighthouse result appears on it, before that check is made required (ADR 0004).
+   - Lighthouse on previews, which reports figures since #57, as a "Lighthouse" check that appears on the pull request (seen on #58); it still has to fail below 95 before it is made required (ADR 0004).
 
 ### Phase 3: the catalog
 

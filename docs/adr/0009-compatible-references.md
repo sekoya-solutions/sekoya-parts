@@ -41,7 +41,7 @@ Facts were checked on 2026-11-11.
 
 Chosen:
 
-- **500 references as text on the product page,** most popular first, in a plain list of links to the model pages. No code runs in the browser for the list.
+- **1,000 references as text on the product page,** set by experiment 2, most popular first, in a plain list of links to the model pages. No code runs in the browser for the list.
 - **Reference pages for the rest,** at `/<lang>/<product path>/models/<n>`, 500 references each. Ranks are numbered from 1 for each product, so page `n` reads ranks `(n − 1) × 500 + 1` to `n × 500` straight from the index, with no `OFFSET`.
   - Each page has its own address, with links to the previous and next pages. It does not mark the first page as canonical.
   - The product with a million models gets 2,000 pages per language. ADR 0002's showcase rule decides which of them search engines may crawl.
@@ -51,16 +51,17 @@ Chosen:
 
 Why:
 
-- **Complexity limits come first.** At about 150 bytes per reference, 500 references take about 75 KB, far below 2 MB. Page complexity and the PageSpeed score limit the list long before the size does.
+- **Complexity limits come first.** At about 220 bytes per reference, 1,000 references take about 229 KB, far below 2 MB. Page complexity and the PageSpeed score limit the list long before the size does.
+- **A margin for the design.** 2,000 references still score 97, but the page has no styles, fonts or images yet; 1,000 score 99 and leave room for them.
 - **Simple, crawlable pagination.** Page numbers map straight to rank ranges, which gives the addresses and links Google asks for at index speed.
 
-What experiment 2 must show:
+What [experiment 2](../experiments/0002-reference-list.md) showed, on 2026-11-12:
 
-- **Bytes per reference** in the HTML actually served, the browser data included.
-- **The PageSpeed score and element count** on mobile for 250, 500, 1,000 and 2,000 references. The number of references is set to the largest value that keeps the score at 95 or more and the HTML under 1.5 MB, a margin below the 2 MB test.
-- **Query times** for the first and the last reference page of the product with a million models.
+- **Bytes per reference:** about 220 in the HTML actually served, the browser data included, and 2 elements.
+- **The PageSpeed score and element count** on mobile: a median of 99 up to 1,000 references (2,053 elements), and 97 at 2,000 (4,081 elements, 449 KB). Every count kept the score at 95 or more and the HTML under 1.5 MB, a margin below the 2 MB test. The owner chose 1,000 over 2,000, for the margin above.
+- **Query times** for the first and the last reference page of the product with a million models: both read from the index, about 0.6 to 0.7 s on a first read from storage, then 1.4 to 11.6 ms.
 
-The number 500 is a starting point. Changing it after experiment 2 updates this record, not the code's design.
+Changing the number again updates this record, not the code's design.
 
 ## Consequences
 
