@@ -1,6 +1,6 @@
 # Experiment 1: partial refresh
 
-- Status: In progress
+- Status: Done
 - Issue: [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)
 - Decision tested: [ADR 0008](../adr/0008-caching-and-partial-refresh.md)
 
@@ -59,7 +59,7 @@ Product 1, built in advance, with 500 references:
 ### Where the parts were cached
 
 - **Next.js's own log.** Next.js's source (`next/dist/server/use-cache/handlers.js`) gives `"use cache: remote"` the handler the platform registers, and otherwise the server's own memory. With `NEXT_PRIVATE_DEBUG_CACHE=1` on Preview, the runtime log of the `2f5442a` preview, for one request to `/product/4` at 11:07 UTC, reads `use-cache: setting "remote" cache handler from symbol` and `using cache endpoint https://fra1.suspense-cache.vercel-infra.com`: the parts go to Vercel's Runtime Cache, in Frankfurt.
-- **The dashboard, which lags.** Read at 10:26 UTC, the Runtime Cache view showed no reads or writes, while the ISR view already showed the 10:05 activity. Read again at 11:10 UTC, it showed for Preview over 12 hours: 22 reads and 15 writes, a 27.2 % hit rate, 3 tag revalidations, and entries keyed by products 1, 3 and 4. The entries of products 1 and 3 each show a 50 % hit rate: one miss when computed, one read on the refresh. On Hobby, per-entry reads, writes and sizes are locked.
+- **The dashboard, which lags.** Read at 10:26 UTC, the Runtime Cache view showed no reads or writes, while the ISR view already showed the 10:05 activity. Read again at about 11:08 UTC, it showed for Preview over 12 hours: 22 reads and 15 writes, a 27.2 % hit rate, 3 tag revalidations, and entries keyed by products 1, 3 and 4. The entries of products 1 and 3 each show a 50 % hit rate: one miss when computed, one read on the refresh. On Hobby, per-entry reads, writes and sizes are locked.
 - **Product 1's first refresh.** Vercel's Runtime Cache page says the cache is regional and "may not share the same cache between build time and runtime" when the build's region differs from the functions'. The functions run in `fra1`. That fits product 1's parts, computed during the build, being re-run on the first refresh; where the build ran is not stated in what was read.
 
 An earlier version of this report concluded from the 10:26 reading that the parts were cached only in an instance's memory. The log and the later reading show that was wrong.
@@ -70,10 +70,15 @@ Product 3's first response (`MISS`, 9,797 bytes) held the heading, the price, th
 
 ### Budget
 
-Not measured yet. The dashboard gives only totals on Hobby and lags by more than 20 minutes, so a pass over ten products is read once its figures appear.
+Products 5 to 14, never visited, were read once each from 11:09:01 to 11:09:51 UTC, 5 seconds apart: all 200 `MISS`, 9.4 to 11.1 KB, 1 to 8 references. The Preview totals went from 22 reads and 15 writes to 64 and 58 within a few minutes: **about 4 reads and 4 writes per first visit**, one per part, the reads being misses.
+
+- **Units.** The dashboard counts operations. Vercel bills 8 KB units; an ordinary product's whole page is about 10 KB, so each of its parts fits in one unit. A 500-reference list, like product 1's, is about 118 KB, or about 15 units per write.
+- **Per page and language,** once the ten languages exist: the heading, price and description are per language, and the reference list is shared, so a product costs about 3 writes per language plus 1 for the list, more for a product with hundreds of references.
+- **Against Hobby's 200,000 writes and 1,000,000 reads a month,** shared by the team: every deployment starts these entries empty (Vercel's Runtime Cache page: "use cache: remote" entries are not readable after a new deployment). Ten showcase products in ten languages cost about 310 writes per full pass, so hundreds of passes a month fit. A thousand products in ten languages would cost about 31,000 writes per pass, about six passes a month, which is why ADR 0002 limits crawlers to a showcase.
+- The Runtime Cache dashboard can lag: the 10:05 activity was missing at 10:26, while the 11:09 pass appeared within minutes.
 
 ## Conclusion
 
-ADR 0008 holds for partial refresh: the parts are stored in Vercel's Runtime Cache, a price edit re-runs only the price part, the other parts are read back from that cache, and the new price shows on the next request. One cost to note: on a page built in advance, the first refresh after each deployment re-runs every part once, since the build's entries are not read by the functions. The budget check is still open.
+ADR 0008 holds for partial refresh: the parts are stored in Vercel's Runtime Cache, a price edit re-runs only the price part, the other parts are read back from that cache, and the new price shows on the next request. One cost to note: on a page built in advance, the first refresh after each deployment re-runs every part once, since the build's entries are not read by the functions. For the budget, a first visit costs about 4 reads and 4 writes; the showcase fits Hobby's limits many times over.
 
 The edits left products 1 and 3 at 10,90 € and 19,90 € on the Neon `preview` branch, until its next reset.
