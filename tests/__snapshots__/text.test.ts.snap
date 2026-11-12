@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`placeholderDescription > keeps a known output 1`] = `"Eiusmod magna cillum ullamco do aute sit reprehenderit ipsum ullamco enim commodo. Duis dolor ea nostrud magna duis aliqua exercitation quis aliquip aliquip consectetur eiusmod ut. Quis labore labore do lorem ullamco enim aliqua commodo aliquip. Fugiat pariatur velit labore aliqua do ut irure. Tempor enim ullamco dolor sed fugiat irure incididunt voluptate pariatur."`;
