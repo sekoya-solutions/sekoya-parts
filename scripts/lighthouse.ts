@@ -63,11 +63,22 @@ if (!secret) {
 }
 // Vercel documents x-vercel-skip-toolbar for automated tests: it keeps its
 // preview toolbar, which sets a third-party cookie, out of the measured page
-// (owner decision on PR #63).
+// (owner decision on PR #63). Vercel needs only the header's presence. Its
+// value is not "1": Lighthouse reads these settings through --cli-flags-path,
+// whose parser turns numeric strings into numbers, and Chrome then refuses
+// the header ("Invalid header value, string expected", run 43262721278).
 const headers = {
   "x-vercel-protection-bypass": secret,
-  "x-vercel-skip-toolbar": "1",
+  "x-vercel-skip-toolbar": "skip",
 };
+if (
+  Object.values(headers).some((value) => /^\s*-?[\d.]+(e\d+)?\s*$/i.test(value))
+) {
+  console.error(
+    "A header value looks like a number, which Lighthouse would turn into one.",
+  );
+  process.exit(2);
+}
 
 // Nothing from an earlier run is kept or uploaded.
 rmSync(REPORTS_DIR, { recursive: true, force: true });
