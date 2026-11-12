@@ -119,5 +119,9 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
   - change its decision line from Proposed to Chosen;
   - update the stack line in `AGENTS.md`.
 - **Checking a protected preview:** single `curl` requests with the `x-vercel-protection-bypass` header, its value read from `.env.local` and never printed; the preview's address is in Vercel's comment on the pull request.
+- **Checking caching on a preview:**
+  - Vercel's Preview environment keeps `NEXT_PRIVATE_DEBUG_CACHE=1`, never Production. Next.js then logs, in the deployment's runtime logs, which cache handler it uses (`setting "remote" cache handler from symbol` means Vercel's Runtime Cache) and its cache endpoint. It is a private Next.js flag, so its lines may change between versions.
+  - Conclusions about caching come from those logs and the `data-computed-at` markers. The Runtime Cache dashboard (Observability, Runtime Cache, Preview) shows totals only on Hobby and can lag by more than 20 minutes, so a missing figure is checked again, not read as no use.
+  - Content edits on a preview go through Payload's REST API as the automation user, with `AUTOMATION_API_KEY` from `.env.local`.
 - **The board** sometimes adds new issues by itself. Look up the item before adding it, and set its Status.
 - **Research:** facts come from official pages only, with a subagent on Sonnet for broad reading. Decisive facts are re-checked on the page before an ADR cites them.
