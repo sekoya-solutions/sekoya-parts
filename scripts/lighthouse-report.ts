@@ -126,5 +126,7 @@ export function commentBody(
     scoresTable(figures, runs),
     reports,
     "",
+    "Vercel answers previews with `X-Robots-Tag: noindex`, which lowers Lighthouse's SEO score; production does not send it.",
+    "",
   ].join("\n");
 }

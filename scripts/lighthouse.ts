@@ -166,8 +166,10 @@ try {
       );
   }
   mkdirSync(REPORTS_DIR, { recursive: true });
-  for (const file of readdirSync(staging))
+  for (const file of readdirSync(staging)) {
     copyFileSync(join(staging, file), join(REPORTS_DIR, file));
+    console.log(`Saved ${file}, checked for the secret.`);
+  }
 } finally {
   rmSync(configDir, { recursive: true, force: true });
   rmSync(LHCI_DIR, { recursive: true, force: true });
