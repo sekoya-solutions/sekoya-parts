@@ -21,6 +21,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
   - Experiment 2 set the product page's reference list to 1,000 references, and Lighthouse runs on every preview ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)).
   - Playwright's end-to-end tests and the 2 MB test run on every pull request, against a production build in CI ([#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60)).
+  - Each preview's Lighthouse scores, in the four categories, appear in a "Lighthouse scores" check and in one comment on the pull request, with the redacted reports to download ([#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -49,6 +50,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - **Done: the `dev` branch,** created by the owner from the empty `main` with auto-delete off (Neon's dialog defaults to one day), its connection strings and `PAYLOAD_SECRET` in a git-ignored `.env.local`. Reset from the loaded `main` after #46.
    - **Done: the `preview` branch,** reset from the loaded `main` after #46, with auto-delete off. Vercel's Preview environment has its own sensitive `DATABASE_URL`, `DATABASE_URL_UNPOOLED` and `PAYLOAD_SECRET`, set by hand: the Neon integration can only give previews `main` or a new branch per deployment.
    - **Done: Protection Bypass for Automation** (#47). The owner created an "Agent checks" secret, kept in the git-ignored `.env.local` as `VERCEL_AUTOMATION_BYPASS_SECRET`, so agents read protected previews without a sign-in: a Vercel sign-in in the desktop app's browser pane did not carry over to the next session. The secret also skips the firewall's mitigations and bot protection, so it never goes in a URL or a reply.
+   - **Done: the Vercel Toolbar off for pre-production deployments** (project settings, owner, 2026-11-12, [#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)). Its script, from `vercel.live`, set a third-party cookie in some Lighthouse runs and cost about 23 best-practices points. The documented `x-vercel-skip-toolbar` header did not keep it out of Lighthouse's browser. Each Lighthouse run now fails if the page requests `vercel.live`.
    - **Later: a separate bypass secret for CI,** added by the owner as a GitHub Actions secret when the Lighthouse job is built, so each can be revoked on its own.
 2. **A minimal app,** in three issues:
    - **Done: Payload 3 and the catalog schema** ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)):
@@ -89,7 +91,12 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check, against the small catalog since #47;
    - Vitest, with the first tests, in the "Generator and tests" job since #46, required on `main` since #50;
    - Playwright and the 2 MB test, in the "End-to-end tests" job since [#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60): Playwright 1.65.0 runs Chromium's headless shell, installed on the runner only, against the job's own build and small catalog. The 2 MB test measures `/product/1`, which renders the full 1,000 references (228,324 bytes); phase 3 extends it to the ten languages, and end-to-end tests of partial refresh and of the templates come with their code;
-   - Lighthouse on previews, which reports figures since #57 ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61) makes it fail below 95), as a "Lighthouse" check that appears on the pull request (seen on #58); it still has to fail below 95 before it is made required (ADR 0004).
+   - Lighthouse on previews, which reports figures since #57 ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61) makes it fail below 95), as a "Lighthouse" check that appears on the pull request (seen on #58); it still has to fail below 95 before it is made required (ADR 0004). Since [#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59), the workflow also:
+     - posts a neutral "Lighthouse scores" check whose title gives the median of each category (performance, accessibility, best practices, SEO), and keeps one comment up to date on the open pull request whose head is the deployed commit, through the workflow's own token;
+     - uploads the HTML and JSON reports of every run as the `lighthouse-reports-<commit>` artifact, kept 30 days and downloadable by any signed-in GitHub user. Each report is rebuilt from its result with the extra headers removed, then checked for the secret and the header's name; no other report leaves the job (`scripts/lighthouse-report.ts`, tested by Vitest);
+     - leaves `is-crawlable` and `robots-txt` out of the SEO score (owner decision): they fail only because a preview is protected, through Vercel's `X-Robots-Tag: noindex` and its sign-in redirect on `robots.txt`. Phase 3 tests the site's own `robots.txt` and indexing rules.
+
+     First figures, on `905ce0d`: performance 99, accessibility 95, best practices 96 (the missing `/favicon.ico`, fixed with ADR 0012's icon), SEO 100. Every run's first request to `/product/1` answers 307 before the page, a cause to look at with the low first run in [#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61).
 
 ### Phase 3: the catalog
 

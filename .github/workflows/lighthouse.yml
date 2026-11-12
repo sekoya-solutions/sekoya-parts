@@ -1,6 +1,8 @@
 # Lighthouse on each ready Vercel preview, decided in
 # docs/adr/0004-testing-and-ci.md. It reports figures only: failing below 95
-# and becoming a required check come with the remaining CI jobs.
+# and becoming a required check come with issue #61. Since issue #59, the
+# scores also appear in a "Lighthouse scores" check and in one comment on the
+# pull request, and the redacted reports are uploaded.
 # deployment_status runs this file as it is on the deployed commit; Vercel
 # sends the event while the project's "deployment_status Events" Git setting
 # is on.
@@ -11,6 +13,9 @@ on:
 
 permissions:
   contents: read
+  # The "Lighthouse scores" check and the pull request comment (issue #59).
+  checks: write
+  pull-requests: write
 
 concurrency:
   group: lighthouse-${{ github.event.deployment.sha }}
@@ -40,3 +45,23 @@ jobs:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
         run: node scripts/lighthouse.ts "$PREVIEW_URL" /product/1
+      # The script writes only reports it has redacted and checked for the
+      # secret. The repository is public: any signed-in GitHub user can
+      # download them.
+      - name: Upload the reports
+        id: reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lighthouse-reports-${{ github.event.deployment.sha }}
+          path: lighthouse-reports/
+          if-no-files-found: ignore
+          retention-days: 30
+      # Without the bypass secret: only the workflow's own token.
+      - name: Publish the scores
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPORTS_URL: ${{ steps.reports.outputs.artifact-url }}
+        run: node scripts/lighthouse-publish.ts
