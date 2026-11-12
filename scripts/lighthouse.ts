@@ -61,16 +61,10 @@ if (!secret) {
   console.error("VERCEL_AUTOMATION_BYPASS_SECRET is not set.");
   process.exit(2);
 }
-// Vercel documents x-vercel-skip-toolbar for automated tests: it keeps its
-// preview toolbar, which sets a third-party cookie, out of the measured page
-// (owner decision on PR #63). Vercel needs only the header's presence. Its
-// value is not "1": Lighthouse reads these settings through --cli-flags-path,
-// whose parser turns numeric strings into numbers, and Chrome then refuses
-// the header ("Invalid header value, string expected", run 43262721278).
-const headers = {
-  "x-vercel-protection-bypass": secret,
-  "x-vercel-skip-toolbar": "skip",
-};
+const headers = { "x-vercel-protection-bypass": secret };
+// Lighthouse reads these settings through --cli-flags-path, whose parser turns
+// numeric strings into numbers, and Chrome then refuses the header ("Invalid
+// header value, string expected", run 43262721278).
 if (
   Object.values(headers).some((value) => /^\s*-?[\d.]+(e\d+)?\s*$/i.test(value))
 ) {
@@ -172,7 +166,7 @@ try {
     const toolbar = toolbarRequests(report);
     if (toolbar.length > 0)
       throw new Error(
-        `${path}: Vercel's toolbar loaded despite x-vercel-skip-toolbar (${toolbar[0]}).`,
+        `${path}: Vercel's toolbar loaded (${toolbar[0]}); it must be off for pre-production deployments in the project settings.`,
       );
     for (const [id, name] of CATEGORIES) {
       const score = report.categories[id]?.score;

@@ -28,7 +28,10 @@ export const PREVIEW_SKIPPED_AUDITS = ["is-crawlable", "robots-txt"];
 
 /**
  * The requests a run made to vercel.live, where Vercel's preview toolbar
- * comes from: none is expected, since the runs send x-vercel-skip-toolbar.
+ * comes from. None is expected: the toolbar sets a third-party cookie, and
+ * the owner turned it off for pre-production deployments in the project's
+ * settings (PR #63). The documented x-vercel-skip-toolbar header did not keep
+ * it out of Lighthouse's browser (run 43263146763).
  */
 export function toolbarRequests(lhr: {
   audits: Record<string, { details?: { items?: unknown[] } } | undefined>;
