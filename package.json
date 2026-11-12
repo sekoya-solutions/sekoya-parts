@@ -15,10 +15,14 @@
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
     "@types/node": "26.6.6",
+    "@types/pg-copy-streams": "1.2.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "markdownlint-cli2": "0.24.0",
-    "typescript": "7.0.2"
+    "pg": "8.20.0",
+    "pg-copy-streams": "7.0.0",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
   },
   "scripts": {
     "lint:md": "markdownlint-cli2",
@@ -28,7 +32,9 @@
     "lint": "biome check",
     "format": "biome check --write",
     "typecheck": "next typegen && tsc --noEmit",
-    "payload": "node scripts/payload.js"
+    "payload": "node scripts/payload.js",
+    "generate": "node --env-file-if-exists=.env.local scripts/generate.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.93.0",
