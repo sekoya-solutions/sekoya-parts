@@ -9,6 +9,7 @@ import {
   commentBody,
   type Figures,
   median,
+  PREVIEW_SKIPPED_AUDITS,
   redact,
   reportFiles,
 } from "../scripts/lighthouse-report.ts";
@@ -126,6 +127,11 @@ describe("texts", () => {
       "| `/product/1` | 98 | 100 | 96 | 100 | 81, 98, 98, 99, 98 | 228456 | 2053 |",
     );
     expect(body).toContain("/artifacts/2");
+  });
+  it("names the SEO audits left out on previews", () => {
+    const body = commentBody(figures, 5, "abc", "u", null);
+    for (const audit of PREVIEW_SKIPPED_AUDITS)
+      expect(body).toContain(`\`${audit}\``);
   });
   it("says when the reports could not be uploaded", () => {
     expect(commentBody(figures, 5, "abc", "u", null)).toContain(

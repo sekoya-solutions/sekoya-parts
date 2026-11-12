@@ -17,6 +17,18 @@ export const CATEGORIES = [
 
 export type CategoryId = (typeof CATEGORIES)[number][0];
 
+/**
+ * SEO audits left out on previews, since they fail only because a preview is
+ * protected (owner decision on PR #63): Vercel answers previews with
+ * `X-Robots-Tag: noindex`, and Lighthouse fetches robots.txt without the
+ * bypass header, so it gets Vercel's sign-in redirect. Phase 3 tests the
+ * site's own robots.txt and indexing rules (docs/adr/0011-languages-and-seo.md).
+ */
+export const PREVIEW_SKIPPED_AUDITS = ["is-crawlable", "robots-txt"];
+
+const SKIPPED_NOTE =
+  "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.";
+
 /** The figures of one measured address, across its runs. */
 export type Figures = {
   path: string;
@@ -103,6 +115,7 @@ export function scoresTable(figures: Figures[], runs: number) {
       `| \`${f.path}\` | ${medians(f).join(" | ")} | ${f.scores.performance.join(", ")} | ${f.htmlBytes} | ${f.elements ?? "?"} |`,
     );
   }
+  lines.push("", SKIPPED_NOTE);
   return `${lines.join("\n")}\n`;
 }
 
@@ -125,8 +138,6 @@ export function commentBody(
     "",
     scoresTable(figures, runs),
     reports,
-    "",
-    "Vercel answers previews with `X-Robots-Tag: noindex`, which lowers Lighthouse's SEO score; production does not send it.",
     "",
   ].join("\n");
 }

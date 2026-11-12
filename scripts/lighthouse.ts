@@ -27,6 +27,7 @@ import {
   type CategoryId,
   FIGURES_FILE,
   type Figures,
+  PREVIEW_SKIPPED_AUDITS,
   REPORTS_DIR,
   reportFiles,
   scoresTable,
@@ -116,7 +117,10 @@ try {
         collect: {
           url: paths.map((path) => new URL(path, base).href),
           numberOfRuns: RUNS,
-          settings: { extraHeaders: headers },
+          settings: {
+            extraHeaders: headers,
+            skipAudits: PREVIEW_SKIPPED_AUDITS,
+          },
         },
       },
     }),
@@ -142,6 +146,9 @@ try {
     if (!entry) continue;
     if (report.runtimeError)
       throw new Error(`${path}: ${report.runtimeError.message}`);
+    for (const audit of PREVIEW_SKIPPED_AUDITS)
+      if (report.audits[audit])
+        throw new Error(`${path}: the ${audit} audit ran despite skipAudits.`);
     for (const [id, name] of CATEGORIES) {
       const score = report.categories[id]?.score;
       if (score === null || score === undefined)
