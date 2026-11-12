@@ -55,7 +55,14 @@ Product 1, built in advance, with 500 references:
 
 - On a page rendered at run time, a price edit re-ran the price only, and the next request showed the new price.
 - On a page built in advance, the first edit after the deployment re-ran every part, the 500-reference query included; from the second edit on, only the price re-ran.
-- Next.js's source (`next/dist/server/use-cache/handlers.js`) gives `"use cache: remote"` the handler the platform registers, and otherwise the server's own memory. The result is consistent with the build running without Vercel's Runtime Cache handler, so parts computed during the build are not shared with the functions. Vercel's documentation read so far does not state it.
+### Where the parts were cached
+
+Vercel's dashboard, read at 10:26 UTC for the last 12 hours, shows **no Runtime Cache reads or writes at all**, on Preview and on Production. Its ISR view for Preview does show the morning's activity (3 tag revalidations, writes for `/product/1` and `/product/[id]`), so the dashboard is not lagging.
+
+- Next.js's source (`next/dist/server/use-cache/handlers.js`) gives `"use cache: remote"` the handler the platform registers on `globalThis[Symbol.for('@next/cache-handlers')]`, and otherwise the server's own memory.
+- So on these deployments the parts were cached in the memory of the function instance, not in the Runtime Cache. The reuse above came from one warm instance serving requests seconds apart; another instance, or a cold start, would have re-run every part.
+- That also explains product 1: the parts computed during the build stayed in the build's memory. Vercel's page also says the Runtime Cache "may not share the same cache between build time and runtime" when the regions differ, which would matter once the Runtime Cache is in use.
+- Why Vercel registers no remote handler for this project is not known yet.
 
 ### Complete first visit
 
@@ -63,10 +70,10 @@ Product 3's first response (`MISS`, 9,797 bytes) held the heading, the price, th
 
 ### Budget
 
-Not measured yet.
+Not measurable while the Runtime Cache is unused.
 
 ## Conclusion
 
-ADR 0008 holds: a price edit re-runs only the price part and reuses the other parts' remote entries, and the new price shows on the next request. One cost to note: on a page built in advance, the first refresh after each deployment re-runs every part once, since the build's results are not in the Runtime Cache. The budget check is still open.
+Not reached. The hook refreshes only the edited part's tag, and a refreshed page shows the new price on the next request. But the reuse of the other parts came from one instance's memory, not from the shared Runtime Cache that ADR 0008 relies on, so partial refresh across instances is not shown. The next step is to find why `"use cache: remote"` does not reach the Runtime Cache on this project.
 
 The edits left products 1 and 3 at 10,90 € and 19,90 € on the Neon `preview` branch, until its next reset.
