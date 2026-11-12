@@ -52,7 +52,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
      - the collections of [ADR 0007](adr/0007-catalog-data-model.md) in ten languages, and the project tables `appliance_models` and `compatibility` in a hand-written migration;
      - the schema only from committed migrations, run by `npm run payload -- migrate` over `DATABASE_URL_UNPOOLED`;
-     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); previews, CI and local builds skip them;
+     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); CI and local builds skip them, and since [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55) Preview builds apply them to the shared `preview` branch too;
      - `package.json` overrides `dompurify` to 3.4.17, since `monaco-editor` 0.57.0 pins a version with known flaws; the override is removed once `monaco-editor` requires a fixed version.
    - **Done: the generator at a small scale** ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)):
      - `catalog/generator.ts` builds every row from a seed and a scale, without a database; `npm run generate` (`scripts/generate.ts`) loads them with `COPY` in one transaction over `DATABASE_URL_UNPOOLED`, and refuses a filled catalog without `--replace`;
@@ -73,7 +73,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - the first-visit HTML is complete without JavaScript;
    - Runtime Cache usage is measured.
 
-   If it fails, a new ADR replaces ADR 0008 with whole-page caching. In progress in [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55): the parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md).
+   If it fails, a new ADR replaces ADR 0008 with whole-page caching. In progress in [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55): the parts carry `data-computed-at` markers, a save hook on products refreshes only the changed parts, and the report is [experiment 1](experiments/0001-partial-refresh.md). Agents edit prices through Payload's API as an automation user, which every Preview build creates or updates with the Preview variable `AUTOMATION_API_KEY`; production has no such user. Since all previews share the `preview` branch, a migration from an unmerged branch stays applied there until the branch is reset.
 4. **Experiment 2, reference list** ([ADR 0009](adr/0009-compatible-references.md)):
    - bytes per reference;
    - PageSpeed and element count for 250 to 2,000 references;
