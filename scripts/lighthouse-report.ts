@@ -64,7 +64,7 @@ export type Figures = {
  * The lowest median mobile performance score a measured address may have
  * (ADR 0004). Below it, the "Lighthouse" check fails.
  */
-export const MIN_PERFORMANCE = 101;
+export const MIN_PERFORMANCE = 95;
 
 /**
  * Splits Lighthouse results by address, in the order they ran: the first run
