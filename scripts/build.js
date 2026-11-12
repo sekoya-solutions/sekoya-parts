@@ -1,7 +1,8 @@
 // The build: on Vercel's Production builds only, apply Payload's pending
 // migrations to the production database first, then build Next.js.
 // If a migration fails, the build fails and the previous deployment stays live.
-// Preview, CI and local builds skip the migrations and need no database.
+// Preview, CI and local builds skip the migrations. Every build reads the
+// catalog through DATABASE_URL, since it prerenders a product page (issue #47).
 import { spawnSync } from "node:child_process";
 
 function run(args) {

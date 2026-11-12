@@ -17,6 +17,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Payload 3.93.0 runs inside the app, with the catalog schema created by committed migrations ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)). The admin is at `/admin`.
   - The seeded catalog generator loaded Neon's `main` at the small scale, and the `preview` and `dev` branches were reset from it ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Each holds 1,000 products, 1,000,000 appliance models and 1,004,373 compatibility rows, in 220 MB of the free plan's 1 GB. The generator and Vitest also run in CI against a PostgreSQL 18 container.
   - Required checks on `main`: "Markdown lint", "Lint, types and build" and "Generator and tests" ([#50](https://github.com/sekoya-solutions/sekoya-parts/issues/50)).
+  - A product page at the temporary address `/product/<id>`, built from three cached parts, runs on a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)). The minimal app is complete.
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -50,7 +51,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
      - the collections of [ADR 0007](adr/0007-catalog-data-model.md) in ten languages, and the project tables `appliance_models` and `compatibility` in a hand-written migration;
      - the schema only from committed migrations, run by `npm run payload -- migrate` over `DATABASE_URL_UNPOOLED`;
-     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); previews, CI and local builds need no database;
+     - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); previews, CI and local builds skip them;
      - `package.json` overrides `dompurify` to 3.4.17, since `monaco-editor` 0.57.0 pins a version with known flaws; the override is removed once `monaco-editor` requires a fixed version.
    - **Done: the generator at a small scale** ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)):
      - `catalog/generator.ts` builds every row from a seed and a scale, without a database; `npm run generate` (`scripts/generate.ts`) loads them with `COPY` in one transaction over `DATABASE_URL_UNPOOLED`, and refuses a filled catalog without `--replace`;
@@ -58,7 +59,14 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - no product is a showcase product yet, so no product text is stored;
      - the "Generator and tests" CI job runs the migrations, the generator at the small scale and Vitest on every pull request;
      - the load of Neon's `main` took 23.9 s from the owner's machine (24.3 s in CI), for 212 MB of catalog tables with their indexes; the million models make most of that size at every scale.
-   - **Next: one product page** built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md), deployed to a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)).
+   - **Done: one product page** ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)), built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md):
+     - `app/(site)/product/[id]` at the temporary address `/product/<id>`, in French; language routing replaces it in phase 3;
+     - the price, the description and the reference list in `site/product.tsx`, each with `"use cache: remote"`, `cacheLife('max')`, its own tag and `catalog`; the heading is a cached read with the description's tag, which also gives a missing product its 404;
+     - the reference list takes only the product id, so the ten languages will share its entry, and reads ranks 1 to 500 on the `compatibility` key; its links point to `/model/<id>`, the model template of phase 3;
+     - placeholder descriptions from `catalog/text.ts`, seeded by the product and the language;
+     - product 1, with a million models, is built in advance, so every build reads the catalog: the "Lint, types and build" job now loads the small catalog into its own PostgreSQL container first;
+     - the HTML of product 1 is 117,828 bytes with its 500 references, about 235 bytes per reference, against ADR 0009's estimate of 150.
+   - **Next: experiment 1** on that page.
 3. **Experiment 1, partial refresh** (ADR 0008):
    - only the edited part is recomputed;
    - the first-visit HTML is complete without JavaScript;
@@ -72,7 +80,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 
    The number of references is set from the results.
 5. **The remaining CI jobs,** as their code appears:
-   - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check;
+   - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check, against the small catalog since #47;
    - Vitest, with the first tests, in the "Generator and tests" job since #46, required on `main` since #50;
    - Playwright and the 2 MB test;
    - Lighthouse on previews.
