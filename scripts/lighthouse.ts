@@ -1,7 +1,8 @@
 // Runs Lighthouse CI against a deployed preview (docs/adr/0004-testing-and-ci.md,
-// issues #57 and #59). It writes the figures of each address to the job
+// issues #57, #59 and #61). It writes the figures of each address to the job
 // summary and to lighthouse-figures.json, and the reports of every run to
-// lighthouse-reports/, which the workflow uploads.
+// lighthouse-reports/, which the workflow uploads. It exits with 1 when an
+// address's median performance is below 95, after writing all of these.
 //
 // Usage: node scripts/lighthouse.ts <base URL> <path>...
 // Reads the bypass secret from VERCEL_AUTOMATION_BYPASS_SECRET. The secret is
@@ -23,17 +24,22 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  belowThreshold,
   CATEGORIES,
   type CategoryId,
   FIGURES_FILE,
   type Figures,
+  gateText,
   PREVIEW_SKIPPED_AUDITS,
   REPORTS_DIR,
   reportFiles,
   scoresTable,
+  splitWarmUp,
   toolbarRequests,
 } from "./lighthouse-report.ts";
 
+// Measured runs per address; each address also gets one warm-up run first,
+// which is not counted (splitWarmUp).
 const RUNS = 5;
 const LHCI_DIR = ".lighthouseci";
 
@@ -78,9 +84,10 @@ if (
 rmSync(REPORTS_DIR, { recursive: true, force: true });
 rmSync(FIGURES_FILE, { force: true });
 
-// The warm-up request: one per address, which also gives the uncompressed
-// HTML size (fetch decompresses the body). A mitigation stops everything at
-// once, with no retry (AGENTS.md, section 2).
+// The first request: one per address, which checks the preview answers before
+// Chrome loads it, and gives the uncompressed HTML size (fetch decompresses
+// the body). A mitigation stops everything at once, with no retry
+// (AGENTS.md, section 2).
 const figures: Figures[] = [];
 for (const path of paths) {
   const response = await fetch(new URL(path, base), { headers });
@@ -103,6 +110,7 @@ for (const path of paths) {
     path,
     htmlBytes: Buffer.byteLength(html),
     cache: response.headers.get("x-vercel-cache") ?? "",
+    warmUp: null,
     scores: {
       performance: [],
       accessibility: [],
@@ -130,7 +138,7 @@ try {
       ci: {
         collect: {
           url: paths.map((path) => new URL(path, base).href),
-          numberOfRuns: RUNS,
+          numberOfRuns: RUNS + 1,
           settings: {
             extraHeaders: headers,
             skipAudits: PREVIEW_SKIPPED_AUDITS,
@@ -152,44 +160,48 @@ try {
     .map(
       (file) =>
         JSON.parse(readFileSync(join(LHCI_DIR, file), "utf8")) as Report,
-    )
-    .sort((a, b) => a.fetchTime.localeCompare(b.fetchTime));
-  for (const report of reports) {
-    const path = new URL(report.requestedUrl).pathname;
-    const entry = figures.find((f) => f.path === path);
-    if (!entry) continue;
-    if (report.runtimeError)
-      throw new Error(`${path}: ${report.runtimeError.message}`);
-    for (const audit of PREVIEW_SKIPPED_AUDITS)
-      if (report.audits[audit])
-        throw new Error(`${path}: the ${audit} audit ran despite skipAudits.`);
-    const toolbar = toolbarRequests(report);
-    if (toolbar.length > 0)
+    );
+  const byPath = splitWarmUp(reports);
+  for (const entry of figures) {
+    const { path } = entry;
+    const split = byPath.get(path);
+    if (!split || split.runs.length !== RUNS)
       throw new Error(
-        `${path}: Vercel's toolbar loaded (${toolbar[0]}); it must be off for pre-production deployments in the project settings.`,
+        `${path}: ${split?.runs.length ?? 0} runs after the warm-up instead of ${RUNS}.`,
       );
-    for (const [id, name] of CATEGORIES) {
-      const score = report.categories[id]?.score;
-      if (score === null || score === undefined)
-        throw new Error(`${path}: no ${name} score.`);
-      entry.scores[id].push(Math.round(score * 100));
-    }
-    // Lighthouse 13 reports the element count in its DOM size insight.
-    entry.elements =
-      report.audits["dom-size-insight"]?.details?.debugData?.totalElements ??
-      entry.elements;
+    // The warm-up run passes the same checks as the measured runs, and its
+    // report is saved too, but its scores are not counted.
+    for (const [run, report] of [split.warmUp, ...split.runs].entries()) {
+      if (report.runtimeError)
+        throw new Error(`${path}: ${report.runtimeError.message}`);
+      for (const audit of PREVIEW_SKIPPED_AUDITS)
+        if (report.audits[audit])
+          throw new Error(
+            `${path}: the ${audit} audit ran despite skipAudits.`,
+          );
+      const toolbar = toolbarRequests(report);
+      if (toolbar.length > 0)
+        throw new Error(
+          `${path}: Vercel's toolbar loaded (${toolbar[0]}); it must be off for pre-production deployments in the project settings.`,
+        );
+      const scores = CATEGORIES.map(([id, name]) => {
+        const score = report.categories[id]?.score;
+        if (score === null || score === undefined)
+          throw new Error(`${path}: no ${name} score.`);
+        return [id, Math.round(score * 100)] as const;
+      });
+      if (run === 0) entry.warmUp = scores[0]?.[1] ?? null;
+      else for (const [id, score] of scores) entry.scores[id].push(score);
+      // Lighthouse 13 reports the element count in its DOM size insight.
+      entry.elements =
+        report.audits["dom-size-insight"]?.details?.debugData?.totalElements ??
+        entry.elements;
 
-    const run = entry.scores.performance.length;
-    const name = `${path.replace(/^\/|\/$/g, "").replace(/\W+/g, "-") || "home"}-run-${run}`;
-    const { json, html } = reportFiles(report, secret);
-    writeFileSync(join(staging, `${name}.report.json`), json);
-    writeFileSync(join(staging, `${name}.report.html`), html);
-  }
-  for (const f of figures) {
-    if (f.scores.performance.length !== RUNS)
-      throw new Error(
-        `${f.path}: ${f.scores.performance.length} runs instead of ${RUNS}.`,
-      );
+      const name = `${path.replace(/^\/|\/$/g, "").replace(/\W+/g, "-") || "home"}-${run === 0 ? "warm-up" : `run-${run}`}`;
+      const { json, html } = reportFiles(report, secret);
+      writeFileSync(join(staging, `${name}.report.json`), json);
+      writeFileSync(join(staging, `${name}.report.html`), html);
+    }
   }
   mkdirSync(REPORTS_DIR, { recursive: true });
   for (const file of readdirSync(staging)) {
@@ -207,3 +219,11 @@ console.log(summary);
 if (process.env.GITHUB_STEP_SUMMARY)
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
 writeFileSync(FIGURES_FILE, JSON.stringify({ runs: RUNS, figures }));
+
+// The gate (ADR 0004), last, so the summary, the figures and the reports are
+// written either way, and the workflow still publishes them.
+if (belowThreshold(figures).length > 0) {
+  console.error(`::error title=Lighthouse::${gateText(figures)}`);
+  process.exit(1);
+}
+console.log(gateText(figures));

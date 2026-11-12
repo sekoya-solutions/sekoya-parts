@@ -1,17 +1,22 @@
-// The Lighthouse check's helpers (issue #59): no report is saved with the
-// bypass secret, and the texts carry the medians.
+// The Lighthouse check's helpers (issues #59 and #61): no report is saved
+// with the bypass secret, the warm-up run is not counted, the 95 threshold
+// fails a low median, and the texts carry the medians and the verdict.
 import { describe, expect, it } from "vitest";
 import {
   assertNoSecret,
   BYPASS_HEADER,
+  belowThreshold,
   COMMENT_MARKER,
   checkTitle,
   commentBody,
   type Figures,
+  gateText,
+  MIN_PERFORMANCE,
   median,
   PREVIEW_SKIPPED_AUDITS,
   redact,
   reportFiles,
+  splitWarmUp,
   toolbarRequests,
 } from "../scripts/lighthouse-report.ts";
 
@@ -34,6 +39,7 @@ const figures: Figures[] = [
     path: "/product/1",
     htmlBytes: 228_456,
     cache: "HIT",
+    warmUp: 92,
     scores: {
       performance: [81, 98, 98, 99, 98],
       accessibility: [100, 100, 100, 100, 100],
@@ -54,6 +60,68 @@ describe("median", () => {
   });
   it("refuses no values", () => {
     expect(() => median([])).toThrow();
+  });
+});
+
+describe("splitWarmUp", () => {
+  const run = (path: string, minute: number) => ({
+    requestedUrl: `https://preview.example${path}`,
+    fetchTime: `2026-11-12T17:${String(minute).padStart(2, "0")}:00.000Z`,
+  });
+  it("takes each address's earliest run as its warm-up, whatever the order", () => {
+    const split = splitWarmUp([
+      run("/product/1", 3),
+      run("/", 7),
+      run("/product/1", 1),
+      run("/", 6),
+      run("/product/1", 2),
+    ]);
+    expect(split.get("/product/1")?.warmUp.fetchTime).toContain("17:01");
+    expect(split.get("/product/1")?.runs.map((r) => r.fetchTime)).toEqual([
+      "2026-11-12T17:02:00.000Z",
+      "2026-11-12T17:03:00.000Z",
+    ]);
+    expect(split.get("/")?.warmUp.fetchTime).toContain("17:06");
+    expect(split.get("/")?.runs).toHaveLength(1);
+  });
+  it("leaves a single run as the warm-up, with no measured run", () => {
+    expect(splitWarmUp([run("/", 1)]).get("/")?.runs).toEqual([]);
+    expect(splitWarmUp([]).size).toBe(0);
+  });
+});
+
+describe("the 95 threshold", () => {
+  const withRuns = (path: string, performance: number[]): Figures => ({
+    ...(figures[0] as Figures),
+    path,
+    scores: { ...(figures[0] as Figures).scores, performance },
+  });
+  it("is 95, as ADR 0004 decides", () => {
+    expect(MIN_PERFORMANCE).toBe(95);
+  });
+  it("passes a median of exactly 95, ignoring one low run", () => {
+    const f = [withRuns("/product/1", [60, 95, 95, 99, 100])];
+    expect(belowThreshold(f)).toEqual([]);
+    expect(gateText(f)).toMatch(/^Passed/);
+  });
+  it("fails a median below 95 and names each failing address", () => {
+    const f = [
+      withRuns("/product/1", [94, 94, 100, 94, 100]),
+      withRuns("/", [100, 100, 100, 100, 100]),
+      withRuns("/model/1", [90, 91, 92, 93, 99]),
+    ];
+    expect(belowThreshold(f)).toEqual([
+      { path: "/product/1", median: 94 },
+      { path: "/model/1", median: 92 },
+    ]);
+    expect(gateText(f)).toBe(
+      "Failed: `/product/1` has a median performance of 94; `/model/1` has a median performance of 92, below 95.",
+    );
+  });
+  it("takes another threshold, as the regression check of #61 does", () => {
+    expect(belowThreshold(figures, 101)).toEqual([
+      { path: "/product/1", median: 98 },
+    ]);
   });
 });
 
@@ -149,7 +217,11 @@ describe("texts", () => {
     expect(body.startsWith(COMMENT_MARKER)).toBe(true);
     expect(body).toContain("`c52f0a4`");
     expect(body).toContain(
-      "| `/product/1` | 98 | 100 | 96 | 100 | 81, 98, 98, 99, 98 | 228456 | 2053 |",
+      "| `/product/1` | 98 | 100 | 96 | 100 | 81, 98, 98, 99, 98 | 92 | 228456 | 2053 |",
+    );
+    expect(body).toContain("after one warm-up run that is not counted");
+    expect(body).toContain(
+      "**Passed: every address has a median performance of at least 95.**",
     );
     expect(body).toContain("/artifacts/2");
   });

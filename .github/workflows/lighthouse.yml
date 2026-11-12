@@ -1,6 +1,6 @@
 # Lighthouse on each ready Vercel preview, decided in
-# docs/adr/0004-testing-and-ci.md. It reports figures only: failing below 95
-# and becoming a required check come with issue #61. Since issue #59, the
+# docs/adr/0004-testing-and-ci.md. Since issue #61, the job fails when an
+# address's median mobile performance is below 95. Since issue #59, the
 # scores also appear in a "Lighthouse scores" check and in one comment on the
 # pull request, and the redacted reports are uploaded.
 # deployment_status runs this file as it is on the deployed commit; Vercel
@@ -38,8 +38,10 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      # Single loads, one after another: a warm-up request, then five
-      # Lighthouse runs on the heaviest product page.
+      # Single loads, one after another, on the heaviest product page: one
+      # request to check the preview answers, one Lighthouse warm-up run that
+      # is not counted, then five measured runs. Fails below 95, after writing
+      # the figures and the reports.
       - name: Measure the preview
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -57,8 +59,10 @@ jobs:
           path: lighthouse-reports/
           if-no-files-found: ignore
           retention-days: 30
-      # Without the bypass secret: only the workflow's own token.
+      # Without the bypass secret: only the workflow's own token. It also runs
+      # when the measure step failed the threshold, whenever the figures exist.
       - name: Publish the scores
+        if: always() && hashFiles('lighthouse-figures.json') != ''
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ github.event.deployment.sha }}

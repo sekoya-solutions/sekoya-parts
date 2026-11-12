@@ -7,6 +7,7 @@
 // REPORTS_URL (the uploaded reports, empty if the upload failed).
 import { readFileSync } from "node:fs";
 import {
+  belowThreshold,
   COMMENT_MARKER,
   checkTitle,
   commentBody,
@@ -51,13 +52,13 @@ async function github<T>(method: string, path: string, body?: unknown) {
   return (await response.json()) as T;
 }
 
-// The check: neutral, since the check reports figures only; failing below 95
-// comes with issue #61.
+// The check passes or fails with the 95 threshold (issue #61), like the
+// "Lighthouse" job, which is the one required on main.
 await github("POST", `/repos/${repo}/check-runs`, {
   name: "Lighthouse scores",
   head_sha: sha,
   status: "completed",
-  conclusion: "neutral",
+  conclusion: belowThreshold(figures).length > 0 ? "failure" : "success",
   details_url: runUrl,
   output: {
     title: checkTitle(figures),

@@ -63,7 +63,7 @@ Chosen:
   - the 2 MB test, which fails if the uncompressed HTML of the heaviest product page reaches 2,000,000 bytes in any language.
 - **On every ready Vercel preview,** a `deployment_status` workflow runs Lighthouse CI against the preview with the bypass header:
   - mobile settings, matching PageSpeed Insights;
-  - one warm-up request, then five runs;
+  - one warm-up run, not counted, then five runs (issue #61: the first Chrome on a fresh runner is slower);
   - the median run must score at least 95 in performance.
 - **Required checks on `main`:** every job above, plus Vercel's own deployment status. Each one is required as soon as it exists, starting with Markdown lint, since only documentation exists today.
 - **No retries:** required tests are never retried. A flaky test is fixed at its cause, with Playwright's trace kept on failure.
@@ -73,7 +73,7 @@ Why:
 - **Next.js's own guidance:** unit tests for components and logic, end-to-end tests for async Server Components, run against a production build.
 - **Vitest** runs TypeScript and JSX as they are. Node's runner cannot load `.tsx` files, and Jest needs Babel.
 - **Playwright** fits ADR 0003's no-install-scripts rule, which Cypress does not.
-- **Lighthouse on the preview** measures the real platform, and the bypass header never leaves CI. Five runs and a median keep a lucky run from deciding, and the warm-up keeps a cold cache from deciding.
+- **Lighthouse on the preview** measures the real platform, and the bypass header never leaves CI. Five runs and a median keep a lucky run from deciding, and the warm-up run keeps a cold cache or a cold runner from deciding.
 - **`deployment_status`** runs on the deployed commit, so its result lands on the pull request, and a change to the workflow is tested in its own pull request. `repository_dispatch` would need a status posted by hand, and runs only after the workflow is merged.
 
 What it costs, and where each cost is checked:
@@ -110,3 +110,4 @@ Follow-up:
   - then the other jobs, as the code they check appears.
 - **Database and data-model records:** catalog data for the production build in CI.
 - **Experiments 1 and 2:** end-to-end tests of partial refresh, and the 2 MB test's target page, set to `/product/1`, which renders the full reference list (issue #60).
+- **The Lighthouse gate (issue #61):** the check showed on pull requests (#58), so no commit status is needed. It fails below a median of 95, after a warm-up run, and is required on `main` with Vercel's deployment status.
