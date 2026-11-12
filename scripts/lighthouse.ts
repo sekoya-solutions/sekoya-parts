@@ -1,12 +1,17 @@
-// Runs Lighthouse CI against a deployed preview (docs/adr/0004-testing-and-ci.md,
-// issues #57, #59 and #61). It writes the figures of each address to the job
+// Runs Lighthouse CI against a ready Vercel deployment
+// (docs/adr/0004-testing-and-ci.md, issues #57, #59, #61 and #67): a preview
+// at its own address, or production at its public address. It writes the figures of each address to the job
 // summary and to lighthouse-figures.json, and the reports of every run to
 // lighthouse-reports/, which the workflow uploads. It exits with 1 when an
 // address's median performance is below 95, after writing all of these.
 //
-// Usage: node scripts/lighthouse.ts <base URL> <path>...
-// Reads the bypass secret from VERCEL_AUTOMATION_BYPASS_SECRET. The secret is
-// sent as a header only, never printed or put in a URL. Lighthouse copies its
+// Usage: node scripts/lighthouse.ts <environment> <deployment URL> <path>...
+// <environment> is Vercel's name for it ("Production", "Preview"...).
+// On a preview, it reads the bypass secret from VERCEL_AUTOMATION_BYPASS_SECRET.
+// The secret is sent as a header only, never printed or put in a URL.
+// On production, the secret must not be set: the public address is measured
+// as a visitor gets it, through the firewall, once its commit header names
+// DEPLOY_SHA. Lighthouse copies its
 // settings, headers included, into every report, so each report is redacted
 // and checked for the secret before it is saved, and Lighthouse CI's own
 // reports are deleted at the end.
@@ -23,18 +28,23 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { COMMIT_HEADER } from "../site/commit.ts";
 import {
   belowThreshold,
   CATEGORIES,
   type CategoryId,
+  commitMismatch,
   FIGURES_FILE,
   type Figures,
   gateText,
   PREVIEW_SKIPPED_AUDITS,
+  PRODUCTION_URL,
   REPORTS_DIR,
   reportFiles,
   scoresTable,
+  skippedAudits,
   splitWarmUp,
+  targetOf,
   toolbarRequests,
 } from "./lighthouse-report.ts";
 
@@ -57,17 +67,42 @@ type Report = {
   >;
 };
 
-const [base, ...paths] = process.argv.slice(2);
-const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-if (!base || paths.length === 0) {
-  console.error("Usage: node scripts/lighthouse.ts <base URL> <path>...");
+const [environment, deploymentUrl, ...paths] = process.argv.slice(2);
+if (!environment || !deploymentUrl || paths.length === 0) {
+  console.error(
+    "Usage: node scripts/lighthouse.ts <environment> <deployment URL> <path>...",
+  );
   process.exit(2);
 }
-if (!secret) {
-  console.error("VERCEL_AUTOMATION_BYPASS_SECRET is not set.");
-  process.exit(2);
+const target = targetOf(environment);
+const skipped = skippedAudits(target);
+const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || null;
+const expectedCommit = process.env.DEPLOY_SHA ?? "";
+let base: string;
+let headers: Record<string, string>;
+if (target === "preview") {
+  if (!secret) {
+    console.error("VERCEL_AUTOMATION_BYPASS_SECRET is not set.");
+    process.exit(2);
+  }
+  base = deploymentUrl;
+  headers = { "x-vercel-protection-bypass": secret };
+} else {
+  // The bypass would skip the firewall and change what is measured.
+  if (secret) {
+    console.error(
+      "VERCEL_AUTOMATION_BYPASS_SECRET is set; production is measured without it.",
+    );
+    process.exit(2);
+  }
+  if (!expectedCommit) {
+    console.error("DEPLOY_SHA is not set.");
+    process.exit(2);
+  }
+  // The deployment's own address is behind Vercel's sign-in.
+  base = PRODUCTION_URL;
+  headers = {};
 }
-const headers = { "x-vercel-protection-bypass": secret };
 // Lighthouse reads these settings through --cli-flags-path, whose parser turns
 // numeric strings into numbers, and Chrome then refuses the header ("Invalid
 // header value, string expected", run 43262721278).
@@ -84,7 +119,7 @@ if (
 rmSync(REPORTS_DIR, { recursive: true, force: true });
 rmSync(FIGURES_FILE, { force: true });
 
-// The first request: one per address, which checks the preview answers before
+// The first request: one per address, which checks the deployment answers before
 // Chrome loads it, and gives the uncompressed HTML size (fetch decompresses
 // the body). A mitigation stops everything at once, with no retry
 // (AGENTS.md, section 2).
@@ -105,6 +140,18 @@ for (const path of paths) {
   if (response.status !== 200) {
     console.error(`Stopped: ${path} answered ${response.status}.`);
     process.exit(1);
+  }
+  // Production: the public address must serve the deployed commit. No wait
+  // and no retry: a mismatch fails the run (issue #67).
+  if (target === "production") {
+    const mismatch = commitMismatch(
+      response.headers.get(COMMIT_HEADER),
+      expectedCommit,
+    );
+    if (mismatch) {
+      console.error(`::error title=Lighthouse::Stopped: ${path}: ${mismatch}`);
+      process.exit(1);
+    }
   }
   figures.push({
     path,
@@ -140,8 +187,8 @@ try {
           url: paths.map((path) => new URL(path, base).href),
           numberOfRuns: RUNS + 1,
           settings: {
-            extraHeaders: headers,
-            skipAudits: PREVIEW_SKIPPED_AUDITS,
+            ...(Object.keys(headers).length > 0 && { extraHeaders: headers }),
+            ...(skipped.length > 0 && { skipAudits: skipped }),
           },
         },
       },
@@ -174,10 +221,13 @@ try {
     for (const [run, report] of [split.warmUp, ...split.runs].entries()) {
       if (report.runtimeError)
         throw new Error(`${path}: ${report.runtimeError.message}`);
+      // Previews leave these audits out; production must run them.
       for (const audit of PREVIEW_SKIPPED_AUDITS)
-        if (report.audits[audit])
+        if (Boolean(report.audits[audit]) !== (target === "production"))
           throw new Error(
-            `${path}: the ${audit} audit ran despite skipAudits.`,
+            target === "production"
+              ? `${path}: the ${audit} audit did not run.`
+              : `${path}: the ${audit} audit ran despite skipAudits.`,
           );
       const toolbar = toolbarRequests(report);
       if (toolbar.length > 0)
@@ -214,11 +264,11 @@ try {
   rmSync(staging, { recursive: true, force: true });
 }
 
-const summary = `### Lighthouse\n\n${scoresTable(figures, RUNS)}`;
+const summary = `### Lighthouse\n\n${scoresTable(figures, RUNS, target)}`;
 console.log(summary);
 if (process.env.GITHUB_STEP_SUMMARY)
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-writeFileSync(FIGURES_FILE, JSON.stringify({ runs: RUNS, figures }));
+writeFileSync(FIGURES_FILE, JSON.stringify({ target, runs: RUNS, figures }));
 
 // The gate (ADR 0004), last, so the summary, the figures and the reports are
 // written either way, and the workflow still publishes them.

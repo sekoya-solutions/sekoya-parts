@@ -1,7 +1,8 @@
 // Publishes the figures of scripts/lighthouse.ts on GitHub (issue #59): a
 // "Lighthouse scores" check on the deployed commit, whose title shows the
 // medians, and one comment on its open pull request, replaced on each
-// preview. It runs after the reports are uploaded, without the bypass secret.
+// preview. On production (issue #67), the check only: no pull request
+// comment. It runs after the reports are uploaded, without the bypass secret.
 //
 // Reads GITHUB_TOKEN, GITHUB_REPOSITORY, DEPLOY_SHA and RUN_URL, and
 // REPORTS_URL (the uploaded reports, empty if the upload failed).
@@ -14,6 +15,7 @@ import {
   FIGURES_FILE,
   type Figures,
   scoresTable,
+  type Target,
 } from "./lighthouse-report.ts";
 
 const env = (name: string) => {
@@ -27,7 +29,10 @@ const sha = env("DEPLOY_SHA");
 const runUrl = env("RUN_URL");
 const reportsUrl = process.env.REPORTS_URL || null;
 
-const { runs, figures } = JSON.parse(readFileSync(FIGURES_FILE, "utf8")) as {
+const { target, runs, figures } = JSON.parse(
+  readFileSync(FIGURES_FILE, "utf8"),
+) as {
+  target: Target;
   runs: number;
   figures: Figures[];
 };
@@ -62,9 +67,12 @@ await github("POST", `/repos/${repo}/check-runs`, {
   details_url: runUrl,
   output: {
     title: checkTitle(figures),
-    summary: `${scoresTable(figures, runs)}\n${reportsUrl ? `[HTML and JSON reports](${reportsUrl})` : "No reports uploaded."}`,
+    summary: `${scoresTable(figures, runs, target)}\n${reportsUrl ? `[HTML and JSON reports](${reportsUrl})` : "No reports uploaded."}`,
   },
 });
+
+// Production's commit is on main, not on a pull request: the check is all.
+if (target === "production") process.exit(0);
 
 // The comment goes only on an open pull request whose head is still this
 // commit, so a slower run for an older push does not overwrite a newer one.

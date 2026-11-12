@@ -28,6 +28,45 @@ export type CategoryId = (typeof CATEGORIES)[number][0];
 export const PREVIEW_SKIPPED_AUDITS = ["is-crawlable", "robots-txt"];
 
 /**
+ * What a run measures (issue #67): a protected preview, with the bypass header
+ * and without the audits above, or the public production site, with neither.
+ */
+export type Target = "preview" | "production";
+
+/**
+ * The public production address. Vercel's Production deployment_status gives
+ * the deployment's own address, which Standard Protection keeps behind a
+ * sign-in (a 302 to vercel.com/sso-api), so production is measured here.
+ */
+export const PRODUCTION_URL = "https://sekoya-parts.vercel.app";
+
+/** The target of a Vercel deployment environment's name, or an error. */
+export function targetOf(environment: string): Target {
+  if (environment === "Production") return "production";
+  if (environment.startsWith("Preview")) return "preview";
+  throw new Error(`Unknown deployment environment: ${environment}.`);
+}
+
+/** The audits a target leaves out. */
+export const skippedAudits = (target: Target) =>
+  target === "preview" ? PREVIEW_SKIPPED_AUDITS : [];
+
+/**
+ * Why the public address does not serve the deployed commit, or null when it
+ * does. The address moves to a new deployment only once Vercel assigns the
+ * domain to it, which Vercel does not document as happening before the
+ * deployment's success status; a run that measured the older deployment would
+ * put its scores on the wrong commit.
+ */
+export function commitMismatch(served: string | null, expected: string) {
+  if (!served)
+    return "the public address sent no commit header; the deployment predates it or the header is missing.";
+  if (served !== expected)
+    return `the public address serves ${served.slice(0, 7)}, not ${expected.slice(0, 7)}; the domain has not moved to this deployment, or a newer one replaced it.`;
+  return null;
+}
+
+/**
  * The requests a run made to vercel.live, where Vercel's preview toolbar
  * comes from. None is expected: the toolbar sets a third-party cookie, and
  * the owner turned it off for pre-production deployments in the project's
@@ -45,8 +84,11 @@ export function toolbarRequests(lhr: {
     );
 }
 
-const SKIPPED_NOTE =
-  "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.";
+const NOTES: Record<Target, string> = {
+  preview:
+    "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.",
+  production: `Measured on the public address, ${PRODUCTION_URL}, without the bypass header and with every SEO audit, once it served this commit.`,
+};
 
 /** The figures of one measured address, across its runs. */
 export type Figures = {
@@ -136,18 +178,23 @@ export function redact<T extends Report>(lhr: T): T {
 
 /**
  * Throws if a text to be saved still holds the secret or the bypass header's
- * name. The name is checked too, since its value always comes with it.
+ * name. The name is checked too, since its value always comes with it. A null
+ * secret means a run without one (production), where only the name is checked.
  */
-export function assertNoSecret(text: string, secret: string, what: string) {
-  if (!secret) throw new Error("No secret given to check against.");
-  if (text.includes(secret))
+export function assertNoSecret(
+  text: string,
+  secret: string | null,
+  what: string,
+) {
+  if (secret === "") throw new Error("No secret given to check against.");
+  if (secret !== null && text.includes(secret))
     throw new Error(`${what} holds the bypass secret; nothing is saved.`);
   if (text.toLowerCase().includes(BYPASS_HEADER))
     throw new Error(`${what} holds the bypass header; nothing is saved.`);
 }
 
 /** The JSON and HTML reports of one run, redacted, then checked. */
-export function reportFiles<T extends Report>(lhr: T, secret: string) {
+export function reportFiles<T extends Report>(lhr: T, secret: string | null) {
   const clean = redact(lhr);
   const json = JSON.stringify(clean);
   const html = ReportGenerator.generateReportHtml(clean as never);
@@ -173,7 +220,7 @@ export function checkTitle(figures: Figures[]) {
  * The figures as a Markdown table: medians, then each run's performance,
  * then the threshold's verdict.
  */
-export function scoresTable(figures: Figures[], runs: number) {
+export function scoresTable(figures: Figures[], runs: number, target: Target) {
   const lines = [
     `Median of ${runs} mobile runs per address, as PageSpeed Insights measures, after one warm-up run that is not counted.`,
     "",
@@ -185,7 +232,7 @@ export function scoresTable(figures: Figures[], runs: number) {
       `| \`${f.path}\` | ${medians(f).join(" | ")} | ${f.scores.performance.join(", ")} | ${f.warmUp ?? "?"} | ${f.htmlBytes} | ${f.elements ?? "?"} |`,
     );
   }
-  lines.push("", `**${gateText(figures)}**`, "", SKIPPED_NOTE);
+  lines.push("", `**${gateText(figures)}**`, "", NOTES[target]);
   return `${lines.join("\n")}\n`;
 }
 
@@ -206,7 +253,7 @@ export function commentBody(
     "",
     `Preview of \`${sha.slice(0, 7)}\`, [run](${runUrl}).`,
     "",
-    scoresTable(figures, runs),
+    scoresTable(figures, runs, "preview"),
     reports,
     "",
   ].join("\n");

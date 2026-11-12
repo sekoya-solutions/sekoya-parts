@@ -1,5 +1,6 @@
 import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
+import { commitHeaders } from "./site/commit.ts";
 
 // Cache Components, decided in docs/adr/0001-framework-and-rendering.md.
 // partialPrefetching stays off (docs/adr/0008-caching-and-partial-refresh.md),
@@ -8,7 +9,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: false,
+  // The deployment's commit on every response (issue #67).
+  async headers() {
+    return commitHeaders(process.env.VERCEL_GIT_COMMIT_SHA);
+  },
 };
 
-// Payload inside the Next.js app (docs/adr/0006-content-management.md).
+// Payload inside the Next.js app (docs/adr/0006-content-management.md); it
+// adds its own headers after these.
 export default withPayload(nextConfig, { devBundleServerPackages: false });
