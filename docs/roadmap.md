@@ -15,6 +15,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - It runs Next.js 16.4.5 until 16.4.6, the version ADR 0003 pins, passes the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
   - The Vercel project serves the placeholder page at `https://sekoya-parts.vercel.app/`, behind the firewall settings of phase 2, step 1, and the Neon database is connected for Production ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)). PageSpeed Insights scores the placeholder 100 in all four categories, on mobile and desktop.
   - Payload 3.93.0 runs inside the app, with the catalog schema created by committed migrations ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)). The admin is at `/admin`; the database holds no catalog data yet.
+  - The catalog generator and Vitest run in CI at a small scale, against a PostgreSQL 18 container ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Loading Neon's `main` and creating the `preview` branch follow, with the owner's go.
   - Required checks on `main`: "Markdown lint" and "Lint, types and build".
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
@@ -51,7 +52,12 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - the schema only from committed migrations, run by `npm run payload -- migrate` over `DATABASE_URL_UNPOOLED`;
      - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); previews, CI and local builds need no database;
      - `package.json` overrides `dompurify` to 3.4.17, since `monaco-editor` 0.57.0 pins a version with known flaws; the override is removed once `monaco-editor` requires a fixed version.
-   - **Next: the generator at a small scale,** plus the product with a million models, with Vitest and the first tests ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)).
+   - **In progress: the generator at a small scale** ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)):
+     - `catalog/generator.ts` builds every row from a seed and a scale, without a database; `npm run generate` (`scripts/generate.ts`) loads them with `COPY` in one transaction over `DATABASE_URL_UNPOOLED`, and refuses a filled catalog without `--replace`;
+     - every scale has 1,000,000 appliance models and one product compatible with all of them; the small scale has 1,000 products and 20 brands, the full scale 100,000 and 60;
+     - no product is a showcase product yet, so no product text is stored;
+     - the "Generator and tests" CI job runs the migrations, the generator at the small scale and Vitest on every pull request;
+     - next, with the owner's go: the generator loads Neon's `main`, then the owner creates `preview` from it and resets `dev`.
    - **Then: one product page** built from the per-part cached components of [ADR 0008](adr/0008-caching-and-partial-refresh.md), deployed to a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)).
 3. **Experiment 1, partial refresh** (ADR 0008):
    - only the edited part is recomputed;
@@ -67,7 +73,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    The number of references is set from the results.
 5. **The remaining CI jobs,** as their code appears:
    - Biome, the type check and the build, which run since the skeleton (#38) as the required "Lint, types and build" check;
-   - Vitest, with the first tests;
+   - Vitest, with the first tests, in the "Generator and tests" job since #46;
    - Playwright and the 2 MB test;
    - Lighthouse on previews.
 

@@ -48,3 +48,45 @@ jobs:
       - run: npx biome ci
       - run: npm run typecheck
       - run: npm run build
+
+  # The generator at the small scale and Vitest, against a PostgreSQL 18
+  # service container with the committed migrations (issue #46).
+  catalog-tests:
+    name: Generator and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42
+        env:
+          POSTGRES_USER: sekoya
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: sekoya
+        ports:
+          - 5432:5432
+        # The job starts only once the server accepts connections.
+        options: >-
+          --health-cmd "pg_isready -U sekoya -d sekoya"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # A throwaway database that only exists for this job: these values
+      # protect nothing.
+      DATABASE_URL: postgres://sekoya:ci-only-password@localhost:5432/sekoya
+      DATABASE_URL_UNPOOLED: postgres://sekoya:ci-only-password@localhost:5432/sekoya
+      PAYLOAD_SECRET: ci-only-secret
+      CATALOG_SCALE: small
+      CATALOG_SEED: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run payload -- migrate
+      - run: npm run generate -- --scale "$CATALOG_SCALE" --seed "$CATALOG_SEED"
+      - run: npm test
