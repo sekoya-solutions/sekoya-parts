@@ -16,3 +16,5 @@ Bootstrap. There is no application code yet: the technical stack is being writte
 ## License
 
 All rights reserved; see [LICENSE](LICENSE).
+
+<!-- Test for #91: documentation-only change, never merged. -->
