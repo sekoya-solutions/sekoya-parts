@@ -15,7 +15,7 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **Search:** a hosted search engine like Algolia is mandatory. Algolia and the database stay on free tiers unless that severely blocks feasibility; capping search at about 50,000 products is acceptable.
   - **Scope:** catalog only, with prices in euros: no cart, checkout, accounts or payment.
   - **Images:** about 50 original or CC0 images, reused across products and resized at import.
-  - **No third-party scripts:** no analytics, chat widget or cookie banner.
+  - **No third-party scripts:** no analytics, chat widget or cookie banner. The server sends no usage data to third parties either, so library telemetry is turned off (owner decision, 2026-11-13; Payload's since #88).
   - **Requirements:** PageSpeed 95 to 100, checked on every commit that changes code (a documentation-only change skips the heavy checks, ADR 0004); fine-grained cache invalidation (a price or description change refreshes only that part of a page); full non-regression tests; automatic Vercel deployments for branches and `main`.
   - **Brand:** "Sekoya Parts", with an original design: nothing taken from other sites' names, branding or texts.
   - **Repository:** public from the start. Whether a freelance portfolio fits Vercel's non-commercial Hobby plan is the owner's call.
