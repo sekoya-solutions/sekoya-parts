@@ -21,11 +21,15 @@ const alternates = (page: Page) =>
         .filter(([lang]) => lang !== "x-default"),
     );
 
-/** The language switch's links, as [language, path]. */
+/**
+ * The language switch's menu, found by CSS: while the <details> element is
+ * closed its links are hidden, and role locators skip hidden elements.
+ */
+const switchMenu = (page: Page) => page.locator("header details nav");
+
+/** The language switch's links, closed or open, as [language, path]. */
 const switchLinks = (page: Page) =>
-  page
-    .getByRole("banner")
-    .getByRole("navigation")
+  switchMenu(page)
     .locator("a")
     .evaluateAll((anchors) =>
       anchors.map((a) => [
@@ -67,7 +71,8 @@ test("the language switch opens without browser code and names each language in 
   page,
 }) => {
   await page.goto("/fr");
-  const nav = page.getByRole("banner").getByRole("navigation");
+  const nav = switchMenu(page);
+  await expect(nav).toHaveCount(1);
   await expect(nav).toBeHidden();
   await page.getByRole("banner").locator("summary").click();
   await expect(nav).toBeVisible();
