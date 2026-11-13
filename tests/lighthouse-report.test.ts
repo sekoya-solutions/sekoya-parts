@@ -1,13 +1,14 @@
 // The Lighthouse check's helpers (issues #59, #61, #67, #73 and #83): no report is
 // saved with the bypass secret, the warm-up run is not counted, a median below
 // 95 in performance or accessibility fails, and the texts carry the medians
-// and the verdict.
+// and the verdict, one check per page with coloured symbols (issue #96).
 import { describe, expect, it } from "vitest";
 import {
   assertNoSecret,
   BYPASS_HEADER,
   belowThreshold,
   COMMENT_MARKER,
+  checkName,
   checkTitle,
   commentBody,
   commitMismatch,
@@ -17,9 +18,13 @@ import {
   median,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
+  pageArgument,
+  pageArguments,
   redact,
   reportFiles,
+  SYMBOLS_LEGEND,
   sameOriginPath,
+  scoreSymbol,
   scoresTable,
   skippedAudits,
   splitWarmUp,
@@ -44,6 +49,7 @@ const lhr = () => ({
 
 const figures: Figures[] = [
   {
+    page: "product",
     path: "/product/1",
     htmlBytes: 228_456,
     cache: "HIT",
@@ -100,11 +106,13 @@ describe("splitWarmUp", () => {
 
 describe("the minimum scores", () => {
   const withRuns = (
+    page: string,
     path: string,
     performance: number[],
     accessibility = [100, 100, 100, 100, 100],
   ): Figures => ({
     ...(figures[0] as Figures),
+    page,
     path,
     scores: { ...(figures[0] as Figures).scores, performance, accessibility },
   });
@@ -112,40 +120,76 @@ describe("the minimum scores", () => {
     expect(MIN_SCORES).toEqual({ performance: 95, accessibility: 95 });
   });
   it("pass a median of exactly 95, ignoring one low run", () => {
-    const f = [
-      withRuns("/product/1", [60, 95, 95, 99, 100], [60, 95, 95, 99, 100]),
-    ];
-    expect(belowThreshold(f)).toEqual([]);
-    expect(gateText(f)).toBe(
-      "Passed: every address has a median performance of at least 95 and accessibility of at least 95.",
+    const one = withRuns(
+      "product",
+      "/product/1",
+      [60, 95, 95, 99, 100],
+      [60, 95, 95, 99, 100],
+    );
+    expect(belowThreshold([one])).toEqual([]);
+    expect(gateText([one])).toBe(
+      "Passed: a median performance of at least 95 and accessibility of at least 95.",
+    );
+    expect(gateText([one, { ...one, page: "home", path: "/" }])).toBe(
+      "Passed: every page has a median performance of at least 95 and accessibility of at least 95.",
     );
   });
-  it("fail a median below 95 and name each failing address", () => {
+  it("fail a median below 95 and name each failing page", () => {
     const f = [
-      withRuns("/product/1", [94, 94, 100, 94, 100]),
-      withRuns("/", [100, 100, 100, 100, 100]),
-      withRuns("/model/1", [90, 91, 92, 93, 99]),
+      withRuns("product", "/product/1", [94, 94, 100, 94, 100]),
+      withRuns("home", "/", [100, 100, 100, 100, 100]),
+      withRuns("model", "/model/1", [90, 91, 92, 93, 99]),
     ];
     expect(belowThreshold(f)).toEqual([
-      { path: "/product/1", category: "performance", median: 94, min: 95 },
-      { path: "/model/1", category: "performance", median: 92, min: 95 },
+      {
+        page: "product",
+        path: "/product/1",
+        category: "performance",
+        median: 94,
+        min: 95,
+      },
+      {
+        page: "model",
+        path: "/model/1",
+        category: "performance",
+        median: 92,
+        min: 95,
+      },
     ]);
     expect(gateText(f)).toBe(
-      "Failed: `/product/1` has a median performance of 94, below 95; `/model/1` has a median performance of 92, below 95.",
+      "Failed: product (`/product/1`) has a median performance of 94, below 95; model (`/model/1`) has a median performance of 92, below 95.",
     );
+    // Each page's own check passes or fails with that page alone.
+    expect(f.map((one) => belowThreshold([one]).length > 0)).toEqual([
+      true,
+      false,
+      true,
+    ]);
   });
   it("fail an accessibility median below 95 even when performance passes", () => {
-    const f = [withRuns("/fr", [100, 100, 100], [94, 94, 100])];
+    const f = [withRuns("home", "/fr", [100, 100, 100], [94, 94, 100])];
     expect(belowThreshold(f)).toEqual([
-      { path: "/fr", category: "accessibility", median: 94, min: 95 },
+      {
+        page: "home",
+        path: "/fr",
+        category: "accessibility",
+        median: 94,
+        min: 95,
+      },
     ]);
     expect(gateText(f)).toBe(
-      "Failed: `/fr` has a median accessibility of 94, below 95.",
+      "Failed: home (`/fr`) has a median accessibility of 94, below 95.",
     );
   });
   it("take other minimums, as the regression check of #61 does", () => {
     expect(belowThreshold(figures, { performance: 101 })).toEqual([
-      { path: "/product/1", category: "performance", median: 98, min: 101 },
+      {
+        page: "product",
+        path: "/product/1",
+        category: "performance",
+        median: 98,
+        min: 101,
+      },
     ]);
   });
 });
@@ -218,18 +262,58 @@ describe("toolbarRequests", () => {
   });
 });
 
-describe("texts", () => {
-  it("puts the four medians in the check's title", () => {
-    expect(checkTitle(figures)).toBe(
-      "Performance 98, accessibility 100, best practices 96, SEO 100",
+describe("pages", () => {
+  it("reads <page>=<address>, the address keeping its own colons", () => {
+    expect(pageArgument("home=/fr")).toEqual({ page: "home", address: "/fr" });
+    expect(
+      pageArgument("model=first-link:/fr/p/sp000001:/fr/appareil/"),
+    ).toEqual({
+      page: "model",
+      address: "first-link:/fr/p/sp000001:/fr/appareil/",
+    });
+  });
+  it("refuses an address without a page, or a page named twice", () => {
+    expect(() => pageArgument("/fr")).toThrow(/<page>=<address>/);
+    expect(() => pageArgument("Home=/fr")).toThrow(/<page>=<address>/);
+    expect(() => pageArguments(["home=/fr", "home=/en"])).toThrow(/twice/);
+  });
+  it("names one check per page", () => {
+    expect(checkName(figures[0] as Figures)).toBe(
+      "Lighthouse scores · product",
     );
   });
-  it("prefixes each address when there are several", () => {
-    const two = [
-      figures[0] as Figures,
-      { ...(figures[0] as Figures), path: "/" },
-    ];
-    expect(checkTitle(two)).toMatch(/^\/product\/1: Performance 98.*; \/: /);
+});
+
+describe("symbols", () => {
+  it("are green from 95, yellow from 90 and red below", () => {
+    expect([100, 95, 94.5, 90, 89.5, 0].map(scoreSymbol)).toEqual([
+      "🟢",
+      "🟢",
+      "🟡",
+      "🟡",
+      "🔴",
+      "🔴",
+    ]);
+  });
+});
+
+describe("texts", () => {
+  it("puts the four medians and their symbols in the page check's title", () => {
+    expect(checkTitle(figures[0] as Figures)).toBe(
+      "🟢 Performance 98 · 🟢 Accessibility 100 · 🟢 Best practices 96 · 🟢 SEO 100",
+    );
+    const lower: Figures = {
+      ...(figures[0] as Figures),
+      scores: {
+        performance: [92, 92, 92],
+        accessibility: [80, 80, 80],
+        "best-practices": [96, 96, 96],
+        seo: [100, 100, 100],
+      },
+    };
+    expect(checkTitle(lower)).toBe(
+      "🟡 Performance 92 · 🔴 Accessibility 80 · 🟢 Best practices 96 · 🟢 SEO 100",
+    );
   });
   it("starts the comment with its marker and gives the runs and reports", () => {
     const body = commentBody(
@@ -242,11 +326,12 @@ describe("texts", () => {
     expect(body.startsWith(COMMENT_MARKER)).toBe(true);
     expect(body).toContain("`c52f0a4`");
     expect(body).toContain(
-      "| `/product/1` | 98 | 100 | 96 | 100 | 81, 98, 98, 99, 98 | 92 | 228456 | 2053 |",
+      "| product `/product/1` | 🟢 98 | 🟢 100 | 🟢 96 | 🟢 100 | 81, 98, 98, 99, 98 | 92 | 228456 | 2053 |",
     );
     expect(body).toContain("after one warm-up run that is not counted");
+    expect(body).toContain(SYMBOLS_LEGEND);
     expect(body).toContain(
-      "**Passed: every address has a median performance of at least 95 and accessibility of at least 95.**",
+      "**Passed: a median performance of at least 95 and accessibility of at least 95.**",
     );
     expect(body).toContain("/artifacts/2");
   });

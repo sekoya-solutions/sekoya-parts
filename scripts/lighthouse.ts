@@ -6,8 +6,9 @@
 // address's median performance or accessibility is below 95, after
 // writing all of these.
 //
-// Usage: node scripts/lighthouse.ts <environment> <deployment URL> <path>...
+// Usage: node scripts/lighthouse.ts <environment> <deployment URL> <page>=<path>...
 // <environment> is Vercel's name for it ("Production", "Preview"...).
+// <page> is the template measured, such as home, which names its check.
 // On a preview, it reads the bypass secret from VERCEL_AUTOMATION_BYPASS_SECRET.
 // The secret is sent as a header only, never printed or put in a URL.
 // On production, the secret must not be set: the public address is measured
@@ -40,6 +41,7 @@ import {
   gateText,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
+  pageArguments,
   REPORTS_DIR,
   reportFiles,
   sameOriginPath,
@@ -69,11 +71,18 @@ type Report = {
   >;
 };
 
-const [environment, deploymentUrl, ...paths] = process.argv.slice(2);
-if (!environment || !deploymentUrl || paths.length === 0) {
+const [environment, deploymentUrl, ...pageArgv] = process.argv.slice(2);
+if (!environment || !deploymentUrl || pageArgv.length === 0) {
   console.error(
-    "Usage: node scripts/lighthouse.ts <environment> <deployment URL> <path>...",
+    "Usage: node scripts/lighthouse.ts <environment> <deployment URL> <page>=<path>...",
   );
+  process.exit(2);
+}
+let pages: ReturnType<typeof pageArguments>;
+try {
+  pages = pageArguments(pageArgv);
+} catch (error) {
+  console.error((error as Error).message);
   process.exit(2);
 }
 const target = targetOf(environment);
@@ -190,11 +199,11 @@ async function firstLink(page: string, prefix: string): Promise<string> {
 }
 
 const figures: Figures[] = [];
-for (const argument of paths) {
-  const linked = /^first-link:([^:]+):(.+)$/.exec(argument);
+for (const { page, address } of pages) {
+  const linked = /^first-link:([^:]+):(.+)$/.exec(address);
   const requested = linked
     ? await firstLink(linked[1] as string, linked[2] as string)
-    : argument;
+    : address;
   const { path, response } = await follow(requested);
   const html = await response.text();
   if (response.status !== 200) {
@@ -214,6 +223,7 @@ for (const argument of paths) {
     }
   }
   figures.push({
+    page,
     path,
     htmlBytes: Buffer.byteLength(html),
     cache: response.headers.get("x-vercel-cache") ?? "",
