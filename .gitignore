@@ -33,3 +33,6 @@ desktop.ini
 # Lighthouse reports and figures, written in CI
 /lighthouse-reports/
 /lighthouse-figures.json
+
+# Catalog images resized at build time (scripts/images.ts)
+/public/images/

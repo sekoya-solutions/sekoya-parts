@@ -1,9 +1,11 @@
 // The build: on Vercel's Production and Preview builds, apply Payload's pending
 // migrations to that environment's database first; on Preview builds, then
-// create or update the automation user (issue #55); then build Next.js.
+// create or update the automation user (issue #55); then resize the catalog's
+// images (issue #85) and build Next.js.
 // If a step fails, the build fails and the previous deployment stays live.
-// CI and local builds skip the database steps. Every build reads the catalog
-// through DATABASE_URL, since it prerenders a product page (issue #47).
+// CI and local builds skip the database steps; every build resizes the images.
+// Every build reads the catalog through DATABASE_URL, since it prerenders a
+// product page (issue #47).
 import { spawnSync } from "node:child_process";
 
 function run(args) {
@@ -27,4 +29,5 @@ if (env === "preview") {
   run(["scripts/payload.js", "run", "scripts/seed-automation-user.ts"]);
 }
 
+run(["scripts/images.ts"]);
 run(["node_modules/next/dist/bin/next", "build"]);

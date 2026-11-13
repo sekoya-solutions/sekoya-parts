@@ -13,6 +13,7 @@ import { getPayload } from "payload";
 import { type ApplianceType, applianceTypes } from "../catalog/generator.ts";
 import type { Locale } from "../cms/locales.ts";
 import { type ModelKey, modelPath, modelPaths } from "./addresses.ts";
+import { ProductCardImage } from "./picture.tsx";
 import {
   computedAt,
   formatPrice,
@@ -260,8 +261,9 @@ export async function ModelProducts({
 
   return (
     <ul data-computed-at={computedAt()} className="product-list">
-      {products.map(({ route, priceCents }) => (
+      {products.map(({ route, priceCents }, index) => (
         <li key={route.id}>
+          <ProductCardImage route={route} locale={locale} index={index} />
           <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
           <span>{formatPrice(priceCents, locale)}</span>
         </li>
