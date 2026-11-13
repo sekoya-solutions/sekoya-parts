@@ -29,6 +29,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Model pages and numbered reference pages, in the ten languages ([#79](https://github.com/sekoya-solutions/sekoya-parts/issues/79)).
   - Category pages, 48 products each, and a home page listing the categories, in the ten languages ([#81](https://github.com/sekoya-solutions/sekoya-parts/issues/81)).
   - Neon's `main`, `preview` and `dev` hold the full catalog: 100,000 products, 60 brands, 1,000,000 appliance models and 1,451,992 compatibility rows, in a 273 MB database ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77)). CI keeps the small catalog.
+- **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 

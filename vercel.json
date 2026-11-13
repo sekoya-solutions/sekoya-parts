@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["fra1"],
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "ignoreCommand": "node scripts/docs-only.ts --vercel"
 }

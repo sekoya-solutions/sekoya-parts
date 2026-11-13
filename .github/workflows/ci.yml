@@ -1,5 +1,8 @@
 # Checks run on every pull request, decided in docs/adr/0004-testing-and-ci.md.
-# No path filter: a required check must report on every pull request.
+# No path filter: a required check must report on every pull request. Since
+# issue #91, a documentation-only pull request skips the three heavy jobs
+# through their if: condition (a skipped job counts as passed), and gets a
+# stand-in "Lighthouse" check, since Vercel does not deploy it.
 name: CI
 
 on:
@@ -13,6 +16,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Documentation only when every file differing between the base and head
+  # commits ends in .md (scripts/docs-only.ts). Any failure here leaves the
+  # output empty, and the heavy jobs then run.
+  changes:
+    name: Change detection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.decide.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - id: decide
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --quiet --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA"
+          if node scripts/docs-only.ts "$BASE_SHA" "$HEAD_SHA"; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Vercel skips the build of a documentation-only change (vercel.json), so
+  # no deployment starts the Lighthouse workflow. This job posts the required
+  # "Lighthouse" check in its place, on the head commit, only when the code is
+  # identical to the base commit's. Its own name differs on purpose: a skipped
+  # job named "Lighthouse" would satisfy the required check on every pull
+  # request.
+  lighthouse-stand-in:
+    name: Lighthouse stand-in
+    needs: changes
+    if: needs.changes.outputs.docs_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      checks: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          gh api --method POST "repos/$GITHUB_REPOSITORY/check-runs"
+          -f name=Lighthouse -f head_sha="$HEAD_SHA"
+          -f status=completed -f conclusion=success
+          -f "output[title]=Not measured: documentation only"
+          -f "output[summary]=Every changed file ends in .md, so the code is the base commit's and Vercel skipped the preview (issue #91)."
+
   markdown-lint:
     name: Markdown lint
     runs-on: ubuntu-24.04
@@ -33,6 +89,9 @@ jobs:
   # first, as the "Generator and tests" job does.
   app-checks:
     name: Lint, types and build
+    needs: changes
+    # Skipped on a documentation-only pull request; runs if detection failed.
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     services:
@@ -77,6 +136,9 @@ jobs:
   # service container with the committed migrations (issue #46).
   catalog-tests:
     name: Generator and tests
+    needs: changes
+    # Skipped on a documentation-only pull request; runs if detection failed.
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     services:
@@ -120,6 +182,9 @@ jobs:
   # is installed on the runner only, from Playwright's download servers.
   end-to-end:
     name: End-to-end tests
+    needs: changes
+    # Skipped on a documentation-only pull request; runs if detection failed.
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
