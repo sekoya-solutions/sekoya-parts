@@ -2,6 +2,8 @@
   "languageName": "English",
   "siteDescription": "Spare parts catalog.",
   "homeTagline": "Spare parts catalog, coming soon.",
+  "categories": "Categories",
+  "productCount": "Products: {count}",
   "compatibleModels": "Compatible models",
   "compatibleParts": "Compatible parts",
   "allCompatibleModels": "See all {count} compatible models",

@@ -2,6 +2,8 @@
   "languageName": "Dansk",
   "siteDescription": "Reservedelskatalog.",
   "homeTagline": "Reservedelskatalog, snart online.",
+  "categories": "Kategorier",
+  "productCount": "Produkter: {count}",
   "compatibleModels": "Kompatible modeller",
   "compatibleParts": "Kompatible reservedele",
   "allCompatibleModels": "Se alle {count} kompatible modeller",

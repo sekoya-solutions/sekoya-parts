@@ -2,6 +2,8 @@
   "languageName": "Deutsch",
   "siteDescription": "Ersatzteilkatalog.",
   "homeTagline": "Ersatzteilkatalog, bald online.",
+  "categories": "Kategorien",
+  "productCount": "Produkte: {count}",
   "compatibleModels": "Kompatible Modelle",
   "compatibleParts": "Kompatible Ersatzteile",
   "allCompatibleModels": "Alle {count} kompatiblen Modelle ansehen",

@@ -2,6 +2,8 @@
   "languageName": "Nederlands",
   "siteDescription": "Catalogus van onderdelen.",
   "homeTagline": "Catalogus van onderdelen, binnenkort online.",
+  "categories": "Categorieën",
+  "productCount": "Producten: {count}",
   "compatibleModels": "Compatibele modellen",
   "compatibleParts": "Compatibele onderdelen",
   "allCompatibleModels": "Alle {count} compatibele modellen bekijken",

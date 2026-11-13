@@ -14,6 +14,9 @@ export const Products: CollectionConfig = {
     afterChange: [revalidateProductAfterChange],
     afterDelete: [revalidateProductAfterDelete],
   },
+  // Category pages read their products by category, in reference order
+  // (issue #81).
+  indexes: [{ fields: ["category", "reference"] }],
   admin: {
     useAsTitle: "reference",
     defaultColumns: [
@@ -37,7 +40,7 @@ export const Products: CollectionConfig = {
         if (!value) return "A reference is required.";
         return isProductReference(value)
           ? true
-          : "Use uppercase letters and digits only, such as SP000123.";
+          : "Use uppercase letters and digits only, with at least one letter, such as SP000123.";
       },
     },
     {

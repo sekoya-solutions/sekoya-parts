@@ -53,7 +53,7 @@ Chosen:
 - **Routing** follows Next.js's own pattern, with no library: `app/[lang]` for the ten languages and dictionaries loaded on the server.
 - **The bare domain `/`** is a small page listing the ten languages. It is the `x-default` for the home page. Nothing redirects by the browser's language, and addresses without a language return 404.
 - **Addresses are translated:**
-  - categories at `/<lang>/<category slug>`, for example `/fr/refrigerateur` and `/en/fridge`;
+  - categories at `/<lang>/<category slug>`, for example `/fr/refrigerateur` and `/en/fridge`, and their later pages at `/<lang>/<category slug>/<n>`, 48 products each ([#81](https://github.com/sekoya-solutions/sekoya-parts/issues/81)). Product references hold a letter, so a number there is always a page;
   - products at `/<lang>/<category slug>/<words>-<reference>`, the words taken from the product's generated name in that language;
   - reference pages at the product's address followed by `/<n>`;
   - models at `/<lang>/<model word>/<brand>-<model reference>`, the section word translated, for example `/fr/appareil/...` and `/de/geraet/...`.

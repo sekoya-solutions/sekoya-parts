@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { categories, productReference } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 import {
+  type CategoryNaming,
+  categoryPageCount,
+  categoryPath,
+  findCategory,
   isLocale,
+  isPageSegment,
   isProductReference,
   languageAlternates,
   parseProductSegment,
@@ -30,6 +35,15 @@ describe("isProductReference", () => {
     expect(isProductReference(productReference(100_000))).toBe(true);
     for (const value of ["", "sp000001", "SP-1", "SP 1", "SPÉ1"])
       expect(isProductReference(value)).toBe(false);
+  });
+
+  it("needs a letter, so a number after a category slug is always a page", () => {
+    for (const value of ["1", "2", "000123", "1234567"]) {
+      expect(isProductReference(value)).toBe(false);
+      expect(isPageSegment(value)).toBe(true);
+    }
+    for (const value of ["1A", "A1", "Z"])
+      expect(isProductReference(value)).toBe(true);
   });
 });
 
@@ -158,5 +172,86 @@ describe("languageAlternates", () => {
     const alternates = languageAlternates(paths, "/");
     expect(Object.keys(alternates)).toEqual([...locales, "x-default"]);
     expect(alternates["x-default"]).toBe("/");
+  });
+});
+
+describe("category pages", () => {
+  it("puts page 1 at /<lang>/<slug> and page n at /<lang>/<slug>/<n>", () => {
+    expect(categoryPath("fr", "joint-de-porte")).toBe("/fr/joint-de-porte");
+    expect(categoryPath("fr", "joint-de-porte", 1)).toBe("/fr/joint-de-porte");
+    expect(categoryPath("en", "door-seal", 7)).toBe("/en/door-seal/7");
+  });
+
+  it("counts 48 products a page, and one page for an empty category", () => {
+    expect(categoryPageCount(0)).toBe(1);
+    expect(categoryPageCount(1)).toBe(1);
+    expect(categoryPageCount(48)).toBe(1);
+    expect(categoryPageCount(49)).toBe(2);
+    expect(categoryPageCount(8_333)).toBe(174);
+  });
+
+  it("reads only digits as a page segment", () => {
+    for (const value of ["sp000001", "bouton-norium-sp000001", "1a", "-1", ""])
+      expect(isPageSegment(value)).toBe(false);
+  });
+
+  it("tells every generated product segment apart from a page segment", () => {
+    const naming = categories()[0];
+    if (!naming) throw new Error("No category.");
+    for (const id of [1, 2, 99_999, 100_000]) {
+      const reference = productReference(id);
+      for (const locale of locales) {
+        const { paths } = productAddresses({
+          reference,
+          showcaseNames: null,
+          categoryNames: naming.names,
+          categorySlugs: naming.names,
+          brand: "Norium",
+        });
+        const segment = paths[locale].split("/")[3] as string;
+        expect(isPageSegment(segment), segment).toBe(false);
+        expect(parseProductSegment(segment)).toBe(reference);
+      }
+    }
+  });
+});
+
+describe("findCategory", () => {
+  const make = (
+    id: number,
+    slug: (locale: Locale) => string,
+  ): CategoryNaming => ({
+    id,
+    names: perLocale((locale) => `Name ${id} ${locale}`),
+    slugs: perLocale(slug),
+  });
+  const seal = make(1, (locale) =>
+    locale === "fr" ? "joint" : `seal-${locale}`,
+  );
+  const filter = make(2, () => "filter");
+  const list = [seal, filter];
+
+  it("finds a slug in the address's language, in any letter case", () => {
+    expect(findCategory(list, "fr", "joint")).toBe(seal);
+    expect(findCategory(list, "fr", "JOINT")).toBe(seal);
+    expect(findCategory(list, "de", "filter")).toBe(filter);
+  });
+
+  it("finds another language's slug, for the page to redirect", () => {
+    expect(findCategory(list, "de", "joint")).toBe(seal);
+    expect(findCategory(list, "fr", "seal-en")).toBe(seal);
+  });
+
+  it("prefers the address's language when two categories share a word", () => {
+    const clash = make(3, (locale) =>
+      locale === "en" ? "joint" : `clash-${locale}`,
+    );
+    expect(findCategory([clash, seal], "fr", "joint")).toBe(seal);
+    expect(findCategory([clash, seal], "en", "joint")).toBe(clash);
+  });
+
+  it("finds nothing for an unknown slug", () => {
+    expect(findCategory(list, "fr", "nothing")).toBeNull();
+    expect(findCategory(list, "fr", "")).toBeNull();
   });
 });

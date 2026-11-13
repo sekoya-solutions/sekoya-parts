@@ -2,6 +2,8 @@
   "languageName": "Português",
   "siteDescription": "Catálogo de peças sobresselentes.",
   "homeTagline": "Catálogo de peças sobresselentes, em breve online.",
+  "categories": "Categorias",
+  "productCount": "Produtos: {count}",
   "compatibleModels": "Modelos compatíveis",
   "compatibleParts": "Peças compatíveis",
   "allCompatibleModels": "Ver os {count} modelos compatíveis",

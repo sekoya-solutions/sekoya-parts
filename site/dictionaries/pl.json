@@ -2,6 +2,8 @@
   "languageName": "Polski",
   "siteDescription": "Katalog części zamiennych.",
   "homeTagline": "Katalog części zamiennych, wkrótce online.",
+  "categories": "Kategorie",
+  "productCount": "Produkty: {count}",
   "compatibleModels": "Zgodne modele",
   "compatibleParts": "Kompatybilne części",
   "allCompatibleModels": "Zobacz wszystkie kompatybilne modele ({count})",

@@ -52,7 +52,7 @@ async function firstId(table: "brands" | "categories"): Promise<number> {
 }
 
 describe("product references", () => {
-  it.each(["sp000123", "SP-123", "SP 123", "SPÉ123"])(
+  it.each(["sp000123", "SP-123", "SP 123", "SPÉ123", "123456"])(
     "refuses %j and writes nothing",
     async (reference) => {
       const brand = await firstId("brands");

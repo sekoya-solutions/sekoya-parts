@@ -2,6 +2,8 @@
   "languageName": "Svenska",
   "siteDescription": "Reservdelskatalog.",
   "homeTagline": "Reservdelskatalog, snart online.",
+  "categories": "Kategorier",
+  "productCount": "Produkter: {count}",
   "compatibleModels": "Kompatibla modeller",
   "compatibleParts": "Kompatibla reservdelar",
   "allCompatibleModels": "Se alla {count} kompatibla modeller",
