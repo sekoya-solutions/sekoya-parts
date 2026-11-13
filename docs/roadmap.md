@@ -2,7 +2,7 @@
 
 Where Sekoya Parts stands and what comes next. Agents read this file at the start of a session, after [AGENTS.md](../AGENTS.md), and update it whenever a step is done or the plan changes.
 
-## Status on 2026-11-12
+## Status on 2026-11-13
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
 - **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
@@ -15,7 +15,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - It runs Next.js 16.4.6, the version ADR 0003 pins, installed once it passed the three-day release age ([#39](https://github.com/sekoya-solutions/sekoya-parts/issues/39)).
   - The Vercel project serves the placeholder page at `https://sekoya-parts.vercel.app/`, behind the firewall settings of phase 2, step 1, and the Neon database is connected for Production ([#41](https://github.com/sekoya-solutions/sekoya-parts/issues/41)). PageSpeed Insights scores the placeholder 100 in all four categories, on mobile and desktop.
   - Payload 3.93.0 runs inside the app, with the catalog schema created by committed migrations ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)). The admin is at `/admin`.
-  - The seeded catalog generator loaded Neon's `main` at the small scale, and the `preview` and `dev` branches were reset from it ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Each holds 1,000 products, 1,000,000 appliance models and 1,004,373 compatibility rows, in 220 MB of the free plan's 1 GB. The generator and Vitest also run in CI against a PostgreSQL 18 container.
+  - The seeded catalog generator loaded Neon's `main` at the small scale, and the `preview` and `dev` branches were reset from it ([#46](https://github.com/sekoya-solutions/sekoya-parts/issues/46)). Each holds 1,000 products, 1,000,000 appliance models and 1,004,373 compatibility rows, in 220 MB of the free plan's 1 GB; phase 3 replaced it with the full catalog. The generator and Vitest also run in CI against a PostgreSQL 18 container.
   - Required checks on `main`: "Markdown lint", "Lint, types and build" and "Generator and tests" ([#50](https://github.com/sekoya-solutions/sekoya-parts/issues/50)), "End-to-end tests" since [#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60), and "Lighthouse" and Vercel's "Vercel" status since [#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61).
   - A product page at the temporary address `/product/<id>`, built from three cached parts, runs on a protected preview ([#47](https://github.com/sekoya-solutions/sekoya-parts/issues/47)). The minimal app is complete.
   - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
@@ -26,6 +26,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Lighthouse also measures each Production deployment of `main`, at the public address ([#67](https://github.com/sekoya-solutions/sekoya-parts/issues/67)).
 - **Phase 3 in progress:** epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72).
   - Every page is under its language, with translated addresses and language tags; the product page is at its final address, and `/` lists the ten languages ([#73](https://github.com/sekoya-solutions/sekoya-parts/issues/73)).
+  - Neon's `main`, `preview` and `dev` hold the full catalog: 100,000 products, 60 brands, 1,000,000 appliance models and 1,451,992 compatibility rows, in a 273 MB database ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77)). CI keeps the small catalog.
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -125,7 +126,13 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
    - each page's head lists its ten versions and `x-default` at full addresses, on the origin `site/site-url.ts` gives (the production domain, a preview's branch address, or localhost);
    - interface labels live in `site/dictionaries/<lang>.json`, and a test checks every key exists in all ten;
    - product 1 is built in advance in the ten languages, and the 2 MB test covers all ten (about 230 KB each).
-2. The full-scale catalog loaded into Neon's `main`, then `preview` and `dev` reset from it ([ADR 0007](adr/0007-catalog-data-model.md)).
+2. **Done: the full-scale catalog** ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77), [ADR 0007](adr/0007-catalog-data-model.md)):
+   - `npm run generate -- --scale full --seed 1 --replace` loaded Neon's `main` in 33.1 s from the owner's machine: 100,000 products in 1.6 s, 1,000,000 models in 8.1 s and 1,451,992 compatibility rows in 22.1 s. The catalog tables take 264 MB with their indexes, the database 273 MB, against ADR 0007's estimate of about 300 MB;
+   - the full catalog adds only about 53 MB to the small one, since the million models and product 1's million compatibility rows exist at both scales;
+   - the owner reset `preview` and `dev` from `main`. Each branch is billed at most its own data size, so the three stay under the free plan's 1 GB;
+   - the database tests read the loaded scale from `CATALOG_SCALE`, now `full` in `.env.example` for the Neon branches; CI sets `small` itself;
+   - the same seed keeps the prices, part types and compatible models of products 1 to 1,000, but they get new brands among 60, hence new names and addresses (product 1 is now a Norium knob). The load bypassed Payload's save hooks, so production keeps serving its cached parts until the merge's deployment, which starts the Runtime Cache empty (owner decision);
+   - the owner keeps `main`'s direct connection string in the git-ignored `.env.main` for later loads.
 3. The model page and the numbered reference pages ([ADR 0009](adr/0009-compatible-references.md), ADR 0011). Translated model addresses mean the reference list's links differ by language, so its cache entry can no longer be shared by the ten languages: a decision for the owner when the step starts.
 4. The category listing and the home page.
 5. The design, images and fonts ([ADR 0012](adr/0012-front-end-assets.md)), once the owner has chosen the typeface, colours, logo and images.
