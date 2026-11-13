@@ -1,7 +1,8 @@
 // Connects the sweep to the database (issue #104): the showcase products
 // through Payload, and the translation memory and run lease in the project's
-// own tables (migrations/20261113_230000_translation_memory.ts), which the
-// generator's TRUNCATE does not list, so a catalog reload keeps them.
+// own tables (migrations/20261113_230000_translation_memory.ts). The
+// generator's TRUNCATE does not list them (catalog/tables.ts) and they
+// reference no table, so a catalog reload keeps them.
 import type { PostgresAdapter } from "@payloadcms/db-postgres";
 import { sql } from "@payloadcms/db-postgres";
 import type { Payload, PayloadRequest } from "payload";
@@ -14,12 +15,25 @@ import {
   targetLocales,
 } from "./sweep.ts";
 
-const drizzleOf = (payload: Payload) =>
-  (payload.db as unknown as PostgresAdapter).drizzle;
+type Drizzle = Pick<PostgresAdapter["drizzle"], "execute">;
+
+/**
+ * The connection to use: the request's transaction when it has one (the
+ * database test rolls everything back), else the pool, where each statement
+ * commits at once, so translations paid for are kept even if the run fails.
+ */
+async function drizzleFor(
+  payload: Payload,
+  req?: Partial<PayloadRequest>,
+): Promise<Drizzle> {
+  const adapter = payload.db as unknown as PostgresAdapter;
+  const id = req?.transactionID ? await req.transactionID : undefined;
+  const session = id === undefined ? undefined : adapter.sessions[String(id)];
+  return session ? (session.db as unknown as Drizzle) : adapter.drizzle;
+}
 
 /** The memory in the translation_memory table. Rows are only ever added. */
-export function databaseMemory(payload: Payload): TranslationMemory {
-  const drizzle = drizzleOf(payload);
+export function databaseMemory(drizzle: Drizzle): TranslationMemory {
   return {
     async get(locale, hashes) {
       if (hashes.length === 0) return new Map();
@@ -55,7 +69,7 @@ const allLocales = (value: unknown): AllLocales =>
 /** Every showcase product, with its texts in each language. */
 export async function readShowcase(
   payload: Payload,
-  req?: PayloadRequest,
+  req?: Partial<PayloadRequest>,
 ): Promise<SweepProduct[]> {
   const { docs } = await payload.find({
     collection: "products",
@@ -88,22 +102,24 @@ export async function readShowcase(
 /**
  * Takes the run lease, or returns false when another run holds it, so two
  * runs (the cron and the owner) never pay DeepL twice for the same text. A
- * run that crashed frees it when it expires.
+ * run that crashed frees it when it expires, after ten minutes: well over a
+ * function's longest run. clock_timestamp(), not now(): now() is fixed for a
+ * whole transaction, so a lease released and taken again in one would read
+ * as still held.
  */
-async function takeLease(payload: Payload): Promise<boolean> {
-  const { rows } = await drizzleOf(payload).execute(sql`
+async function takeLease(drizzle: Drizzle): Promise<boolean> {
+  const { rows } = await drizzle.execute(sql`
     INSERT INTO translation_lease (id, held_until)
-    -- Ten minutes: well over a function's longest run.
-    VALUES (1, now() + interval '10 minutes')
+    VALUES (1, clock_timestamp() + interval '10 minutes')
     ON CONFLICT (id) DO UPDATE SET held_until = EXCLUDED.held_until
-    WHERE translation_lease.held_until < now()
+    WHERE translation_lease.held_until < clock_timestamp()
     RETURNING id`);
   return rows.length === 1;
 }
 
-async function releaseLease(payload: Payload): Promise<void> {
-  await drizzleOf(payload).execute(sql`
-    UPDATE translation_lease SET held_until = now() WHERE id = 1`);
+async function releaseLease(drizzle: Drizzle): Promise<void> {
+  await drizzle.execute(sql`
+    UPDATE translation_lease SET held_until = '-infinity' WHERE id = 1`);
 }
 
 export type RunResult = SweepResult | { busy: true };
@@ -116,13 +132,14 @@ export type RunResult = SweepResult | { busy: true };
 export async function runTranslation(
   payload: Payload,
   deepl: DeepLClient | null,
-  req?: PayloadRequest,
+  req?: Partial<PayloadRequest>,
 ): Promise<RunResult> {
-  if (!(await takeLease(payload))) return { busy: true };
+  const drizzle = await drizzleFor(payload, req);
+  if (!(await takeLease(drizzle))) return { busy: true };
   try {
     return await sweep({
       products: await readShowcase(payload, req),
-      memory: databaseMemory(payload),
+      memory: databaseMemory(drizzle),
       deepl,
       write: async (id, locale: TargetLocale, data) => {
         await payload.update({
@@ -130,13 +147,11 @@ export async function runTranslation(
           id,
           locale,
           data,
-          // The source of the change, for the save hook: not a French edit.
-          context: { translation: true },
           req,
         });
       },
     });
   } finally {
-    await releaseLease(payload);
+    await releaseLease(drizzle);
   }
 }

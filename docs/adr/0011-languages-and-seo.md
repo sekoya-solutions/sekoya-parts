@@ -76,7 +76,7 @@ What it costs, and where each cost is checked:
 - **More routing logic.** The route resolves the stable key and checks the words before rendering. Each version's translated address comes from data the page already loads, and a test covers the redirects.
 - **The section word for models** and the allow list in `robots.txt` exist in ten languages.
 - **Blocked pages could still be indexed.** A disallowed page linked from elsewhere could appear without content in results, which Google allows. That is acceptable for search pages and the admin.
-- **DeepL's free allowance and data use on the free plan** are confirmed in the owner's DeepL account when it is created.
+- **DeepL's free allowance** is 1,000,000 characters in total, once (owner, 2026-11-13), and one translation of the twelve showcase products costs about 45,600. A translation memory keeps every translation through catalog reloads, so only new or changed French text is sent ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)). **Its data use on the free plan** is confirmed in the owner's DeepL account when it is created.
 - **Sitemaps for the whole catalog** would only need `generateSitemaps` at 50,000 addresses each, if the crawl showcase is ever widened.
 
 ## Consequences
@@ -93,5 +93,5 @@ Negative:
 
 Follow-up:
 
-- **Implementation, with the owner's account:** create the DeepL API key and store it as a Vercel secret.
+- **Implementation, with the owner's account:** create the DeepL API key and store it as a secret in Vercel's Production environment, never on previews, and in GitHub Actions for the live check.
 - **Front-end assets record:** the language chooser and the language switch on every page.

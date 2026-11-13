@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["fra1"],
   "buildCommand": "npm run build",
-  "ignoreCommand": "node scripts/docs-only.ts --vercel"
+  "ignoreCommand": "node scripts/docs-only.ts --vercel",
+  "crons": [
+    {
+      "path": "/api/translations/run",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

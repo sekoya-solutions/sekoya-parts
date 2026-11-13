@@ -7,6 +7,7 @@ import { Categories } from "./cms/collections/categories";
 import { Products } from "./cms/collections/products";
 import { Users } from "./cms/collections/users";
 import { locales } from "./cms/locales";
+import { translationRunEndpoint } from "./cms/translation/endpoint";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +25,8 @@ export default buildConfig({
     importMap: { baseDir: dirname },
   },
   collections: [Categories, Brands, Products, Users],
+  // The translation sweep, run by the daily cron or a signed-in user (issue #104).
+  endpoints: [translationRunEndpoint],
   // The admin uses REST; no GraphQL endpoint is exposed.
   graphQL: { disable: true },
   localization: {
