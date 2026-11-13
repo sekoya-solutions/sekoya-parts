@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Kühlschrank",
   "appliance:cooktop": "Kochfeld",
   "appliance:range-hood": "Dunstabzugshaube",
-  "appliance:microwave": "Mikrowelle"
+  "appliance:microwave": "Mikrowelle",
+  "skipToContent": "Zum Inhalt springen",
+  "languageMenu": "Sprache",
+  "footerNote": "Demonstrationskatalog: Produkte, Preise und Referenzen sind fiktiv.",
+  "notFoundTitle": "Seite nicht gefunden",
+  "notFoundText": "Diese Adresse entspricht keiner Seite des Katalogs.",
+  "notFoundHome": "Zur Startseite"
 }

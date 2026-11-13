@@ -9,6 +9,7 @@ import type { Locale } from "../cms/locales.ts";
 import { categoryPath, languageAlternates } from "./addresses.ts";
 import { categoryPaths, getCategoryRows } from "./categories.tsx";
 import { fill, getDictionary } from "./dictionary.ts";
+import { SiteFrame } from "./frame.tsx";
 import { formatPrice } from "./product.tsx";
 import { resolveCategory } from "./resolve.ts";
 
@@ -72,10 +73,12 @@ export async function CategoryPage({
   const { rows, computedAt } = await getCategoryRows(category.id, page);
 
   return (
-    <main>
-      <h1>{category.names[locale]}</h1>
-      {pages > 1 && <p>{pageLabel(locale, page, pages)}</p>}
-      <ul data-computed-at={computedAt}>
+    <SiteFrame locale={locale} paths={categoryPaths(category, page)}>
+      <h1 className="text-3xl font-bold">{category.names[locale]}</h1>
+      {pages > 1 && (
+        <p className="mt-1 text-slate">{pageLabel(locale, page, pages)}</p>
+      )}
+      <ul data-computed-at={computedAt} className="product-list mt-6">
         {rows.map(({ route, priceCents }) => (
           <li key={route.id}>
             <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
@@ -84,7 +87,7 @@ export async function CategoryPage({
         ))}
       </ul>
       {pages > 1 && (
-        <nav>
+        <nav className="pager">
           {page > 1 && (
             <a href={categoryPath(locale, slug, page - 1)} rel="prev">
               {dictionary.previousPage}
@@ -97,6 +100,6 @@ export async function CategoryPage({
           )}
         </nav>
       )}
-    </main>
+    </SiteFrame>
   );
 }

@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Kylskåp",
   "appliance:cooktop": "Spishäll",
   "appliance:range-hood": "Köksfläkt",
-  "appliance:microwave": "Mikrovågsugn"
+  "appliance:microwave": "Mikrovågsugn",
+  "skipToContent": "Hoppa till innehållet",
+  "languageMenu": "Språk",
+  "footerNote": "Demonstrationskatalog: produkter, priser och referenser är fiktiva.",
+  "notFoundTitle": "Sidan hittades inte",
+  "notFoundText": "Den här adressen motsvarar ingen sida i katalogen.",
+  "notFoundHome": "Tillbaka till startsidan"
 }

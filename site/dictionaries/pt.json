@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Frigorífico",
   "appliance:cooktop": "Placa de cozinha",
   "appliance:range-hood": "Exaustor",
-  "appliance:microwave": "Micro-ondas"
+  "appliance:microwave": "Micro-ondas",
+  "skipToContent": "Ir para o conteúdo",
+  "languageMenu": "Idioma",
+  "footerNote": "Catálogo de demonstração: os produtos, preços e referências são fictícios.",
+  "notFoundTitle": "Página não encontrada",
+  "notFoundText": "Este endereço não corresponde a nenhuma página do catálogo.",
+  "notFoundHome": "Voltar à página inicial"
 }

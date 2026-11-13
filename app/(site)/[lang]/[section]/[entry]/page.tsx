@@ -27,6 +27,7 @@ import {
   fill,
   getDictionary,
 } from "../../../../../site/dictionary.ts";
+import { SiteFrame } from "../../../../../site/frame.tsx";
 import {
   getReferenceRows,
   getReferenceTotal,
@@ -126,14 +127,23 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
   ]);
 
   return (
-    <main>
-      <h1 data-computed-at={route.computedAt}>{route.names[locale]}</h1>
-      <ProductPrice id={id} locale={locale} />
-      <ProductDescription id={id} locale={locale} />
-      <h2>{dictionary.compatibleModels}</h2>
+    <SiteFrame locale={locale} paths={route.paths}>
+      <h1
+        data-computed-at={route.computedAt}
+        className="text-3xl font-bold sm:text-4xl"
+      >
+        {route.names[locale]}
+      </h1>
+      <div className="mt-4 space-y-4">
+        <ProductPrice id={id} locale={locale} />
+        <ProductDescription id={id} locale={locale} />
+      </div>
+      <h2 className="mt-10 mb-4 text-2xl font-bold">
+        {dictionary.compatibleModels}
+      </h2>
       <ReferenceList references={references} locale={locale} />
       {total > PRODUCT_PAGE_REFERENCES && (
-        <p>
+        <p className="pager">
           <a href={referencePagePath(route.paths[locale], 1)}>
             {fill(dictionary.allCompatibleModels, {
               count: new Intl.NumberFormat(locale).format(total),
@@ -141,7 +151,7 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
           </a>
         </p>
       )}
-    </main>
+    </SiteFrame>
   );
 }
 
@@ -150,13 +160,20 @@ async function ModelPage(locale: Locale, section: string, entry: string) {
   const dictionary = getDictionary(locale);
 
   return (
-    <main>
-      <h1 data-computed-at={model.computedAt}>
+    <SiteFrame locale={locale} paths={model.paths}>
+      <h1
+        data-computed-at={model.computedAt}
+        className="text-3xl font-bold sm:text-4xl"
+      >
         {model.brand} {model.reference}
       </h1>
-      <p>{applianceTypeName(dictionary, model.applianceType)}</p>
-      <h2>{dictionary.compatibleParts}</h2>
+      <p className="mt-1 text-lg text-slate">
+        {applianceTypeName(dictionary, model.applianceType)}
+      </p>
+      <h2 className="mt-10 mb-4 text-2xl font-bold">
+        {dictionary.compatibleParts}
+      </h2>
       <ModelProducts id={model.id} locale={locale} />
-    </main>
+    </SiteFrame>
   );
 }

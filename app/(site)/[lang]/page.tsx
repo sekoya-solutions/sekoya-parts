@@ -3,9 +3,10 @@
 // showcase products join it in phase 3, step 6. Built from the shared
 // category entries of site/categories.tsx; the page itself is not cached.
 import type { Metadata } from "next";
-import { categoryPath, homePath } from "../../../site/addresses.ts";
+import { categoryPath, homePath, perLocale } from "../../../site/addresses.ts";
 import { getCategories, getCategoryCounts } from "../../../site/categories.tsx";
 import { fill, getDictionary } from "../../../site/dictionary.ts";
+import { SiteFrame } from "../../../site/frame.tsx";
 import { homeAlternates } from "../../../site/home.ts";
 import { localeOf } from "../../../site/resolve.ts";
 
@@ -31,17 +32,23 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   );
 
   return (
-    <main>
-      <h1>Sekoya Parts</h1>
-      <p>{dictionary.homeTagline}</p>
-      <h2>{dictionary.categories}</h2>
-      <ul>
+    <SiteFrame locale={locale} paths={perLocale(homePath)}>
+      <h1 className="text-3xl font-bold sm:text-4xl">Sekoya Parts</h1>
+      <p className="mt-2 text-lg text-slate">{dictionary.homeTagline}</p>
+      <h2 className="mt-10 text-2xl font-bold">{dictionary.categories}</h2>
+      <ul className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-4">
         {sorted.map((category) => (
-          <li key={category.id}>
-            <a href={categoryPath(locale, category.slugs[locale])}>
+          <li
+            key={category.id}
+            className="rounded-md border border-line bg-sand p-4"
+          >
+            <a
+              href={categoryPath(locale, category.slugs[locale])}
+              className="text-lg font-bold"
+            >
               {category.names[locale]}
-            </a>{" "}
-            <span>
+            </a>
+            <span className="mt-1 block text-sm text-slate">
               {fill(dictionary.productCount, {
                 count: format.format(counts[category.id] ?? 0),
               })}
@@ -49,6 +56,6 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           </li>
         ))}
       </ul>
-    </main>
+    </SiteFrame>
   );
 }

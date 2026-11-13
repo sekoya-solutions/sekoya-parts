@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Koelkast",
   "appliance:cooktop": "Kookplaat",
   "appliance:range-hood": "Afzuigkap",
-  "appliance:microwave": "Magnetron"
+  "appliance:microwave": "Magnetron",
+  "skipToContent": "Naar de inhoud",
+  "languageMenu": "Taal",
+  "footerNote": "Demonstratiecatalogus: producten, prijzen en referenties zijn fictief.",
+  "notFoundTitle": "Pagina niet gevonden",
+  "notFoundText": "Dit adres komt niet overeen met een pagina van de catalogus.",
+  "notFoundHome": "Terug naar de startpagina"
 }

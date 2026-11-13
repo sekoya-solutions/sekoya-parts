@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Réfrigérateur",
   "appliance:cooktop": "Plaque de cuisson",
   "appliance:range-hood": "Hotte",
-  "appliance:microwave": "Micro-ondes"
+  "appliance:microwave": "Micro-ondes",
+  "skipToContent": "Aller au contenu",
+  "languageMenu": "Langue",
+  "footerNote": "Catalogue de démonstration : les produits, prix et références sont fictifs.",
+  "notFoundTitle": "Page introuvable",
+  "notFoundText": "Cette adresse ne correspond à aucune page du catalogue.",
+  "notFoundHome": "Retour à l’accueil"
 }

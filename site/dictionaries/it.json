@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Frigorifero",
   "appliance:cooktop": "Piano cottura",
   "appliance:range-hood": "Cappa aspirante",
-  "appliance:microwave": "Microonde"
+  "appliance:microwave": "Microonde",
+  "skipToContent": "Vai al contenuto",
+  "languageMenu": "Lingua",
+  "footerNote": "Catalogo dimostrativo: prodotti, prezzi e riferimenti sono fittizi.",
+  "notFoundTitle": "Pagina non trovata",
+  "notFoundText": "Questo indirizzo non corrisponde a nessuna pagina del catalogo.",
+  "notFoundHome": "Torna alla home page"
 }

@@ -3,7 +3,8 @@
 // at its own address, or production at its public address. It writes the figures of each address to the job
 // summary and to lighthouse-figures.json, and the reports of every run to
 // lighthouse-reports/, which the workflow uploads. It exits with 1 when an
-// address's median performance is below 95, after writing all of these.
+// address's median performance or accessibility is below 95, after
+// writing all of these.
 //
 // Usage: node scripts/lighthouse.ts <environment> <deployment URL> <path>...
 // <environment> is Vercel's name for it ("Production", "Preview"...).
