@@ -2,7 +2,9 @@
 # No path filter: a required check must report on every pull request. Since
 # issue #91, a documentation-only pull request skips the three heavy jobs
 # through their if: condition (a skipped job counts as passed), and gets a
-# stand-in "Lighthouse" check, since Vercel does not deploy it.
+# stand-in "Lighthouse" check, since Vercel does not deploy it. Since issue
+# #106, so does a push that changes only .md files compared with the previous
+# head, when every check on that head passed.
 name: CI
 
 on:
@@ -17,14 +19,21 @@ concurrency:
 
 jobs:
   # Documentation only when every file differing between the base and head
-  # commits ends in .md (scripts/docs-only.ts). Any failure here leaves the
-  # output empty, and the heavy jobs then run.
+  # commits ends in .md (scripts/docs-only.ts), or, on a push, between the
+  # previous and new heads, when every check on the previous head passed. Any
+  # failure here leaves the outputs empty, and the heavy jobs then run.
   changes:
     name: Change detection
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: read
+      # The previous head's checks and statuses (issue #106).
+      checks: read
+      statuses: read
     outputs:
       docs_only: ${{ steps.decide.outputs.docs_only }}
+      docs_only_pull_request: ${{ steps.decide.outputs.docs_only_pull_request }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -36,30 +45,52 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # Only a push has a previous head; after a force-push it may be
+          # gone, and the fetch below then fails toward running everything.
+          BEFORE_SHA: ${{ github.event.action == 'synchronize' && github.event.before || '' }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git fetch --quiet --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA"
           if node scripts/docs-only.ts "$BASE_SHA" "$HEAD_SHA"; then
+            echo "docs_only_pull_request=true" >> "$GITHUB_OUTPUT"
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$BEFORE_SHA" ] &&
+            git fetch --quiet --no-tags --depth=1 origin "$BEFORE_SHA" &&
+            node scripts/docs-only.ts "$BEFORE_SHA" "$HEAD_SHA" &&
+            node scripts/docs-only.ts --checks-passed "$BEFORE_SHA"; then
+            echo "docs_only_pull_request=false" >> "$GITHUB_OUTPUT"
             echo "docs_only=true" >> "$GITHUB_OUTPUT"
           else
+            echo "docs_only_pull_request=false" >> "$GITHUB_OUTPUT"
             echo "docs_only=false" >> "$GITHUB_OUTPUT"
           fi
 
   # Vercel skips the build of a documentation-only change (vercel.json), so
-  # no deployment starts the Lighthouse workflow. This job posts the required
-  # "Lighthouse" check in its place, on the head commit, only when the code is
-  # identical to the base commit's. Its own name differs on purpose: a skipped
-  # job named "Lighthouse" would satisfy the required check on every pull
-  # request.
+  # no deployment starts the Lighthouse workflow, and this job posts the
+  # required "Lighthouse" check on the head commit in its place. Its own name
+  # differs on purpose: a skipped job named "Lighthouse" would satisfy the
+  # required check on every pull request.
+  # - A documentation-only pull request: posted at once, since the code is
+  #   identical to the base commit's (issue #91).
+  # - Any other pull request (issue #106): the job waits for Vercel's status on
+  #   the head commit. Only if Vercel skipped the build, because every commit
+  #   since the branch's last preview changes only .md files, does it copy that
+  #   preview's Lighthouse result. When Vercel builds, the real Lighthouse runs
+  #   and this job posts nothing.
   lighthouse-stand-in:
     name: Lighthouse stand-in
     needs: changes
-    if: needs.changes.outputs.docs_only == 'true'
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 55
     permissions:
+      contents: read
       checks: write
+      statuses: read
+      deployments: read
     steps:
-      - env:
+      - if: needs.changes.outputs.docs_only_pull_request == 'true'
+        env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: >-
@@ -68,6 +99,22 @@ jobs:
           -f status=completed -f conclusion=success
           -f "output[title]=Not measured: documentation only"
           -f "output[summary]=Every changed file ends in .md, so the code is the base commit's and Vercel skipped the preview (issue #91)."
+      # The head's history, to find the last commit Vercel built.
+      - if: needs.changes.outputs.docs_only_pull_request != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 50
+          persist-credentials: false
+      - if: needs.changes.outputs.docs_only_pull_request != 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - if: needs.changes.outputs.docs_only_pull_request != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/docs-only.ts --stand-in "$HEAD_SHA"
 
   markdown-lint:
     name: Markdown lint
@@ -90,7 +137,7 @@ jobs:
   app-checks:
     name: Lint, types and build
     needs: changes
-    # Skipped on a documentation-only pull request; runs if detection failed.
+    # Skipped on a documentation-only pull request or push; runs if detection failed.
     if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -137,7 +184,7 @@ jobs:
   catalog-tests:
     name: Generator and tests
     needs: changes
-    # Skipped on a documentation-only pull request; runs if detection failed.
+    # Skipped on a documentation-only pull request or push; runs if detection failed.
     if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -183,7 +230,7 @@ jobs:
   end-to-end:
     name: End-to-end tests
     needs: changes
-    # Skipped on a documentation-only pull request; runs if detection failed.
+    # Skipped on a documentation-only pull request or push; runs if detection failed.
     if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
