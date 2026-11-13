@@ -1,6 +1,6 @@
 # Roadmap
 
-Where Sekoya Parts stands and what comes next. Agents read this file at the start of a session, after [AGENTS.md](../AGENTS.md), and update it whenever a step is done or the plan changes.
+Where Sekoya Parts stands and what comes next (test of #106, not merged). Agents read this file at the start of a session, after [AGENTS.md](../AGENTS.md), and update it whenever a step is done or the plan changes.
 
 ## Status on 2026-11-14
 
