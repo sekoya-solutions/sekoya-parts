@@ -141,7 +141,7 @@ export async function ProductPrice({
   });
   if (!product) return null;
   return (
-    <p data-computed-at={computedAt()}>
+    <p data-computed-at={computedAt()} className="text-3xl font-bold">
       {formatPrice(product.priceCents, locale)}
     </p>
   );
@@ -174,5 +174,9 @@ export async function ProductDescription({
     product.showcase && product.description
       ? product.description
       : placeholderDescription(id, locale);
-  return <p data-computed-at={computedAt()}>{text}</p>;
+  return (
+    <p data-computed-at={computedAt()} className="max-w-prose text-slate">
+      {text}
+    </p>
+  );
 }

@@ -127,7 +127,7 @@ export function ReferenceList({
   locale: Locale;
 }) {
   return (
-    <ul data-computed-at={references.computedAt}>
+    <ul data-computed-at={references.computedAt} className="reference-list">
       {references.rows.map((row) => (
         <li key={row.id}>
           <a
@@ -259,7 +259,7 @@ export async function ModelProducts({
   }
 
   return (
-    <ul data-computed-at={computedAt()}>
+    <ul data-computed-at={computedAt()} className="product-list">
       {products.map(({ route, priceCents }) => (
         <li key={route.id}>
           <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}

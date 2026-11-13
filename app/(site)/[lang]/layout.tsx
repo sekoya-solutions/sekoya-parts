@@ -6,7 +6,10 @@ import { notFound } from "next/navigation";
 import { locales } from "../../../cms/locales.ts";
 import { isLocale } from "../../../site/addresses.ts";
 import { getDictionary } from "../../../site/dictionary.ts";
+import { fontVariables } from "../../../site/fonts.ts";
+import { SkipLink } from "../../../site/frame.tsx";
 import { siteUrl } from "../../../site/site-url.ts";
+import "../../../site/site.css";
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -33,8 +36,11 @@ export default async function LanguageLayout({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   return (
-    <html lang={lang}>
-      <body>{children}</body>
+    <html lang={lang} className={fontVariables}>
+      <body>
+        <SkipLink locale={lang} />
+        {children}
+      </body>
     </html>
   );
 }

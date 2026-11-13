@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Køleskab",
   "appliance:cooktop": "Kogeplade",
   "appliance:range-hood": "Emhætte",
-  "appliance:microwave": "Mikrobølgeovn"
+  "appliance:microwave": "Mikrobølgeovn",
+  "skipToContent": "Gå til indholdet",
+  "languageMenu": "Sprog",
+  "footerNote": "Demonstrationskatalog: produkter, priser og referencer er fiktive.",
+  "notFoundTitle": "Siden blev ikke fundet",
+  "notFoundText": "Denne adresse svarer ikke til nogen side i kataloget.",
+  "notFoundHome": "Tilbage til forsiden"
 }

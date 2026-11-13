@@ -1,6 +1,7 @@
-// The Lighthouse check's helpers (issues #59, #61, #67 and #73): no report is saved
-// with the bypass secret, the warm-up run is not counted, the 95 threshold
-// fails a low median, and the texts carry the medians and the verdict.
+// The Lighthouse check's helpers (issues #59, #61, #67, #73 and #83): no report is
+// saved with the bypass secret, the warm-up run is not counted, a median below
+// 95 in performance or accessibility fails, and the texts carry the medians
+// and the verdict.
 import { describe, expect, it } from "vitest";
 import {
   assertNoSecret,
@@ -12,7 +13,7 @@ import {
   commitMismatch,
   type Figures,
   gateText,
-  MIN_PERFORMANCE,
+  MIN_SCORES,
   median,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
@@ -97,37 +98,54 @@ describe("splitWarmUp", () => {
   });
 });
 
-describe("the 95 threshold", () => {
-  const withRuns = (path: string, performance: number[]): Figures => ({
+describe("the minimum scores", () => {
+  const withRuns = (
+    path: string,
+    performance: number[],
+    accessibility = [100, 100, 100, 100, 100],
+  ): Figures => ({
     ...(figures[0] as Figures),
     path,
-    scores: { ...(figures[0] as Figures).scores, performance },
+    scores: { ...(figures[0] as Figures).scores, performance, accessibility },
   });
-  it("is 95, as ADR 0004 decides", () => {
-    expect(MIN_PERFORMANCE).toBe(95);
+  it("are 95 in performance (ADR 0004) and accessibility (ADR 0012)", () => {
+    expect(MIN_SCORES).toEqual({ performance: 95, accessibility: 95 });
   });
-  it("passes a median of exactly 95, ignoring one low run", () => {
-    const f = [withRuns("/product/1", [60, 95, 95, 99, 100])];
+  it("pass a median of exactly 95, ignoring one low run", () => {
+    const f = [
+      withRuns("/product/1", [60, 95, 95, 99, 100], [60, 95, 95, 99, 100]),
+    ];
     expect(belowThreshold(f)).toEqual([]);
-    expect(gateText(f)).toMatch(/^Passed/);
+    expect(gateText(f)).toBe(
+      "Passed: every address has a median performance of at least 95 and accessibility of at least 95.",
+    );
   });
-  it("fails a median below 95 and names each failing address", () => {
+  it("fail a median below 95 and name each failing address", () => {
     const f = [
       withRuns("/product/1", [94, 94, 100, 94, 100]),
       withRuns("/", [100, 100, 100, 100, 100]),
       withRuns("/model/1", [90, 91, 92, 93, 99]),
     ];
     expect(belowThreshold(f)).toEqual([
-      { path: "/product/1", median: 94 },
-      { path: "/model/1", median: 92 },
+      { path: "/product/1", category: "performance", median: 94, min: 95 },
+      { path: "/model/1", category: "performance", median: 92, min: 95 },
     ]);
     expect(gateText(f)).toBe(
-      "Failed: `/product/1` has a median performance of 94; `/model/1` has a median performance of 92, below 95.",
+      "Failed: `/product/1` has a median performance of 94, below 95; `/model/1` has a median performance of 92, below 95.",
     );
   });
-  it("takes another threshold, as the regression check of #61 does", () => {
-    expect(belowThreshold(figures, 101)).toEqual([
-      { path: "/product/1", median: 98 },
+  it("fail an accessibility median below 95 even when performance passes", () => {
+    const f = [withRuns("/fr", [100, 100, 100], [94, 94, 100])];
+    expect(belowThreshold(f)).toEqual([
+      { path: "/fr", category: "accessibility", median: 94, min: 95 },
+    ]);
+    expect(gateText(f)).toBe(
+      "Failed: `/fr` has a median accessibility of 94, below 95.",
+    );
+  });
+  it("take other minimums, as the regression check of #61 does", () => {
+    expect(belowThreshold(figures, { performance: 101 })).toEqual([
+      { path: "/product/1", category: "performance", median: 98, min: 101 },
     ]);
   });
 });
@@ -228,7 +246,7 @@ describe("texts", () => {
     );
     expect(body).toContain("after one warm-up run that is not counted");
     expect(body).toContain(
-      "**Passed: every address has a median performance of at least 95.**",
+      "**Passed: every address has a median performance of at least 95 and accessibility of at least 95.**",
     );
     expect(body).toContain("/artifacts/2");
   });

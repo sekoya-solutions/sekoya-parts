@@ -1,0 +1,143 @@
+/* The site's stylesheet (issue #83, docs/adr/0012-front-end-assets.md,
+   docs/specs/design-system.md). Tailwind reads only the site's own files.
+   The theme replaces Tailwind's palette with the brand's, so only these
+   colours exist; tests/contrast.test.ts reads them from this file and checks
+   every text pairing the site uses. */
+@import "tailwindcss" source(none);
+@source "../app";
+@source "./";
+
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-navy: #0b1c29;
+  --color-action: #0a7a5c;
+  --color-action-hover: #08654c;
+  --color-leaf: #22c08a;
+  --color-cream: #e8d8c0;
+  --color-mist: #9dbdcc;
+  --color-sand: #f6f1e8;
+  --color-slate: #4f6170;
+  --color-line: #c9d3d9;
+
+  --radius-*: initial;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+
+  --container-page: 72rem;
+}
+
+/* The font variables are set by next/font on <html> (site/fonts.ts). */
+@theme inline {
+  --font-sans:
+    var(--font-manrope-ext), var(--font-manrope), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-navy);
+  }
+  body {
+    background-color: var(--color-white);
+    color: var(--color-navy);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a {
+    color: var(--color-action);
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+  a:hover {
+    color: var(--color-action-hover);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-action);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Areas on navy: the header and the footer. */
+  .on-navy {
+    background-color: var(--color-navy);
+    color: var(--color-mist);
+  }
+  .on-navy a {
+    color: var(--color-cream);
+    text-decoration-line: none;
+  }
+  .on-navy a:hover {
+    color: var(--color-white);
+    text-decoration-line: underline;
+  }
+  .on-navy :focus-visible {
+    outline-color: var(--color-leaf);
+  }
+
+  /* Long lists are styled through one class on their container, never
+     classes on each item, which keeps their HTML short (ADR 0012). */
+
+  /* A product's compatible models: up to 1,000 links. */
+  .reference-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: 0.25rem 1rem;
+    font-size: 0.875rem;
+  }
+  .reference-list a {
+    display: block;
+    padding-block: 0.25rem;
+  }
+
+  /* Products on a category or model page: name and price on each card. */
+  .product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 1rem;
+  }
+  .product-list li {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+  .product-list a {
+    font-weight: 600;
+  }
+  .product-list span {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-navy);
+  }
+
+  /* Previous and next links on numbered pages. */
+  .pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .pager a {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-action);
+    color: var(--color-white);
+    font-weight: 600;
+    text-decoration-line: none;
+  }
+  .pager a:hover {
+    background-color: var(--color-action-hover);
+    color: var(--color-white);
+  }
+  .pager a[rel="next"] {
+    margin-inline-start: auto;
+  }
+}

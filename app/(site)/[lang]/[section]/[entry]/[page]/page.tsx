@@ -17,6 +17,7 @@ import {
   referencePageRanks,
 } from "../../../../../../site/addresses.ts";
 import { fill, getDictionary } from "../../../../../../site/dictionary.ts";
+import { SiteFrame } from "../../../../../../site/frame.tsx";
 import {
   getReferenceRows,
   getReferenceTotal,
@@ -86,25 +87,28 @@ export default async function ReferencePage({ params }: Props) {
   const dictionary = getDictionary(locale);
   const productPath = route.paths[locale];
   const format = new Intl.NumberFormat(locale);
+  const paths = perLocale((l: Locale) =>
+    referencePagePath(route.paths[l], number),
+  );
 
   return (
-    <main>
-      <h1 data-computed-at={route.computedAt}>
+    <SiteFrame locale={locale} paths={paths}>
+      <h1 data-computed-at={route.computedAt} className="text-3xl font-bold">
         {fill(dictionary.referencePageHeading, {
           product: route.names[locale],
         })}
       </h1>
-      <p>
+      <p className="mt-1 text-slate">
         {fill(dictionary.pageOf, {
           page: format.format(number),
           pages: format.format(pages),
         })}
       </p>
-      <p>
+      <p className="mt-4 mb-6">
         <a href={productPath}>{dictionary.backToProduct}</a>
       </p>
       <ReferenceList references={references} locale={locale} />
-      <nav>
+      <nav className="pager">
         {number > 1 && (
           <a href={referencePagePath(productPath, number - 1)} rel="prev">
             {dictionary.previousPage}
@@ -116,6 +120,6 @@ export default async function ReferencePage({ params }: Props) {
           </a>
         )}
       </nav>
-    </main>
+    </SiteFrame>
   );
 }

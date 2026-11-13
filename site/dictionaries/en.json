@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Refrigerator",
   "appliance:cooktop": "Cooktop",
   "appliance:range-hood": "Range hood",
-  "appliance:microwave": "Microwave"
+  "appliance:microwave": "Microwave",
+  "skipToContent": "Skip to content",
+  "languageMenu": "Language",
+  "footerNote": "Demonstration catalog: products, prices and references are fictitious.",
+  "notFoundTitle": "Page not found",
+  "notFoundText": "This address matches no page in the catalog.",
+  "notFoundHome": "Back to the home page"
 }

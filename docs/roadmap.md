@@ -120,7 +120,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
 Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the order the owner set on 2026-11-12. Each step gets its issue when its work starts.
 
 1. **Done: language routing** ([#73](https://github.com/sekoya-solutions/sekoya-parts/issues/73), [ADR 0011](adr/0011-languages-and-seo.md)):
-   - every site page is under `app/(site)/[lang]`, whose root layout sets `<html lang>`; any other first segment, and any address without a language, returns Next.js's default 404 until the design step brings a designed one;
+   - every site page is under `app/(site)/[lang]`, whose root layout sets `<html lang>`; any other first segment, and any address without a language, returns Next.js's default 404 (the [design spec](specs/design-system.md) lists the 404 cases);
    - `/` lists the ten languages and is the `x-default` of the home pages; each `/<lang>` is a placeholder home page until the home template;
    - the product page is at `/<lang>/<category slug>/<words>-<reference>`, in lowercase ASCII (`site/addresses.ts`), and `/product/<id>` is gone. A product is found by its reference, so product references are uppercase letters and digits only, and category slugs lowercase words joined by hyphens, both checked by Payload on save, which `tests/validation.test.ts` proves through Payload's local API since [#75](https://github.com/sekoya-solutions/sekoya-parts/issues/75);
    - any other words, category slug or letter case before a valid reference redirect permanently (308) to the address. The tests and the Lighthouse check use the lookup address `/fr/p/sp000001` and follow its redirect, so they never depend on the catalog's words;
@@ -148,7 +148,14 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
    - the rows are read from a new index on (category, reference). On the full catalog, the first page takes 0.09 ms and the last of the largest category, 8,469 products, 8 ms, where PostgreSQL sorts the category's rows rather than walk the index;
    - the home page lists the 12 categories with their number of products, from two shared entries; the showcase products join it in step 6. Each category's first page and the home page are built in advance in each language;
    - Lighthouse also measures the French home page and the first category it lists. Locally, on the full catalog, the French home page is about 13 KB and a category page about 27 KB.
-5. The design, images and fonts ([ADR 0012](adr/0012-front-end-assets.md)), once the owner has chosen the typeface, colours, logo and images.
+5. The design, images and fonts ([ADR 0012](adr/0012-front-end-assets.md)), in two parts:
+   - **Done: the design system** ([#83](https://github.com/sekoya-solutions/sekoya-parts/issues/83), [design spec](specs/design-system.md)):
+     - Tailwind CSS 4 with the owner's palette as its only colours, Manrope served from the site, and the wordmark logo;
+     - a skip link, a header, a language switch of plain links and a footer on every page, and the five templates styled;
+     - a unit test checks each colour pairing against the WCAG AA ratios, and the "Lighthouse" check also fails below a median accessibility of 95;
+     - the heaviest product page grew by about 6.8 KB, to about 272 KB;
+     - a designed 404 shows in the address's language, but only once the browser runs Next.js's scripts. The spec lists the three 404 cases, their limits and their possible fixes, left for later (owner decision);
+   - the images, their build-time resizing and the `<picture>` component, once the owner has chosen the 50 or so images.
 6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), once the owner has a DeepL account.
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
 8. The showcase sitemap and `robots.txt` (ADR 0011).
@@ -157,7 +164,6 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
 ## Decisions open for the owner
 
 - **Vercel Hobby's terms:** whether a freelance portfolio counts as commercial use (ADR 0002).
-- **Design:** the typeface, colours, logo and layouts (ADR 0012).
 - **The showcase:** the ten showcase products, and the pages search engines may crawl (ADR 0002, ADR 0011).
 - **Images:** the 50 or so original or CC0 images, with their licences.
 

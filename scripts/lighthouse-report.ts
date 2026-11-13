@@ -1,5 +1,5 @@
 // Pure helpers for the Lighthouse check (docs/adr/0004-testing-and-ci.md,
-// issues #59 and #61): the warm-up split, medians and the 95 threshold, the
+// issues #59, #61 and #83): the warm-up split, medians and the minimum scores, the
 // redaction of the bypass header, and the texts of the job summary, the
 // "Lighthouse scores" check and the pull request comment.
 // No input or output here, so Vitest tests it directly.
@@ -128,10 +128,17 @@ export type Figures = {
 };
 
 /**
- * The lowest median mobile performance score a measured address may have
- * (ADR 0004). Below it, the "Lighthouse" check fails.
+ * The lowest median mobile score a measured address may have in each gated
+ * category: performance (ADR 0004) and accessibility (ADR 0012, issue #83).
+ * Below either, the "Lighthouse" check fails.
  */
-export const MIN_PERFORMANCE = 95;
+export const MIN_SCORES: Partial<Record<CategoryId, number>> = {
+  performance: 95,
+  accessibility: 95,
+};
+
+const categoryName = (id: CategoryId): string =>
+  (CATEGORIES.find(([key]) => key === id)?.[1] ?? id).toLowerCase();
 
 /**
  * Splits Lighthouse results by address, in the order they ran: the first run
@@ -156,21 +163,35 @@ export function splitWarmUp<
   return split;
 }
 
-/** The addresses whose median performance is below the threshold. */
-export function belowThreshold(figures: Figures[], min = MIN_PERFORMANCE) {
-  return figures
-    .map((f) => ({ path: f.path, median: median(f.scores.performance) }))
-    .filter((f) => f.median < min);
+/** Each address and gated category whose median is below its minimum. */
+export function belowThreshold(figures: Figures[], mins = MIN_SCORES) {
+  const gated = Object.entries(mins) as [CategoryId, number][];
+  return figures.flatMap((f) =>
+    gated
+      .map(([category, min]) => ({
+        path: f.path,
+        category,
+        median: median(f.scores[category]),
+        min,
+      }))
+      .filter((r) => r.median < r.min),
+  );
 }
 
 /** One line saying whether every address passed, and which did not. */
-export function gateText(figures: Figures[], min = MIN_PERFORMANCE) {
-  const failed = belowThreshold(figures, min);
-  if (failed.length === 0)
-    return `Passed: every address has a median performance of at least ${min}.`;
-  return `Failed: ${failed
-    .map((f) => `\`${f.path}\` has a median performance of ${f.median}`)
-    .join("; ")}, below ${min}.`;
+export function gateText(figures: Figures[], mins = MIN_SCORES) {
+  const failed = belowThreshold(figures, mins);
+  if (failed.length === 0) {
+    const minimums = (Object.entries(mins) as [CategoryId, number][])
+      .map(([category, min]) => `${categoryName(category)} of at least ${min}`)
+      .join(" and ");
+    return `Passed: every address has a median ${minimums}.`;
+  }
+  const failures = failed.map(
+    (r) =>
+      `\`${r.path}\` has a median ${categoryName(r.category)} of ${r.median}, below ${r.min}`,
+  );
+  return `Failed: ${failures.join("; ")}.`;
 }
 
 /** Where the measuring script leaves the reports and the figures. */

@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Lodówka",
   "appliance:cooktop": "Płyta grzewcza",
   "appliance:range-hood": "Okap",
-  "appliance:microwave": "Kuchenka mikrofalowa"
+  "appliance:microwave": "Kuchenka mikrofalowa",
+  "skipToContent": "Przejdź do treści",
+  "languageMenu": "Język",
+  "footerNote": "Katalog demonstracyjny: produkty, ceny i numery są fikcyjne.",
+  "notFoundTitle": "Nie znaleziono strony",
+  "notFoundText": "Ten adres nie odpowiada żadnej stronie katalogu.",
+  "notFoundHome": "Powrót do strony głównej"
 }

@@ -19,5 +19,11 @@
   "appliance:refrigerator": "Frigorífico",
   "appliance:cooktop": "Placa de cocina",
   "appliance:range-hood": "Campana extractora",
-  "appliance:microwave": "Microondas"
+  "appliance:microwave": "Microondas",
+  "skipToContent": "Ir al contenido",
+  "languageMenu": "Idioma",
+  "footerNote": "Catálogo de demostración: los productos, precios y referencias son ficticios.",
+  "notFoundTitle": "Página no encontrada",
+  "notFoundText": "Esta dirección no corresponde a ninguna página del catálogo.",
+  "notFoundHome": "Volver al inicio"
 }
