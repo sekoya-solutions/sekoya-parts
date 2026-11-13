@@ -21,7 +21,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Experiment 1 confirmed partial refresh through the Runtime Cache ([#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55)); agents edit content on previews through an automation user that every Preview build creates.
   - Experiment 2 set the product page's reference list to 1,000 references, and Lighthouse runs on every preview ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)).
   - Playwright's end-to-end tests and the 2 MB test run on every pull request, against a production build in CI ([#60](https://github.com/sekoya-solutions/sekoya-parts/issues/60)).
-  - Each preview's Lighthouse scores, in the four categories, appear in a "Lighthouse scores" check and in one comment on the pull request, with the redacted reports to download ([#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)).
+  - Each preview's Lighthouse scores, in the four categories, appear in a "Lighthouse scores" check and in one comment on the pull request, with the redacted reports to download ([#59](https://github.com/sekoya-solutions/sekoya-parts/issues/59)). Since [#96](https://github.com/sekoya-solutions/sekoya-parts/issues/96), that is one check per page, named by its template, with a coloured symbol per score.
   - The "Lighthouse" check fails below a median mobile performance of 95, and is required on `main` ([#61](https://github.com/sekoya-solutions/sekoya-parts/issues/61)).
   - Lighthouse also measures each Production deployment of `main`, at the public address ([#67](https://github.com/sekoya-solutions/sekoya-parts/issues/67)).
 - **Phase 3 in progress:** epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72).
@@ -114,7 +114,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
      - at the public address, `https://sekoya-parts.vercel.app`, since Vercel's own address for each deployment answers with its sign-in, and without the bypass secret, which the job gives previews only;
      - every SEO audit runs, and the run fails if `is-crawlable` or `robots-txt` is missing;
      - the first request checks the `x-sekoya-commit` header, which every Vercel build sends with its commit (`site/commit.ts`, through `next.config.ts`), and stops the run when the public address serves another commit, with no retry;
-     - the scores go to the job summary and the "Lighthouse scores" check on `main`'s commit, with the reports, and no comment. A low score only marks `main`'s commit red (owner decision): GitHub notifies whoever started the run, here Vercel's app.
+     - the scores go to the job summary and the "Lighthouse scores" checks on `main`'s commit, with the reports, and no comment. A low score only marks `main`'s commit red (owner decision): GitHub notifies whoever started the run, here Vercel's app.
 
 ### Phase 3, in progress: the catalog
 

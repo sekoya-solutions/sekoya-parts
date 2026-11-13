@@ -1,6 +1,7 @@
-// Publishes the figures of scripts/lighthouse.ts on GitHub (issue #59): a
-// "Lighthouse scores" check on the deployed commit, whose title shows the
-// medians, and one comment on its open pull request, replaced on each
+// Publishes the figures of scripts/lighthouse.ts on GitHub (issue #59): one
+// "Lighthouse scores · <page>" check per measured page on the deployed commit
+// (issue #96), whose title shows that page's medians with their symbols, and
+// one comment on its open pull request, replaced on each
 // preview. On production (issue #67), the check only: no pull request
 // comment. It runs after the reports are uploaded, without the bypass secret.
 //
@@ -10,6 +11,7 @@ import { readFileSync } from "node:fs";
 import {
   belowThreshold,
   COMMENT_MARKER,
+  checkName,
   checkTitle,
   commentBody,
   FIGURES_FILE,
@@ -57,19 +59,24 @@ async function github<T>(method: string, path: string, body?: unknown) {
   return (await response.json()) as T;
 }
 
-// The check passes or fails with the 95 threshold (issue #61), like the
-// "Lighthouse" job, which is the one required on main.
-await github("POST", `/repos/${repo}/check-runs`, {
-  name: "Lighthouse scores",
-  head_sha: sha,
-  status: "completed",
-  conclusion: belowThreshold(figures).length > 0 ? "failure" : "success",
-  details_url: runUrl,
-  output: {
-    title: checkTitle(figures),
-    summary: `${scoresTable(figures, runs, target)}\n${reportsUrl ? `[HTML and JSON reports](${reportsUrl})` : "No reports uploaded."}`,
-  },
-});
+// Each page's check passes or fails with that page's 95 threshold (issue
+// #61), like the "Lighthouse" job, which is the one required on main.
+// One request per page, one after another: API calls, no extra job or run.
+const reports = reportsUrl
+  ? `[HTML and JSON reports](${reportsUrl})`
+  : "No reports uploaded.";
+for (const f of figures)
+  await github("POST", `/repos/${repo}/check-runs`, {
+    name: checkName(f),
+    head_sha: sha,
+    status: "completed",
+    conclusion: belowThreshold([f]).length > 0 ? "failure" : "success",
+    details_url: runUrl,
+    output: {
+      title: checkTitle(f),
+      summary: `${scoresTable([f], runs, target)}\n${reports}`,
+    },
+  });
 
 // Production's commit is on main, not on a pull request: the check is all.
 if (target === "production") process.exit(0);

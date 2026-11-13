@@ -1,7 +1,8 @@
 // Pure helpers for the Lighthouse check (docs/adr/0004-testing-and-ci.md,
 // issues #59, #61 and #83): the warm-up split, medians and the minimum scores, the
 // redaction of the bypass header, and the texts of the job summary, the
-// "Lighthouse scores" check and the pull request comment.
+// "Lighthouse scores" checks (one per page since issue #96) and the pull
+// request comment.
 // No input or output here, so Vitest tests it directly.
 import { ReportGenerator } from "lighthouse/report/generator/report-generator.js";
 
@@ -117,6 +118,8 @@ const NOTES: Record<Target, string> = {
 
 /** The figures of one measured address, across its runs. */
 export type Figures = {
+  /** The page's template, such as home or product (issue #96). */
+  page: string;
   path: string;
   htmlBytes: number;
   cache: string;
@@ -163,12 +166,47 @@ export function splitWarmUp<
   return split;
 }
 
+/**
+ * One measuring argument, <page>=<address>: the page's template names its
+ * check (issue #96), and the address is what scripts/lighthouse.ts measures.
+ */
+export function pageArgument(argument: string) {
+  const match = /^([a-z]+)=(.+)$/.exec(argument);
+  if (!match)
+    throw new Error(
+      `${argument}: expected <page>=<address>, such as home=/fr.`,
+    );
+  return { page: match[1] as string, address: match[2] as string };
+}
+
+/** The measuring arguments, each page named once. */
+export function pageArguments(argv: string[]) {
+  const pages = argv.map(pageArgument);
+  const seen = new Set<string>();
+  for (const { page } of pages) {
+    if (seen.has(page)) throw new Error(`The page ${page} is named twice.`);
+    seen.add(page);
+  }
+  return pages;
+}
+
+/**
+ * A score's symbol (owner decision, issue #96): green from 95, the gate's
+ * threshold, yellow from 90, red below.
+ */
+export const scoreSymbol = (score: number) =>
+  score >= 95 ? "🟢" : score >= 90 ? "🟡" : "🔴";
+
+/** What the symbols mean, under each table. */
+export const SYMBOLS_LEGEND = "🟢 at least 95, 🟡 at least 90, 🔴 below 90.";
+
 /** Each address and gated category whose median is below its minimum. */
 export function belowThreshold(figures: Figures[], mins = MIN_SCORES) {
   const gated = Object.entries(mins) as [CategoryId, number][];
   return figures.flatMap((f) =>
     gated
       .map(([category, min]) => ({
+        page: f.page,
         path: f.path,
         category,
         median: median(f.scores[category]),
@@ -185,11 +223,13 @@ export function gateText(figures: Figures[], mins = MIN_SCORES) {
     const minimums = (Object.entries(mins) as [CategoryId, number][])
       .map(([category, min]) => `${categoryName(category)} of at least ${min}`)
       .join(" and ");
-    return `Passed: every address has a median ${minimums}.`;
+    return figures.length === 1
+      ? `Passed: a median ${minimums}.`
+      : `Passed: every page has a median ${minimums}.`;
   }
   const failures = failed.map(
     (r) =>
-      `\`${r.path}\` has a median ${categoryName(r.category)} of ${r.median}, below ${r.min}`,
+      `${r.page} (\`${r.path}\`) has a median ${categoryName(r.category)} of ${r.median}, below ${r.min}`,
   );
   return `Failed: ${failures.join("; ")}.`;
 }
@@ -251,15 +291,16 @@ export function reportFiles<T extends Report>(lhr: T, secret: string | null) {
 
 const medians = (f: Figures) => CATEGORIES.map(([id]) => median(f.scores[id]));
 
-/** The "Lighthouse scores" check's title, which the checks list shows. */
-export function checkTitle(figures: Figures[]) {
-  return figures
-    .map((f) => {
-      const [performance, accessibility, bestPractices, seo] = medians(f);
-      const scores = `Performance ${performance}, accessibility ${accessibility}, best practices ${bestPractices}, SEO ${seo}`;
-      return figures.length > 1 ? `${f.path}: ${scores}` : scores;
-    })
-    .join("; ");
+/** A page's check, one per measured page (issue #96). */
+export const checkName = (f: Figures) => `Lighthouse scores · ${f.page}`;
+
+/** A page check's title, which the checks list shows on one line. */
+export function checkTitle(f: Figures) {
+  const values = medians(f);
+  return CATEGORIES.map(([, name], i) => {
+    const value = values[i] as number;
+    return `${scoreSymbol(value)} ${name} ${value}`;
+  }).join(" · ");
 }
 
 /**
@@ -270,15 +311,26 @@ export function scoresTable(figures: Figures[], runs: number, target: Target) {
   const lines = [
     `Median of ${runs} mobile runs per address, as PageSpeed Insights measures, after one warm-up run that is not counted.`,
     "",
-    `| Address | ${CATEGORIES.map(([, name]) => name).join(" | ")} | Performance runs | Warm-up | HTML bytes | Elements |`,
+    `| Page | ${CATEGORIES.map(([, name]) => name).join(" | ")} | Performance runs | Warm-up | HTML bytes | Elements |`,
     `| --- | ${CATEGORIES.map(() => "---:").join(" | ")} | --- | ---: | ---: | ---: |`,
   ];
   for (const f of figures) {
     lines.push(
-      `| \`${f.path}\` | ${medians(f).join(" | ")} | ${f.scores.performance.join(", ")} | ${f.warmUp ?? "?"} | ${f.htmlBytes} | ${f.elements ?? "?"} |`,
+      `| ${f.page} \`${f.path}\` | ${medians(f)
+        .map((m) => `${scoreSymbol(m)} ${m}`)
+        .join(
+          " | ",
+        )} | ${f.scores.performance.join(", ")} | ${f.warmUp ?? "?"} | ${f.htmlBytes} | ${f.elements ?? "?"} |`,
     );
   }
-  lines.push("", `**${gateText(figures)}**`, "", NOTES[target]);
+  lines.push(
+    "",
+    SYMBOLS_LEGEND,
+    "",
+    `**${gateText(figures)}**`,
+    "",
+    NOTES[target],
+  );
   return `${lines.join("\n")}\n`;
 }
 

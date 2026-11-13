@@ -1,8 +1,9 @@
 # Lighthouse on each ready Vercel preview, decided in
 # docs/adr/0004-testing-and-ci.md. Since issue #61, the job fails when an
 # address's median mobile performance is below 95. Since issue #59, the
-# scores also appear in a "Lighthouse scores" check and in one comment on the
-# pull request, and the redacted reports are uploaded. Since issue #67, it also
+# scores also appear in one "Lighthouse scores · <page>" check per page (issue
+# #96) and in one comment on the pull request, and the redacted reports are
+# uploaded. Since issue #67, it also
 # runs on each ready Production deployment of main, at the public address,
 # without the bypass secret and without a comment.
 # deployment_status runs this file as it is on the deployed commit; Vercel
@@ -15,7 +16,7 @@ on:
 
 permissions:
   contents: read
-  # The "Lighthouse scores" check and the pull request comment (issue #59).
+  # The "Lighthouse scores" checks and the pull request comment (issue #59).
   checks: write
   pull-requests: write
 
@@ -51,7 +52,8 @@ jobs:
       # secret goes to previews only. /fr/p/sp000001 redirects to the French
       # address of product SP000001, whose words depend on the catalog; the
       # script measures the target. first-link: measures the first link on
-      # that page whose address starts with the prefix.
+      # that page whose address starts with the prefix. Each address follows
+      # its page's name, which names its check (issue #96).
       - name: Measure the deployment
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ startsWith(github.event.deployment.environment, 'Preview') && secrets.VERCEL_AUTOMATION_BYPASS_SECRET || '' }}
@@ -60,8 +62,9 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
         run: >-
           node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL"
-          /fr first-link:/fr:/fr/ /fr/p/sp000001 /fr/p/sp000001/1
-          first-link:/fr/p/sp000001:/fr/appareil/
+          home=/fr category=first-link:/fr:/fr/ product=/fr/p/sp000001
+          references=/fr/p/sp000001/1
+          model=first-link:/fr/p/sp000001:/fr/appareil/
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

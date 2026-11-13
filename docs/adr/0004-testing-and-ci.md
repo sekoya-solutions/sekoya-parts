@@ -69,7 +69,7 @@ Chosen:
   - the same warm-up run, five runs and threshold of 95;
   - no bypass header, since production is public, and every SEO audit, since nothing protects it;
   - at the public address, since Vercel's own address for each deployment stays behind its sign-in. The address only serves the new commit once Vercel moves the domain to it, so the first request checks that its `x-sekoya-commit` header names the deployed commit, and the run fails otherwise, with no retry (owner decision);
-  - the scores in the job summary and in a "Lighthouse scores" check on `main`'s commit, with the redacted reports, and no pull request comment.
+  - the scores in the job summary and in one "Lighthouse scores" check per page on `main`'s commit (issue #96), with the redacted reports, and no pull request comment.
 
   It measures the exact merged commit with production's settings. It cannot block a merge that has already happened: a score below 95 fails the check and marks `main`'s commit red. Nothing else signals it (owner decision): GitHub notifies whoever started a run, here Vercel's app.
 - **Required checks on `main`:** every job above, plus Vercel's own deployment status. Each one is required as soon as it exists, starting with Markdown lint, since only documentation exists today.
