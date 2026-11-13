@@ -2,6 +2,7 @@
 // reference list, its ten language versions, its redirects and its 404s.
 import { expect, test } from "@playwright/test";
 import { MILLION_PRODUCT_ID, productReference } from "../catalog/generator.ts";
+import { showcaseProducts } from "../catalog/showcase.ts";
 import { locales } from "../cms/locales.ts";
 import {
   MODEL_WORDS,
@@ -23,12 +24,17 @@ test("product 1 shows its heading, price, description and references", async ({
   expect(response?.status()).toBe(200);
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
 
+  // Product 1 is a showcase product (issue #98): its stored name and
+  // description, which the generator loads.
+  const showcase = showcaseProducts.find((p) => p.id === MILLION_PRODUCT_ID);
+  if (!showcase) throw new Error("Product 1 must be a showcase product.");
   const main = page.getByRole("main");
-  await expect(main.getByRole("heading", { level: 1 })).not.toBeEmpty();
+  await expect(main.getByRole("heading", { level: 1 })).toHaveText(
+    showcase.fr.name,
+  );
   // The price part: a euro amount in French format, such as "12,34 €".
   await expect(main.locator("p").first()).toHaveText(/^[\d\s ]+,\d{2}\s€$/u);
-  // The description part: placeholder text for a non-showcase product.
-  await expect(main.locator("p").nth(1)).not.toBeEmpty();
+  await expect(main.locator("p").nth(1)).toHaveText(showcase.fr.description);
   await expect(main.getByRole("heading", { level: 2 })).toHaveText(
     "Modèles compatibles",
   );

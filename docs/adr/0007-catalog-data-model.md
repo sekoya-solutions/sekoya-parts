@@ -10,7 +10,7 @@ This Architecture Decision Record (ADR) defines the catalog's data model and how
 
 - **Volume.** About 100,000 products, at least 1,000,000 appliance models, and one product compatible with up to a million of them ([AGENTS.md](../../AGENTS.md), section 1).
 - **Four page templates:** home, category listing, product page, and one page per appliance model.
-- **Content.** About ten showcase products get real descriptions in ten languages; the others use placeholder text in every language.
+- **Content.** Twelve showcase products, one per category, get real descriptions in ten languages; the others use placeholder text in every language.
 - **Storage.** PostgreSQL 18 on Neon's free plan, 1 GB per project ([ADR 0005](0005-database.md)).
 - **Split.** Payload manages what is edited, and the models and compatibility live in the project's own tables ([ADR 0006](0006-content-management.md)).
 - **Data for CI.** The production build in continuous integration (CI) needs catalog data ([ADR 0004](0004-testing-and-ci.md)).

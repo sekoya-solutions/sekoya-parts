@@ -6,6 +6,7 @@
 // table's name, so a table's rows do not depend on the order in which the
 // tables are read. Math.random is never used.
 import { type Locale, locales } from "../cms/locales.ts";
+import { showcaseProducts } from "./showcase.ts";
 
 /** Appliance models at every scale: the million-model product needs them all. */
 export const MODEL_COUNT = 1_000_000;
@@ -309,6 +310,12 @@ export type ProductRow = [
   priceCents: number,
   showcase: boolean,
 ];
+export type ProductLocaleRow = [
+  name: string,
+  description: string,
+  locale: Locale,
+  parentId: number,
+];
 export type ModelRow = [
   id: number,
   brandId: number,
@@ -356,18 +363,37 @@ export function* productRows(
   const categoryCount = categoryNames.length;
   const minCents = Math.log(400);
   const maxCents = Math.log(25_000);
+  const showcase = new Map(showcaseProducts.map((p) => [p.id, p]));
   for (let id = 1; id <= products; id++) {
     // Prices from about 4 to 250 euros, more of them cheap, ending in .90.
     const cents = Math.exp(minCents + rng() * (maxCents - minCents));
     const priceCents = Math.floor(cents / 100) * 100 + 90;
+    const brandId = 1 + randomInt(rng, brands);
+    // Drawn for every product, so a showcase product's fixed category leaves
+    // the random stream, hence every other product's row, unchanged.
+    const drawnCategory = 1 + randomInt(rng, categoryCount);
+    const listed = showcase.get(id);
     yield [
       id,
       productReference(id),
-      1 + randomInt(rng, brands),
-      1 + randomInt(rng, categoryCount),
+      brandId,
+      listed ? listed.categoryId : drawnCategory,
       priceCents,
-      false,
+      listed !== undefined,
     ];
+  }
+}
+
+/**
+ * The showcase products' stored text, in French only: the translation job
+ * fills the other languages (docs/adr/0006-content-management.md).
+ */
+export function* productLocaleRows(
+  scale: ScaleName,
+): Generator<ProductLocaleRow> {
+  for (const product of showcaseProducts) {
+    if (product.id > scales[scale].products) continue;
+    yield [product.fr.name, product.fr.description, "fr", product.id];
   }
 }
 

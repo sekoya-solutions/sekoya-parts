@@ -10,7 +10,7 @@ This Architecture Decision Record (ADR) chooses where catalog content is edited 
 
 - **Volume.** About 100,000 products, at least 1,000,000 appliance models and over a million compatibility rows, in PostgreSQL 18 on Neon ([ADR 0005](0005-database.md)).
 - **Partial refresh.** A price or description edit refreshes only that part of a page, through the tags of [ADR 0001](0001-framework-and-rendering.md).
-- **Translation.** About ten showcase products get real descriptions, translated automatically into ten languages when a product is added; the others use placeholder text ([AGENTS.md](../../AGENTS.md), section 1).
+- **Translation.** Twelve showcase products, one per category, get real descriptions, translated automatically into ten languages when a product is added; the others use placeholder text ([AGENTS.md](../../AGENTS.md), section 1).
 - **Stack.** Next.js 16 with Cache Components, npm and Node 26 ([ADR 0003](0003-toolchain.md)), on Vercel's Hobby plan with no extra server ([ADR 0002](0002-hosting-and-environments.md)), free unless that severely blocks the demonstration.
 - **Public site.** The admin must be signed in and kept away from search engines.
 
