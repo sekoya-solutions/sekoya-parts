@@ -83,22 +83,41 @@ for (const locale of locales) {
   });
 }
 
+// Each page is measured on a first visit, in a browser context of its own, as
+// Lighthouse measures it: a context that has already shown the page may reuse
+// an image it holds at another width.
 test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
-  page,
+  browser,
+  request,
+  viewport,
+  deviceScaleFactor,
+  isMobile,
+  hasTouch,
+  baseURL,
 }) => {
-  await page.goto("/fr");
-  const category = (await page
-    .getByRole("main")
-    .locator("li a")
-    .first()
-    .getAttribute("href")) as string;
+  const home = await (await request.get("/fr")).text();
+  // The home page's only links under /fr/ are its category tiles.
+  const category = /href="(\/fr\/[a-z0-9-]+)"/.exec(home)?.[1];
+  if (!category) throw new Error("No category link on /fr.");
   for (const path of ["/fr", category]) {
-    await page.goto(path);
-    await largestElement(page);
-    const widths = await cardWidths(page);
-    expect(widths.length, path).toBeGreaterThan(0);
-    // 158 CSS pixels at 1.75x need 277: the 320 file, not the 480 one.
-    for (const { width, detail } of widths)
-      expect(width, `${path}: ${detail}`).toBe(320);
+    const context = await browser.newContext({
+      viewport,
+      deviceScaleFactor,
+      isMobile,
+      hasTouch,
+      baseURL,
+    });
+    try {
+      const page = await context.newPage();
+      await page.goto(path);
+      await largestElement(page);
+      const widths = await cardWidths(page);
+      expect(widths.length, path).toBeGreaterThan(0);
+      // 158 CSS pixels at 1.75x need 277: the 320 file, not the 480 one.
+      for (const { width, detail } of widths)
+        expect(width, `${path}: ${detail}`).toBe(320);
+    } finally {
+      await context.close();
+    }
   }
 });
