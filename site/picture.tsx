@@ -33,29 +33,41 @@ export function ProductCardImage({
       image={image}
       alt={route.names[locale]}
       sizes={CARD_SIZES}
-      eager={index < EAGER_IMAGES}
+      {...cardLoading(index)}
     />
   ) : null;
 }
 
 /**
- * The width of an image in a product card or a category tile: the grids of
- * site/site.css and the home page fit cards of at least 14rem in a page of at
- * most 72rem, so about 17rem on a desktop, half the screen on a tablet and
- * the whole width on a phone.
+ * The width of an image in a product card or a category tile. Phones show
+ * two cards per row (site/site.css and the home page), so half the screen;
+ * wider screens fit cards of at least 14rem in a page of at most 72rem, so
+ * at most half the screen, and about 17rem on a desktop. On a phone 412
+ * pixels wide at 1.75x, as Lighthouse emulates, this picks the 480 width.
  */
-export const CARD_SIZES =
-  "(min-width: 72rem) 17rem, (min-width: 30rem) 50vw, 100vw";
+export const CARD_SIZES = "(min-width: 72rem) 17rem, 50vw";
 
-/** The width of the product page's main image: 28rem beside the text from 48rem up. */
-export const MAIN_SIZES = "(min-width: 48rem) 28rem, 100vw";
+/**
+ * The width of the product page's main image: 28rem beside the text from
+ * 48rem up, and at most 20rem above it on a phone, which picks the 640 width
+ * at Lighthouse's 1.75x.
+ */
+export const MAIN_SIZES = "(min-width: 48rem) 28rem, 20rem";
 
 /**
  * How many card images at the top of a list load at once rather than lazily:
- * they can be in the first screen, where a lazy image would delay the
- * largest content Lighthouse measures. The rest wait until scrolled near.
+ * the first row on a phone. The first of them is usually the largest element
+ * of the first screen, so it also gets high priority. Every byte loaded early
+ * shares a slow phone's bandwidth with the page's font and scripts, so the
+ * rest wait until scrolled near (issue #85, Lighthouse run on PR #86).
  */
-export const EAGER_IMAGES = 4;
+export const EAGER_IMAGES = 2;
+
+/** How a card's image loads, by its place in its list. */
+export const cardLoading = (index: number) => ({
+  priority: index === 0,
+  eager: index < EAGER_IMAGES,
+});
 
 export function Picture({
   image,

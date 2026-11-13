@@ -9,7 +9,7 @@ import { fill, getDictionary } from "../../../site/dictionary.ts";
 import { SiteFrame } from "../../../site/frame.tsx";
 import { homeAlternates } from "../../../site/home.ts";
 import { categoryImage } from "../../../site/images.ts";
-import { CARD_SIZES, EAGER_IMAGES, Picture } from "../../../site/picture.tsx";
+import { CARD_SIZES, cardLoading, Picture } from "../../../site/picture.tsx";
 import { localeOf } from "../../../site/resolve.ts";
 
 export async function generateMetadata({
@@ -38,20 +38,20 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       <h1 className="text-3xl font-bold sm:text-4xl">Sekoya Parts</h1>
       <p className="mt-2 text-lg text-slate">{dictionary.homeTagline}</p>
       <h2 className="mt-10 text-2xl font-bold">{dictionary.categories}</h2>
-      <ul className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-4">
+      <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] sm:gap-4">
         {sorted.map((category, index) => {
           const image = categoryImage(category.id);
           return (
             <li
               key={category.id}
-              className="rounded-md border border-line bg-white p-4"
+              className="rounded-md border border-line bg-white p-3 sm:p-4"
             >
               {image && (
                 <Picture
                   image={image}
                   alt={category.names[locale]}
                   sizes={CARD_SIZES}
-                  eager={index < EAGER_IMAGES}
+                  {...cardLoading(index)}
                   className="mb-3 aspect-square h-auto w-full rounded-md"
                 />
               )}

@@ -138,7 +138,7 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
             alt={route.names[locale]}
             sizes={MAIN_SIZES}
             priority
-            className="aspect-square h-auto w-full rounded-md border border-line"
+            className="mx-auto aspect-square h-auto w-full max-w-80 rounded-md border border-line md:max-w-none"
           />
         )}
         <div>

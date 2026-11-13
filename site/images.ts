@@ -16,7 +16,7 @@ import { categories, slugify } from "../catalog/generator.ts";
 export const IMAGES_PER_CATEGORY = 4;
 
 /** The widths written for each image, in pixels; the originals are 1,600. */
-export const IMAGE_WIDTHS = [320, 640, 960] as const;
+export const IMAGE_WIDTHS = [320, 480, 640, 960] as const;
 
 /** Every image is square. */
 export const IMAGE_SIZE = 1600;

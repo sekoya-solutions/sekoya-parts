@@ -42,10 +42,18 @@ test("the home page shows an image per category, the first ones loaded at once",
   const images = await mainImages(page);
   expect(images).toHaveLength(12);
   expectDescribed(images);
+  expectFirstRowFirst(images);
+});
+
+/** Only the first row loads at once, and only the first with high priority. */
+function expectFirstRowFirst(images: Awaited<ReturnType<typeof mainImages>>) {
   expect(images.map((i) => i.loading)).toEqual(
     images.map((_, i) => (i < EAGER_IMAGES ? "eager" : "lazy")),
   );
-});
+  expect(images.map((i) => i.priority)).toEqual(
+    images.map((_, i) => (i === 0 ? "high" : null)),
+  );
+}
 
 test("a category page shows each product's image, described by its name", async ({
   page,
@@ -55,6 +63,7 @@ test("a category page shows each product's image, described by its name", async 
   const images = await mainImages(page);
   expect(images).toHaveLength(48);
   expectDescribed(images);
+  expectFirstRowFirst(images);
   const names = await page
     .getByRole("main")
     .locator("ul > li > a")
