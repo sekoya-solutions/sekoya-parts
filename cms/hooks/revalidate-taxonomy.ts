@@ -7,7 +7,7 @@ import type {
   CollectionAfterChangeHook,
   CollectionAfterDeleteHook,
 } from "payload";
-import { brandTag, categoryTag } from "../../site/tags.ts";
+import { categoryTag, tagsForBrandChange } from "../../site/tags.ts";
 import { refresh } from "./refresh.ts";
 
 export const revalidateCategoryAfterChange: CollectionAfterChangeHook = ({
@@ -23,15 +23,19 @@ export const revalidateCategoryAfterDelete: CollectionAfterDeleteHook = ({
   refresh([categoryTag(Number(id))]);
 };
 
+// A brand's slug starts its models' addresses, so a new slug refreshes the
+// lookups of the old one, which then find nothing, and of the new one.
 export const revalidateBrandAfterChange: CollectionAfterChangeHook = ({
   doc,
+  previousDoc,
 }) => {
-  refresh([brandTag(doc.id)]);
+  refresh(tagsForBrandChange(doc.id, doc, previousDoc));
   return doc;
 };
 
 export const revalidateBrandAfterDelete: CollectionAfterDeleteHook = ({
   id,
+  doc,
 }) => {
-  refresh([brandTag(Number(id))]);
+  refresh(tagsForBrandChange(Number(id), doc));
 };

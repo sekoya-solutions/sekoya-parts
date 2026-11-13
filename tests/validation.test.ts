@@ -1,6 +1,7 @@
-// Payload refuses a product reference or a category slug that would break an
-// address (docs/adr/0011-languages-and-seo.md, issues #73 and #75). The saves
-// go through Payload's local API, so the tests prove each rule is wired to its
+// Payload refuses a product reference, a category slug or a brand slug that
+// would break an address (docs/adr/0011-languages-and-seo.md, issues #73, #75
+// and #79). The saves go through Payload's local API, so the tests prove each
+// rule is wired to its
 // field, and fail if a validator is removed: Payload's own text validation
 // would accept these values, and the save would then fail elsewhere, without
 // a validation error on the field. A refused save writes nothing, which the
@@ -94,6 +95,64 @@ describe("category slugs", () => {
           locale: "fr",
           data: { slug },
         }),
+      );
+      expect(paths).toEqual(["slug"]);
+      expect(await read()).toBe(before);
+    },
+  );
+});
+
+describe("category slugs equal to a model word", () => {
+  it.each([
+    ["fr", "appareil"],
+    ["fr", "geraet"],
+    ["de", "apparat"],
+  ] as const)(
+    "refuses %s %j and leaves the slug unchanged",
+    async (locale, slug) => {
+      const id = await firstId("categories");
+      const read = async () =>
+        (
+          await client.query<{ slug: string }>(
+            `SELECT slug FROM categories_locales
+              WHERE _parent_id = $1 AND _locale = $2`,
+            [id, locale],
+          )
+        ).rows[0]?.slug;
+      const before = await read();
+      expect(before).toBeTruthy();
+      const paths = await rejectedPaths(
+        payload.update({
+          collection: "categories",
+          id,
+          locale,
+          data: { slug },
+        }),
+      );
+      expect(paths).toEqual(["slug"]);
+      expect(await read()).toBe(before);
+    },
+  );
+});
+
+// A brand's slug starts its models' addresses, up to the first hyphen
+// (issue #79).
+describe("brand slugs", () => {
+  it.each(["Norium", "nor-ium", "nor ium", "noriüm", "nor_ium"])(
+    "refuses %j and leaves the slug unchanged",
+    async (slug) => {
+      const id = await firstId("brands");
+      const read = async () =>
+        (
+          await client.query<{ slug: string }>(
+            "SELECT slug FROM brands WHERE id = $1",
+            [id],
+          )
+        ).rows[0]?.slug;
+      const before = await read();
+      expect(before).toBeTruthy();
+      const paths = await rejectedPaths(
+        payload.update({ collection: "brands", id, data: { slug } }),
       );
       expect(paths).toEqual(["slug"]);
       expect(await read()).toBe(before);

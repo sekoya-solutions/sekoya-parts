@@ -3,13 +3,12 @@
 // catalog tag, and takes only the product id and the language. Nothing that
 // caches wraps them: the page that renders them is not cached itself.
 import config from "@payload-config";
-import { type PostgresAdapter, sql } from "@payloadcms/db-postgres";
 import { cacheLife, cacheTag } from "next/cache";
 import { getPayload } from "payload";
 import { placeholderDescription } from "../catalog/text.ts";
 import type { Locale } from "../cms/locales.ts";
+import type { Product } from "../cms/payload-types.ts";
 import { productAddresses } from "./addresses.ts";
-import { PRODUCT_PAGE_REFERENCES } from "./references.ts";
 import {
   brandTag,
   CATALOG_TAG,
@@ -23,7 +22,7 @@ import {
  * which parts a refresh re-ran (experiment 1, docs/experiments/) and stays for
  * the end-to-end test that checks a price edit changes nothing else.
  */
-const computedAt = () => new Date().toISOString();
+export const computedAt = () => new Date().toISOString();
 
 /** A product found by its reference: its id, and its name and address in each language. */
 export type ProductRoute = {
@@ -44,11 +43,9 @@ const allLocales = (value: unknown): AllLocales =>
  * and the build's list of pages built in advance both use it. Null when no
  * product has that reference.
  */
-export async function readProductRoute(reference: string): Promise<{
-  route: ProductRoute;
-  brandId: number;
-  categoryId: number;
-} | null> {
+export async function readProductRoute(
+  reference: string,
+): Promise<ProductRead | null> {
   const payload = await getPayload({ config });
   const { docs } = await payload.find({
     collection: "products",
@@ -59,9 +56,25 @@ export async function readProductRoute(reference: string): Promise<{
     pagination: false,
   });
   const product = docs[0];
-  if (!product) return null;
+  return product ? readProduct(product) : null;
+}
+
+/** A product's route, read with locale "all" and depth 1, with what it is built from. */
+export type ProductRead = {
+  route: ProductRoute;
+  brandId: number;
+  categoryId: number;
+};
+
+/**
+ * Builds a product's route from a document read with locale "all" and
+ * depth 1, so its brand and category are populated.
+ */
+export function readProduct(product: Product): ProductRead {
   if (typeof product.brand !== "object" || typeof product.category !== "object")
-    throw new Error(`Product ${reference}: brand or category not populated.`);
+    throw new Error(
+      `Product ${product.reference}: brand or category not populated.`,
+    );
   const { names, paths } = productAddresses({
     reference: product.reference,
     showcaseNames: product.showcase ? allLocales(product.name) : null,
@@ -75,6 +88,12 @@ export async function readProductRoute(reference: string): Promise<{
     categoryId: product.category.id,
   };
 }
+
+/** A price in euros, in a language's format. */
+export const formatPrice = (priceCents: number, locale: Locale): string =>
+  new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(
+    priceCents / 100,
+  );
 
 /**
  * The product with this reference, or null, which the page answers with a
@@ -121,11 +140,11 @@ export async function ProductPrice({
     disableErrors: true,
   });
   if (!product) return null;
-  const price = new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: "EUR",
-  }).format(product.priceCents / 100);
-  return <p data-computed-at={computedAt()}>{price}</p>;
+  return (
+    <p data-computed-at={computedAt()}>
+      {formatPrice(product.priceCents, locale)}
+    </p>
+  );
 }
 
 export async function ProductDescription({
@@ -156,42 +175,4 @@ export async function ProductDescription({
       ? product.description
       : placeholderDescription(id, locale);
   return <p data-computed-at={computedAt()}>{text}</p>;
-}
-
-type ReferenceRow = { id: number; brand: string; reference: string };
-
-// Model names are a brand and a reference, the same in every language
-// (ADR 0009), so the list takes only the product id and the ten languages
-// share one cache entry.
-export async function ProductReferences({ id }: { id: number }) {
-  "use cache: remote";
-  cacheLife("max");
-  cacheTag(productTags(id).references, CATALOG_TAG);
-
-  const payload = await getPayload({ config });
-  const { drizzle } = payload.db as unknown as PostgresAdapter;
-  // A range of ranks on the compatibility key (product, rank), most popular
-  // first, with no OFFSET (ADR 0007, ADR 0009).
-  const { rows } = await drizzle.execute<ReferenceRow>(sql`
-    SELECT m.id, b.name AS brand, m.reference
-      FROM compatibility c
-      JOIN appliance_models m ON m.id = c.model_id
-      JOIN brands b ON b.id = m.brand_id
-     WHERE c.product_id = ${id}
-       AND c.rank BETWEEN 1 AND ${PRODUCT_PAGE_REFERENCES}
-     ORDER BY c.rank
-  `);
-  // Plain links, so the list runs no code in the browser (ADR 0009). The
-  // model pages come with the phase 3 templates.
-  return (
-    <ul data-computed-at={computedAt()}>
-      {rows.map((row) => (
-        <li key={row.id}>
-          <a href={`/model/${row.id}`}>
-            {row.brand} {row.reference}
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
 }

@@ -21,8 +21,47 @@ export const referenceTag = (reference: string) =>
 /** Everything that shows a category's name or slug. */
 export const categoryTag = (id: number) => `category:${id}`;
 
-/** Everything that shows a brand's name. */
+/** Everything that shows a brand's name or slug. */
 export const brandTag = (id: number) => `brand:${id}`;
+
+/**
+ * The model lookups of one brand slug. It also covers a slug no brand has yet,
+ * whose absence a visit to a model address may have cached.
+ */
+export const brandSlugTag = (slug: string) => `brand-slug:${slug}`;
+
+/** A model's page: its heading and its compatible products. */
+export const modelTag = (id: number) => `model:${id}`;
+
+/**
+ * The tags to refresh after a brand is saved or deleted: its own, and the
+ * model lookups of its slug, before and after the save.
+ */
+export function tagsForBrandChange(
+  id: number,
+  doc: { slug?: unknown },
+  previousDoc?: { slug?: unknown },
+): string[] {
+  const slugs = new Set(
+    [previousDoc?.slug, doc.slug].filter(
+      (slug): slug is string => typeof slug === "string",
+    ),
+  );
+  return [brandTag(id), ...[...slugs].map(brandSlugTag)];
+}
+
+/**
+ * A reference list's tags: the product's references, the catalog, and the
+ * brands it shows, since each row shows its brand's name and slug.
+ */
+export const referenceListTags = (
+  productId: number,
+  brandIds: Iterable<number>,
+): string[] => [
+  productTags(productId).references,
+  CATALOG_TAG,
+  ...[...new Set(brandIds)].sort((a, b) => a - b).map(brandTag),
+];
 
 /**
  * The product fields each part renders. The heading and the address lookup

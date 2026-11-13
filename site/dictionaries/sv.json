@@ -2,5 +2,20 @@
   "languageName": "Svenska",
   "siteDescription": "Reservdelskatalog.",
   "homeTagline": "Reservdelskatalog, snart online.",
-  "compatibleModels": "Kompatibla modeller"
+  "compatibleModels": "Kompatibla modeller",
+  "compatibleParts": "Kompatibla reservdelar",
+  "allCompatibleModels": "Se alla {count} kompatibla modeller",
+  "referencePageHeading": "{product}: kompatibla modeller",
+  "pageOf": "Sida {page} av {pages}",
+  "previousPage": "Föregående sida",
+  "nextPage": "Nästa sida",
+  "backToProduct": "Tillbaka till reservdelen",
+  "appliance:washing-machine": "Tvättmaskin",
+  "appliance:dishwasher": "Diskmaskin",
+  "appliance:dryer": "Torktumlare",
+  "appliance:oven": "Ugn",
+  "appliance:refrigerator": "Kylskåp",
+  "appliance:cooktop": "Spishäll",
+  "appliance:range-hood": "Köksfläkt",
+  "appliance:microwave": "Mikrovågsugn"
 }

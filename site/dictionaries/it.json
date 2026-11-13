@@ -2,5 +2,20 @@
   "languageName": "Italiano",
   "siteDescription": "Catalogo di ricambi.",
   "homeTagline": "Catalogo di ricambi, presto online.",
-  "compatibleModels": "Modelli compatibili"
+  "compatibleModels": "Modelli compatibili",
+  "compatibleParts": "Ricambi compatibili",
+  "allCompatibleModels": "Vedi tutti i {count} modelli compatibili",
+  "referencePageHeading": "{product}: modelli compatibili",
+  "pageOf": "Pagina {page} di {pages}",
+  "previousPage": "Pagina precedente",
+  "nextPage": "Pagina successiva",
+  "backToProduct": "Torna al ricambio",
+  "appliance:washing-machine": "Lavatrice",
+  "appliance:dishwasher": "Lavastoviglie",
+  "appliance:dryer": "Asciugatrice",
+  "appliance:oven": "Forno",
+  "appliance:refrigerator": "Frigorifero",
+  "appliance:cooktop": "Piano cottura",
+  "appliance:range-hood": "Cappa aspirante",
+  "appliance:microwave": "Microonde"
 }

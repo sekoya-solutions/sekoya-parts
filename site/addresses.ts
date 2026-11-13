@@ -137,3 +137,98 @@ export function perLocale<T>(make: (locale: Locale) => T): Record<Locale, T> {
     locales.map((locale) => [locale, make(locale)]),
   ) as Record<Locale, T>;
 }
+
+/**
+ * The section word of model addresses in each language (ADR 0011). Each is a
+ * valid category slug's form, and Payload refuses a category slug equal to
+ * any of them, so a section is never both a category and the model section.
+ */
+export const MODEL_WORDS: Record<Locale, string> = {
+  fr: "appareil",
+  en: "appliance",
+  de: "geraet",
+  es: "aparato",
+  it: "apparecchio",
+  nl: "apparaat",
+  pt: "aparelho",
+  pl: "urzadzenie",
+  sv: "apparat",
+  da: "apparat",
+};
+
+const modelWords = new Set(Object.values(MODEL_WORDS));
+
+/** Whether a section is the model section, in any language. */
+export const isModelWord = (section: string): boolean =>
+  modelWords.has(section.toLowerCase());
+
+/**
+ * The rule for brand slugs: lowercase letters and digits, with no hyphen, so
+ * the brand is always the first hyphen-separated word of a model address.
+ * Payload checks it when a brand is saved.
+ */
+export const BRAND_SLUG = /^[a-z0-9]+$/;
+
+/**
+ * The rule for model references, which the generator writes: groups of
+ * uppercase letters and digits joined by single hyphens, such as AB00K1-42.
+ */
+export const MODEL_REFERENCE = /^[A-Z0-9]+(?:-[A-Z0-9]+)*$/;
+
+/** A model's stable key: its brand's slug and its reference, unique together. */
+export type ModelKey = { brandSlug: string; reference: string };
+
+/** A model's address in one language: /<lang>/<model word>/<brand>-<reference>. */
+export function modelPath(locale: Locale, key: ModelKey): string {
+  return `/${locale}/${MODEL_WORDS[locale]}/${key.brandSlug}-${key.reference.toLowerCase()}`;
+}
+
+/** A model's address in each language. */
+export const modelPaths = (key: ModelKey): Record<Locale, string> =>
+  perLocale((locale) => modelPath(locale, key));
+
+/**
+ * The model key of a model address's last segment, or null when it cannot be
+ * one. The brand slug has no hyphen, so it ends at the first one; the rest is
+ * the reference. Any letter case is accepted here: the page then redirects to
+ * the address in lowercase.
+ */
+export function parseModelSegment(segment: string): ModelKey | null {
+  const lower = segment.toLowerCase();
+  const hyphen = lower.indexOf("-");
+  if (hyphen < 0) return null;
+  const brandSlug = lower.slice(0, hyphen);
+  const reference = lower.slice(hyphen + 1).toUpperCase();
+  return BRAND_SLUG.test(brandSlug) && MODEL_REFERENCE.test(reference)
+    ? { brandSlug, reference }
+    : null;
+}
+
+/** References on each numbered reference page (ADR 0009). */
+export const REFERENCES_PER_PAGE = 500;
+
+/**
+ * The ranks a reference page reads: page n holds ranks (n − 1) × 500 + 1 to
+ * n × 500, so pages start at rank 1 (ADR 0009, owner decision on issue #79).
+ */
+export const referencePageRanks = (page: number) => ({
+  first: (page - 1) * REFERENCES_PER_PAGE + 1,
+  last: page * REFERENCES_PER_PAGE,
+});
+
+/** The number of reference pages for a product with this many references. */
+export const referencePageCount = (references: number): number =>
+  Math.ceil(references / REFERENCES_PER_PAGE);
+
+/** A reference page's address: the product's address followed by /<n>. */
+export const referencePagePath = (productPath: string, page: number) =>
+  `${productPath}/${page}`;
+
+/**
+ * A reference page's number, or null for anything but a positive whole number
+ * written without a sign or leading zero, which the page answers with a 404.
+ */
+export function parsePageNumber(segment: string): number | null {
+  if (!/^[1-9][0-9]{0,6}$/.test(segment)) return null;
+  return Number(segment);
+}

@@ -1,7 +1,12 @@
 // Which cached reads a product save refreshes
 // (docs/adr/0008-caching-and-partial-refresh.md, docs/adr/0011-languages-and-seo.md).
 import { describe, expect, it } from "vitest";
-import { tagsForProductChange, tagsForProductDelete } from "../site/tags.ts";
+import {
+  referenceListTags,
+  tagsForBrandChange,
+  tagsForProductChange,
+  tagsForProductDelete,
+} from "../site/tags.ts";
 
 const before = {
   id: 7,
@@ -86,6 +91,36 @@ describe("tagsForProductDelete", () => {
       "product:7:description",
       "product:7:references",
       "product-reference:SK7",
+    ]);
+  });
+});
+
+describe("tagsForBrandChange", () => {
+  it("refreshes the brand and the model lookups of its old and new slugs", () => {
+    expect(
+      tagsForBrandChange(3, { slug: "norium" }, { slug: "noryum" }),
+    ).toEqual(["brand:3", "brand-slug:noryum", "brand-slug:norium"]);
+  });
+
+  it("names a slug once when it does not change, and handles a new brand", () => {
+    expect(
+      tagsForBrandChange(3, { slug: "norium" }, { slug: "norium" }),
+    ).toEqual(["brand:3", "brand-slug:norium"]);
+    expect(tagsForBrandChange(4, { slug: "velto" })).toEqual([
+      "brand:4",
+      "brand-slug:velto",
+    ]);
+  });
+});
+
+describe("referenceListTags", () => {
+  it("tags a list with its product's references, the catalog and each brand once", () => {
+    expect(referenceListTags(1, [5, 2, 5, 9, 2])).toEqual([
+      "product:1:references",
+      "catalog",
+      "brand:2",
+      "brand:5",
+      "brand:9",
     ]);
   });
 });

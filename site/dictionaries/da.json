@@ -2,5 +2,20 @@
   "languageName": "Dansk",
   "siteDescription": "Reservedelskatalog.",
   "homeTagline": "Reservedelskatalog, snart online.",
-  "compatibleModels": "Kompatible modeller"
+  "compatibleModels": "Kompatible modeller",
+  "compatibleParts": "Kompatible reservedele",
+  "allCompatibleModels": "Se alle {count} kompatible modeller",
+  "referencePageHeading": "{product}: kompatible modeller",
+  "pageOf": "Side {page} af {pages}",
+  "previousPage": "Forrige side",
+  "nextPage": "Næste side",
+  "backToProduct": "Tilbage til reservedelen",
+  "appliance:washing-machine": "Vaskemaskine",
+  "appliance:dishwasher": "Opvaskemaskine",
+  "appliance:dryer": "Tørretumbler",
+  "appliance:oven": "Ovn",
+  "appliance:refrigerator": "Køleskab",
+  "appliance:cooktop": "Kogeplade",
+  "appliance:range-hood": "Emhætte",
+  "appliance:microwave": "Mikrobølgeovn"
 }

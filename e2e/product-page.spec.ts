@@ -3,7 +3,11 @@
 import { expect, test } from "@playwright/test";
 import { MILLION_PRODUCT_ID, productReference } from "../catalog/generator.ts";
 import { locales } from "../cms/locales.ts";
-import { parseProductSegment } from "../site/addresses.ts";
+import {
+  MODEL_WORDS,
+  parseModelSegment,
+  parseProductSegment,
+} from "../site/addresses.ts";
 import { PRODUCT_PAGE_REFERENCES } from "../site/references.ts";
 import { locationPath, lookupPath, productAddress } from "./addresses.ts";
 
@@ -35,8 +39,14 @@ test("product 1 shows its heading, price, description and references", async ({
   for (const href of await links.evaluateAll((anchors) =>
     anchors.map((a) => a.getAttribute("href")),
   )) {
-    expect(href).toMatch(/^\/model\/\d+$/);
+    // Each links to a model page in the page's language (issue #79).
+    const [, lang, word, segment] = (href as string).split("/");
+    expect([lang, word]).toEqual(["fr", MODEL_WORDS.fr]);
+    expect(parseModelSegment(segment as string), href as string).not.toBeNull();
   }
+  // Product 1 has more references than its page shows: one link leads to the
+  // numbered reference pages.
+  await expect(main.locator(`a[href="${address}/1"]`)).toHaveCount(1);
 });
 
 test("each of the ten versions has its language, its own address and the same language tags", async ({
