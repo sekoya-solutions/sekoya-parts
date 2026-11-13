@@ -20,6 +20,8 @@ docs/chat-history/*
 
 # Personal Claude Code settings for this repository
 .claude/settings.local.json
+# The desktop app's local preview servers (owner decision, 2026-11-14)
+.claude/launch.json
 
 # Operating system files
 Thumbs.db

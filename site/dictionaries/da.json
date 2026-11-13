@@ -4,6 +4,7 @@
   "homeTagline": "Reservedelskatalog, snart online.",
   "homeIntro": "Sekoya Parts samler {products} reservedele til husholdningsapparater, fra drivremme til printkort, fordelt på {categories} kategorier. Hver side viser prisen og listen over passende apparatmodeller, op til en million for en enkelt del, så du finder den rigtige del med det samme.",
   "categories": "Kategorier",
+  "showcaseProducts": "Udvalgte reservedele",
   "productCount": "Produkter: {count}",
   "compatibleModels": "Kompatible modeller",
   "compatibleParts": "Kompatible reservedele",

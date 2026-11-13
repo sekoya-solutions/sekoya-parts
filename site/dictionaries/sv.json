@@ -4,6 +4,7 @@
   "homeTagline": "Reservdelskatalog, snart online.",
   "homeIntro": "Sekoya Parts samlar {products} reservdelar till hushållsapparater, från drivremmar till kretskort, i {categories} kategorier. Varje sida anger priset och listan över passande apparatmodeller, upp till en miljon för en enda del, så att du hittar rätt del direkt.",
   "categories": "Kategorier",
+  "showcaseProducts": "Utvalda reservdelar",
   "productCount": "Produkter: {count}",
   "compatibleModels": "Kompatibla modeller",
   "compatibleParts": "Kompatibla reservdelar",

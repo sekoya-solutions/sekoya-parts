@@ -4,6 +4,7 @@
   "homeTagline": "Catálogo de piezas de repuesto, muy pronto en línea.",
   "homeIntro": "Sekoya Parts reúne {products} recambios para electrodomésticos, desde correas hasta placas electrónicas, organizados en {categories} categorías. Cada ficha indica el precio y la lista de modelos de aparatos compatibles, hasta un millón para una sola pieza, para encontrar la pieza correcta a la primera.",
   "categories": "Categorías",
+  "showcaseProducts": "Piezas destacadas",
   "productCount": "Productos: {count}",
   "compatibleModels": "Modelos compatibles",
   "compatibleParts": "Piezas compatibles",
