@@ -162,12 +162,19 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - each product shows one of its category's four images, on its page (loaded first) and on its cards; the home page shows one per category. The reference list stays text only;
      - phones show two cards per row, and the product page is text first, with a thumbnail beside the name and price: with a large image first, Lighthouse's simulated slow phone painted it at about 3 s and performance fell to 92 (owner decision);
      - a category page's HTML grew from about 33 KB to 122 KB (9 KB compressed), the home page from 23 KB to 47 KB; the heaviest product page stays about 274 KB.
+   - **Done: performance headroom on the image-led pages** ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)): on two preview runs of the final code, the home, category, model and reference pages score 100 and the product page 99, with accessibility at 100:
+     - on PR #99, the home page scored 94 twice. Only its largest paint lost points: Lighthouse's simulated slow phone shares its bandwidth among every request started before the first card image paints, about 107 KB of images, 141 KB of Next.js scripts and the 25 KB font, so the image painted at 3.0 to 3.2 s;
+     - card images now declare their real width, so a phone loads the 320 width: the home page's twelve images weigh 60 KB instead of 113 KB;
+     - the home, category and model pages open with a short introduction in large text, the largest element of a phone's first screen, as the product page is text first (owner decision);
+     - removing Next.js's scripts is not possible in the App Router, and a later font would save at most about 0.1 s, so neither is done;
+     - the home and category pages' largest paint moved from 3.0 to 3.2 s simulated to about 1.2 s. The model page, also led by its product cards, stayed at 95 to 98 with the right-sized images alone, its first card image painting at 2.4 to 2.9 s; with its introduction it scores 100.
 6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), in three parts:
    - **In progress: the twelve showcase products** ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98), [ADR 0007](adr/0007-catalog-data-model.md)):
      - one per category, chosen by the owner: SP000027, SP000054, SP000043, SP000067, SP000033, SP000028, SP000039, SP000007, SP000017, SP000001 (the million-model knob), SP000008 and SP000034, all within the small catalog that CI loads;
      - their French names and descriptions are committed in `catalog/showcase.ts` and loaded by the generator at every scale and seed, which also keeps each one in its listed category. For seed 1, every other value of every product is unchanged, which a test pins;
      - names leave out the brand, which differs between the small and full catalogs, and texts name no appliance type, since a product's compatible models are of every type;
      - until the translation job runs, the nine other languages show the French text, through Payload's fallback, and the addresses are built from the French name;
+     - Neon's `main` was reloaded with the full catalog and the showcase in 33.7 s, a 276 MB database, and the owner reset `preview` and `dev` from it;
    - the DeepL translation job, queued by Payload's save hooks, run by the daily Vercel cron or at once by the owner, once the owner has a DeepL account;
    - the showcase products on the home page.
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
