@@ -3,7 +3,10 @@
 // HTML, rather than a card image, which waits for its download. And each card
 // image is fetched at the width it is shown at, not wider.
 import { expect, type Page, test } from "@playwright/test";
+import { MILLION_PRODUCT_ID } from "../catalog/generator.ts";
 import { locales } from "../cms/locales.ts";
+import { MODEL_WORDS } from "../site/addresses.ts";
+import { productAddress } from "./addresses.ts";
 
 // Lighthouse's mobile emulation: 412 x 823 CSS pixels at 1.75x.
 test.use({
@@ -77,6 +80,23 @@ for (const locale of locales) {
       .first()
       .getAttribute("href")) as string;
     await page.goto(category);
+    await expect(page.locator("[data-intro]")).toHaveCount(1);
+    const largest = await largestElement(page);
+    expect(largest.intro, largest.tag).toBe(true);
+  });
+
+  // The model Lighthouse measures: the first one product 1's page links to.
+  test(`the ${locale} model page's largest element is its introduction`, async ({
+    page,
+    request,
+  }) => {
+    await page.goto(await productAddress(request, locale, MILLION_PRODUCT_ID));
+    const model = (await page
+      .getByRole("main")
+      .locator(`a[href^="/${locale}/${MODEL_WORDS[locale]}/"]`)
+      .first()
+      .getAttribute("href")) as string;
+    await page.goto(model);
     await expect(page.locator("[data-intro]")).toHaveCount(1);
     const largest = await largestElement(page);
     expect(largest.intro, largest.tag).toBe(true);

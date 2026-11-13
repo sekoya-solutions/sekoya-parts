@@ -7,6 +7,7 @@
   "productCount": "Produtos: {count}",
   "compatibleModels": "Modelos compatíveis",
   "compatibleParts": "Peças compatíveis",
+  "modelIntro": "Peças sobresselentes compatíveis com o modelo {model} ({appliance}). Cada página abaixo indica o preço em euros e a lista completa de modelos compatíveis, para confirmar que uma peça serve neste aparelho antes de a escolher.",
   "allCompatibleModels": "Ver os {count} modelos compatíveis",
   "referencePageHeading": "{product}: modelos compatíveis",
   "pageOf": "Página {page} de {pages}",

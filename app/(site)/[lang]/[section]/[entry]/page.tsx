@@ -195,6 +195,15 @@ async function ModelPage(locale: Locale, section: string, entry: string) {
       <p className="mt-1 text-lg text-slate">
         {applianceTypeName(dictionary, model.applianceType)}
       </p>
+      {/* The first screen's largest element, painted with the HTML rather
+          than after the card images (issue #87); e2e/intro.spec.ts checks it. */}
+      <p data-intro className="mt-4 max-w-prose text-lg">
+        {fill(dictionary.modelIntro, {
+          model: `${model.brand} ${model.reference}`,
+          // As the dictionary writes it: German nouns keep their capital.
+          appliance: applianceTypeName(dictionary, model.applianceType),
+        })}
+      </p>
       <h2 className="mt-10 mb-4 text-2xl font-bold">
         {dictionary.compatibleParts}
       </h2>

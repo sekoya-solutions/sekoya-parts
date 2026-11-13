@@ -162,12 +162,12 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - each product shows one of its category's four images, on its page (loaded first) and on its cards; the home page shows one per category. The reference list stays text only;
      - phones show two cards per row, and the product page is text first, with a thumbnail beside the name and price: with a large image first, Lighthouse's simulated slow phone painted it at about 3 s and performance fell to 92 (owner decision);
      - a category page's HTML grew from about 33 KB to 122 KB (9 KB compressed), the home page from 23 KB to 47 KB; the heaviest product page stays about 274 KB.
-   - **Done: performance headroom on the image-led pages** ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)), home and category pages at 100 on two preview runs, their largest paint at about 1.2 s simulated instead of 3.0 to 3.2 s:
+   - **In progress: performance headroom on the image-led pages** ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)). With the first two changes, the home and category pages reached 100 on two preview runs, their largest paint at about 1.2 s simulated instead of 3.0 to 3.2 s:
      - on PR #99, the home page scored 94 twice. Only its largest paint lost points: Lighthouse's simulated slow phone shares its bandwidth among every request started before the first card image paints, about 107 KB of images, 141 KB of Next.js scripts and the 25 KB font, so the image painted at 3.0 to 3.2 s;
      - card images now declare their real width, so a phone loads the 320 width: the home page's twelve images weigh 60 KB instead of 113 KB;
-     - the home and category pages open with a short introduction in large text, the largest element of a phone's first screen, as the product page is text first (owner decision);
+     - the home, category and model pages open with a short introduction in large text, the largest element of a phone's first screen, as the product page is text first (owner decision);
      - removing Next.js's scripts is not possible in the App Router, and a later font would save at most about 0.1 s, so neither is done;
-     - the model page, also led by its product cards, stays at 95 to 97 with the right-sized images alone.
+     - the model page, also led by its product cards, stayed at 95 to 98 with the right-sized images alone, its first card image painting at 2.4 to 2.9 s; it got the same introduction, and two new runs must show 98 or more on it too.
 6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), once the owner has a DeepL account.
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
 8. The showcase sitemap and `robots.txt` (ADR 0011).

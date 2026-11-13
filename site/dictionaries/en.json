@@ -7,6 +7,7 @@
   "productCount": "Products: {count}",
   "compatibleModels": "Compatible models",
   "compatibleParts": "Compatible parts",
+  "modelIntro": "Spare parts compatible with the {model} model ({appliance}). Each page below gives the price in euros and the full list of compatible models, so you can check that a part fits this appliance before choosing it.",
   "allCompatibleModels": "See all {count} compatible models",
   "referencePageHeading": "{product}: compatible models",
   "pageOf": "Page {page} of {pages}",

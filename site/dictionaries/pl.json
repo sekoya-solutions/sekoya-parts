@@ -7,6 +7,7 @@
   "productCount": "Produkty: {count}",
   "compatibleModels": "Zgodne modele",
   "compatibleParts": "Kompatybilne części",
+  "modelIntro": "Części zamienne pasujące do modelu {model} ({appliance}). Każda strona poniżej podaje cenę w euro i pełną listę pasujących modeli, aby przed wyborem sprawdzić, czy część pasuje do tego urządzenia.",
   "allCompatibleModels": "Zobacz wszystkie kompatybilne modele ({count})",
   "referencePageHeading": "{product}: kompatybilne modele",
   "pageOf": "Strona {page} z {pages}",

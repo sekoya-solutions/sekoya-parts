@@ -7,6 +7,7 @@
   "productCount": "Produkter: {count}",
   "compatibleModels": "Kompatibla modeller",
   "compatibleParts": "Kompatibla reservdelar",
+  "modelIntro": "Reservdelar som passar modellen {model} ({appliance}). Varje sida nedan anger priset i euro och hela listan över passande modeller, så att du kan kontrollera att en del passar den här apparaten innan du väljer den.",
   "allCompatibleModels": "Se alla {count} kompatibla modeller",
   "referencePageHeading": "{product}: kompatibla modeller",
   "pageOf": "Sida {page} av {pages}",
