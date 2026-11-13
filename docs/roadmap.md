@@ -2,7 +2,7 @@
 
 Where Sekoya Parts stands and what comes next. Agents read this file at the start of a session, after [AGENTS.md](../AGENTS.md), and update it whenever a step is done or the plan changes.
 
-## Status on 2026-11-13
+## Status on 2026-11-14
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
 - **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
@@ -33,6 +33,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - A daily DeepL translation sweep translates them into the nine other languages, with a translation memory that keeps DeepL's 1,000,000 free characters for new and changed text only ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)).
   - The home, category and model pages open with a text introduction and load right-sized card images: 98 to 100 on every measured page ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)).
 - **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
+- **Documentation-only pushes** to a pull request that already changes code run Markdown lint only too, when every check on the previous head passed: Vercel skips the build when only `.md` files changed since the branch's last preview, and the stand-in copies that preview's Lighthouse result ([#106](https://github.com/sekoya-solutions/sekoya-parts/issues/106), ADR 0004).
 - **Not set up yet:** no Algolia account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
