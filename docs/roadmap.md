@@ -29,6 +29,8 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Model pages and numbered reference pages, in the ten languages ([#79](https://github.com/sekoya-solutions/sekoya-parts/issues/79)).
   - Category pages, 48 products each, and a home page listing the categories, in the ten languages ([#81](https://github.com/sekoya-solutions/sekoya-parts/issues/81)).
   - Neon's `main`, `preview` and `dev` hold the full catalog: 100,000 products, 60 brands, 1,000,000 appliance models and 1,451,992 compatibility rows, in a 273 MB database ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77)). CI keeps the small catalog.
+  - Twelve showcase products, one per category, with French names and descriptions loaded by the generator; the other languages show the French text until the translation job ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98)).
+  - The home, category and model pages open with a text introduction and load right-sized card images: 98 to 100 on every measured page ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)).
 - **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
 - **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
@@ -169,12 +171,13 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - removing Next.js's scripts is not possible in the App Router, and a later font would save at most about 0.1 s, so neither is done;
      - the home and category pages' largest paint moved from 3.0 to 3.2 s simulated to about 1.2 s. The model page, also led by its product cards, stayed at 95 to 98 with the right-sized images alone, its first card image painting at 2.4 to 2.9 s; with its introduction it scores 100.
 6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), in three parts:
-   - **In progress: the twelve showcase products** ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98), [ADR 0007](adr/0007-catalog-data-model.md)):
+   - **Done: the twelve showcase products** ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98), [ADR 0007](adr/0007-catalog-data-model.md)):
      - one per category, chosen by the owner: SP000027, SP000054, SP000043, SP000067, SP000033, SP000028, SP000039, SP000007, SP000017, SP000001 (the million-model knob), SP000008 and SP000034, all within the small catalog that CI loads;
      - their French names and descriptions are committed in `catalog/showcase.ts` and loaded by the generator at every scale and seed, which also keeps each one in its listed category. For seed 1, every other value of every product is unchanged, which a test pins;
      - names leave out the brand, which differs between the small and full catalogs, and texts name no appliance type, since a product's compatible models are of every type;
      - until the translation job runs, the nine other languages show the French text, through Payload's fallback, and the addresses are built from the French name;
      - Neon's `main` was reloaded with the full catalog and the showcase in 33.7 s, a 276 MB database, and the owner reset `preview` and `dev` from it;
+     - production serves them since the merge (`0d562bf`): product 1's French page has the heading "Bouton de programmateur universel, axe 6 mm" and its French description;
    - the DeepL translation job, queued by Payload's save hooks, run by the daily Vercel cron or at once by the owner, once the owner has a DeepL account;
    - the showcase products on the home page.
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
