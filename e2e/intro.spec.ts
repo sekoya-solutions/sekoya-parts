@@ -40,7 +40,10 @@ async function largestElement(page: Page) {
   );
 }
 
-/** The width in each card image's chosen file name, such as 320. */
+/**
+ * The width in each loaded card image's chosen file name, such as 320, with
+ * what the browser based its choice on, for the failure message.
+ */
 const cardWidths = (page: Page) =>
   page
     .getByRole("main")
@@ -48,9 +51,10 @@ const cardWidths = (page: Page) =>
     .evaluateAll((imgs) =>
       (imgs as HTMLImageElement[])
         .filter((img) => img.complete && img.currentSrc)
-        .map((img) =>
-          Number(/-(\d+)-[0-9a-f]+\.\w+$/.exec(img.currentSrc)?.[1]),
-        ),
+        .map((img) => ({
+          width: Number(/-(\d+)-[0-9a-f]+\.\w+$/.exec(img.currentSrc)?.[1]),
+          detail: `${img.currentSrc.split("/").pop()} shown ${img.clientWidth}px, window ${window.innerWidth}px, document ${document.documentElement.clientWidth}px, ${window.devicePixelRatio}x`,
+        })),
     );
 
 for (const locale of locales) {
@@ -94,6 +98,7 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
     const widths = await cardWidths(page);
     expect(widths.length, path).toBeGreaterThan(0);
     // 158 CSS pixels at 1.75x need 277: the 320 file, not the 480 one.
-    for (const width of widths) expect(width, path).toBe(320);
+    for (const { width, detail } of widths)
+      expect(width, `${path}: ${detail}`).toBe(320);
   }
 });
