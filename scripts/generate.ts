@@ -19,6 +19,7 @@ import {
   compatibilityRows,
   isScaleName,
   modelRows,
+  productLocaleRows,
   productRows,
 } from "../catalog/generator.ts";
 
@@ -183,6 +184,12 @@ async function main(): Promise<void> {
           "showcase",
         ],
         productRows(seed, scale),
+      );
+      await copy(
+        client,
+        "products_locales",
+        ["name", "description", "_locale", "_parent_id"],
+        productLocaleRows(scale),
       );
       await copy(
         client,

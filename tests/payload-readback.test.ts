@@ -18,6 +18,7 @@ import {
   productRows,
   scales,
 } from "../catalog/generator.ts";
+import { showcaseProducts } from "../catalog/showcase.ts";
 import config from "../payload.config.ts";
 
 // No silent skip: without a database this test fails.
@@ -74,8 +75,10 @@ describe("Payload reads the generated catalog", () => {
 
     for (const [
       id,
-      [, reference, brandId, categoryId, priceCents],
+      [, reference, brandId, categoryId, priceCents, showcase],
     ] of expected) {
+      // The showcase products' text is checked in its own test below.
+      if (showcase) continue;
       for (const locale of ["fr", "de"] as const) {
         const product = await payload.findByID({
           collection: "products",
@@ -94,6 +97,37 @@ describe("Payload reads the generated catalog", () => {
         expect(
           typeof product.category === "object" && product.category.name,
         ).toBe(categoryNames.get(categoryId)?.[locale]);
+      }
+    }
+  });
+
+  it("returns each showcase product's French text, and French in a language not translated yet", async () => {
+    const { docs } = await payload.find({
+      collection: "products",
+      where: { showcase: { equals: true } },
+      limit: 0,
+      depth: 0,
+      locale: "fr",
+    });
+    expect(docs.map((d) => d.id).sort()).toEqual(
+      showcaseProducts.map((p) => p.id).sort(),
+    );
+    for (const listed of showcaseProducts) {
+      // Payload falls back to French, the default locale, for a missing
+      // translation: the page shows it until the translation job runs.
+      for (const locale of ["fr", "de"] as const) {
+        const product = await payload.findByID({
+          collection: "products",
+          id: listed.id,
+          depth: 0,
+          locale,
+        });
+        expect(product.showcase).toBe(true);
+        expect(typeof product.category === "number" && product.category).toBe(
+          listed.categoryId,
+        );
+        expect(product.name).toBe(listed.fr.name);
+        expect(product.description).toBe(listed.fr.description);
       }
     }
   });

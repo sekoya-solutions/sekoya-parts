@@ -3,16 +3,19 @@ import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   brandRows,
+  categories,
   categoryLocaleRows,
   compatibilityRows,
   MILLION_PRODUCT_ID,
   MODEL_COUNT,
   modelRows,
+  productLocaleRows,
   productRows,
   type ScaleName,
   scales,
   slugify,
 } from "../catalog/generator.ts";
+import { showcaseProducts } from "../catalog/showcase.ts";
 import { locales } from "../cms/locales.ts";
 
 function digest(seed: number, scale: ScaleName): string {
@@ -21,6 +24,7 @@ function digest(seed: number, scale: ScaleName): string {
     categoryLocaleRows(),
     brandRows(seed, scale),
     productRows(seed, scale),
+    productLocaleRows(scale),
     modelRows(seed, scale),
     compatibilityRows(seed, scale),
   ];
@@ -90,9 +94,66 @@ describe("compatibility", () => {
 });
 
 describe("rows", () => {
-  it("stores no showcase product, so no product text", () => {
-    for (const [, , , , , showcase] of productRows(1, "small")) {
-      expect(showcase).toBe(false);
+  it("marks the listed showcase products only, each in its listed category, at every scale and seed", () => {
+    const listed = new Map(showcaseProducts.map((p) => [p.id, p.categoryId]));
+    for (const scale of ["small", "full"] as const) {
+      for (const seed of [1, 2]) {
+        const marked = new Map<number, number>();
+        for (const [id, , , categoryId, , showcase] of productRows(
+          seed,
+          scale,
+        )) {
+          if (showcase) marked.set(id, categoryId);
+        }
+        expect(marked).toEqual(listed);
+      }
+    }
+  });
+
+  it("lists one showcase product per category, within the small catalog", () => {
+    const categoryIds = showcaseProducts.map((p) => p.categoryId).sort();
+    expect(categoryIds).toEqual(
+      categories()
+        .map((c) => c.id)
+        .sort(),
+    );
+    for (const { id } of showcaseProducts) {
+      expect(id).toBeGreaterThanOrEqual(1);
+      expect(id).toBeLessThanOrEqual(scales.small.products);
+    }
+  });
+
+  it("stores the French text of the showcase products only, with words for their address", () => {
+    for (const scale of ["small", "full"] as const) {
+      const rows = [...productLocaleRows(scale)];
+      expect(rows.map(([, , , id]) => id).sort()).toEqual(
+        showcaseProducts.map((p) => p.id).sort(),
+      );
+      for (const [name, description, locale, id] of rows) {
+        expect(locale).toBe("fr");
+        expect(name.trim()).toBe(name);
+        expect(description.trim()).toBe(description);
+        expect(description.length).toBeGreaterThan(name.length);
+        // The address words come from the name (site/addresses.ts).
+        expect(slugify(name), String(id)).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+      }
+    }
+  });
+
+  // The showcase only adds its flag: for seed 1, the categories it fixes are
+  // the ones already drawn, so every other value is the catalog loaded before
+  // issue #98 (these digests were taken from that generator).
+  it("keeps every product's other values for seed 1", () => {
+    const before = {
+      small: "39dbc92cb40f51b217f34e87fe57ba517075b18429c5a6bf8f84d609258a9337",
+      full: "ca8cdf7dcf40d42398816e6e191ba25554c0c500835a073ab3900f497f8b9a8d",
+    };
+    for (const scale of ["small", "full"] as const) {
+      const hash = createHash("sha256");
+      for (const row of productRows(1, scale)) {
+        hash.update(`${[...row.slice(0, 5), false].join("\t")}\n`);
+      }
+      expect(hash.digest("hex")).toBe(before[scale]);
     }
   });
 

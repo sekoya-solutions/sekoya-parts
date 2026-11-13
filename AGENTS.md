@@ -11,7 +11,7 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **Four page templates:** home, category listing, product page, and one page per appliance model.
   - **References on the product page:** only the most popular ones are rendered as text, keeping the page under Google's 2 MB crawl limit (enforced by a CI test) and at a PageSpeed score of 95 or more.
   - **Languages:** ten, on one domain under path prefixes: `fr` (the source), `en`, `de`, `es`, `it`, `nl`, `pt`, `pl`, `sv`, `da`.
-  - **Content:** about ten showcase products get real descriptions, translated automatically when a product is added; the others use placeholder text (lorem ipsum) in every language.
+  - **Content:** twelve showcase products, one per category (owner decision, 2026-11-13), get real descriptions, translated automatically when a product is added; the others use placeholder text (lorem ipsum) in every language.
   - **Search:** a hosted search engine like Algolia is mandatory. Algolia and the database stay on free tiers unless that severely blocks feasibility; capping search at about 50,000 products is acceptable.
   - **Scope:** catalog only, with prices in euros: no cart, checkout, accounts or payment.
   - **Images:** about 50 original or CC0 images, reused across products and resized at import.

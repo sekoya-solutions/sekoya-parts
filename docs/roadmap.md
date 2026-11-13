@@ -168,7 +168,15 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - the home, category and model pages open with a short introduction in large text, the largest element of a phone's first screen, as the product page is text first (owner decision);
      - removing Next.js's scripts is not possible in the App Router, and a later font would save at most about 0.1 s, so neither is done;
      - the home and category pages' largest paint moved from 3.0 to 3.2 s simulated to about 1.2 s. The model page, also led by its product cards, stayed at 95 to 98 with the right-sized images alone, its first card image painting at 2.4 to 2.9 s; with its introduction it scores 100.
-6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), once the owner has a DeepL account.
+6. The showcase products, Payload's admin hooks and the DeepL translation job ([ADR 0006](adr/0006-content-management.md), ADR 0011), in three parts:
+   - **In progress: the twelve showcase products** ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98), [ADR 0007](adr/0007-catalog-data-model.md)):
+     - one per category, chosen by the owner: SP000027, SP000054, SP000043, SP000067, SP000033, SP000028, SP000039, SP000007, SP000017, SP000001 (the million-model knob), SP000008 and SP000034, all within the small catalog that CI loads;
+     - their French names and descriptions are committed in `catalog/showcase.ts` and loaded by the generator at every scale and seed, which also keeps each one in its listed category. For seed 1, every other value of every product is unchanged, which a test pins;
+     - names leave out the brand, which differs between the small and full catalogs, and texts name no appliance type, since a product's compatible models are of every type;
+     - until the translation job runs, the nine other languages show the French text, through Payload's fallback, and the addresses are built from the French name;
+     - Neon's `main` was reloaded with the full catalog and the showcase in 33.7 s, a 276 MB database, and the owner reset `preview` and `dev` from it;
+   - the DeepL translation job, queued by Payload's save hooks, run by the daily Vercel cron or at once by the owner, once the owner has a DeepL account;
+   - the showcase products on the home page.
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
 8. The showcase sitemap and `robots.txt` (ADR 0011).
 9. Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
@@ -176,7 +184,7 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
 ## Decisions open for the owner
 
 - **Vercel Hobby's terms:** whether a freelance portfolio counts as commercial use (ADR 0002).
-- **The showcase:** the ten showcase products, and the pages search engines may crawl (ADR 0002, ADR 0011).
+- **The showcase:** the pages search engines may crawl (ADR 0002, ADR 0011). The twelve showcase products are chosen ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98)).
 
 ## Working notes for a new session
 

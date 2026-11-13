@@ -10,7 +10,7 @@ Bootstrap. There is no application code yet: the technical stack is being writte
 
 - About 100,000 products, about 50,000 of them searchable, across four page templates: home, category listing, product page, and one page per appliance model.
 - One product compatible with up to 1,000,000 appliance models. Its page shows the most popular of them as text, within Google's 2 MB crawl limit.
-- Ten languages on one domain (`/fr/`, `/en/`, `/de/` and so on), with French as the source. About ten showcase products are translated automatically when added; the rest use placeholder text.
+- Ten languages on one domain (`/fr/`, `/en/`, `/de/` and so on), with French as the source. Twelve showcase products, one per category, are translated automatically when added; the rest use placeholder text.
 - A PageSpeed score of 95 or more, checked on every commit, and fine-grained cache invalidation: changing a price or a description refreshes only that part of a page.
 
 ## License
