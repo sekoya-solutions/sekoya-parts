@@ -50,7 +50,7 @@ Chosen: **Payload 3.93 inside the Next.js application,** on Neon through `@paylo
 - **Payload manages what is edited:** products (price, names and descriptions in ten languages), categories and admin users.
 - **Models and compatibility** live in the project's own tables, filled by the data generator and never edited in the admin.
 - **An edit's hook refreshes the tags of the edited product.** The caching record names the tags.
-- **A new showcase product queues a translation job.** The daily Vercel cron runs it, or the owner calls the job endpoint to run it at once.
+- **A translation sweep keeps the showcase products translated** (amended by the owner on 2026-11-13, [#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)). The daily Vercel cron runs it through one endpoint, or a signed-in user opens that endpoint to run it at once. The sweep finds new and changed French texts itself, and a catalog reload runs no save hook, so no hook or Payload job queues it.
 - **The admin lives at `/admin`,** behind Payload's sign-in. It is unindexed by default and outside the crawl showcase of ADR 0002.
 - **Payload 4** replaces version 3 once it is stable, for full Cache Components support.
 
@@ -75,7 +75,7 @@ No download is needed on the owner's machine. The Payload packages come with the
 Positive:
 
 - One application holds the site and its admin, at no cost.
-- Edits, refreshes and translations go through documented hooks and jobs.
+- Edits and refreshes go through documented hooks, and translations through one endpoint.
 
 Negative:
 

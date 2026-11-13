@@ -30,9 +30,10 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Category pages, 48 products each, and a home page listing the categories, in the ten languages ([#81](https://github.com/sekoya-solutions/sekoya-parts/issues/81)).
   - Neon's `main`, `preview` and `dev` hold the full catalog: 100,000 products, 60 brands, 1,000,000 appliance models and 1,451,992 compatibility rows, in a 273 MB database ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77)). CI keeps the small catalog.
   - Twelve showcase products, one per category, with French names and descriptions loaded by the generator; the other languages show the French text until the translation job ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98)).
+  - A daily DeepL translation sweep translates them into the nine other languages, with a translation memory that keeps DeepL's 1,000,000 free characters for new and changed text only ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)).
   - The home, category and model pages open with a text introduction and load right-sized card images: 98 to 100 on every measured page ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)).
 - **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
-- **Not set up yet:** no Algolia or DeepL account for Sekoya Parts.
+- **Not set up yet:** no Algolia account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
 ## Next phases
@@ -178,7 +179,13 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - until the translation job runs, the nine other languages show the French text, through Payload's fallback, and the addresses are built from the French name;
      - Neon's `main` was reloaded with the full catalog and the showcase in 33.7 s, a 276 MB database, and the owner reset `preview` and `dev` from it;
      - production serves them since the merge (`0d562bf`): product 1's French page has the heading "Bouton de programmateur universel, axe 6 mm" and its French description;
-   - the DeepL translation job, queued by Payload's save hooks, run by the daily Vercel cron or at once by the owner, once the owner has a DeepL account;
+   - **Done: the DeepL translation job** ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104), ADR 0006 amended, ADR 0011):
+     - one sweep brings each showcase product's nine other languages in line with its French text, through Payload, so the product save hook refreshes only the parts it changes. French is the source: a French edit overwrites the other languages;
+     - `GET /api/translations/run` runs it: the daily Vercel cron with `CRON_SECRET`, or a signed-in user at once. Anyone else gets 401, a second run during one gets 409, and a DeepL failure gets 502. No save hook or Payload job queues it (owner decision), since the sweep finds new and changed texts itself;
+     - DeepL's free plan allows 1,000,000 characters in total, once, and one full translation costs 45,594 (owner decisions: spend it very conservatively). A translation memory, keyed by language and the SHA-256 hash of the French text, keeps every translation through catalog reloads, so only new or changed text is sent. Nothing retries: a quota (456), rate (429) or key (403) refusal stops the run, keeping what was already paid for;
+     - English is sent as British English and Portuguese as European Portuguese;
+     - the key is set in Vercel's Production and locally, never on previews, which keep the French text; the first real run inside Vercel is production's, after the merge;
+     - CI tests the logic against a fake DeepL. A live check (`.github/workflows/deepl-live.yml`) reads DeepL's usage every day, which spends no characters, and fails on a rejected key or from 90% of the quota; on pull requests that touch the translation code it also translates one phrase;
    - the showcase products on the home page.
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
 8. The showcase sitemap and `robots.txt` (ADR 0011).

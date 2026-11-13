@@ -22,19 +22,9 @@ import {
   productLocaleRows,
   productRows,
 } from "../catalog/generator.ts";
+import { catalogTables } from "../catalog/tables.ts";
 
 type Value = string | number | boolean | null;
-
-// The catalog's tables, children first so TRUNCATE and the checks read well.
-const catalogTables = [
-  "compatibility",
-  "appliance_models",
-  "products_locales",
-  "products",
-  "brands",
-  "categories_locales",
-  "categories",
-] as const;
 
 // Tables whose ids come from a serial sequence that Payload uses for new rows.
 const serialTables = [

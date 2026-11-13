@@ -2,6 +2,7 @@ import * as migration_20261111_231404_initial from "./20261111_231404_initial";
 import * as migration_20261111_231500_project_tables from "./20261111_231500_project_tables";
 import * as migration_20261112_100026_api_keys from "./20261112_100026_api_keys";
 import * as migration_20261113_121216_category_listing from "./20261113_121216_category_listing";
+import * as migration_20261113_230000_translation_memory from "./20261113_230000_translation_memory";
 
 export const migrations = [
   {
@@ -23,5 +24,10 @@ export const migrations = [
     up: migration_20261113_121216_category_listing.up,
     down: migration_20261113_121216_category_listing.down,
     name: "20261113_121216_category_listing",
+  },
+  {
+    up: migration_20261113_230000_translation_memory.up,
+    down: migration_20261113_230000_translation_memory.down,
+    name: "20261113_230000_translation_memory",
   },
 ];

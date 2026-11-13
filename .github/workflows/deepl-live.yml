@@ -1,0 +1,47 @@
+# The live DeepL check (issue #104): the faked tests prove the project's own
+# logic, this proves DeepL still accepts the key and answers as expected. The
+# free plan allows 1,000,000 characters in total, so the daily run only reads
+# the usage, which spends none; pull requests that touch the translation code
+# also translate one short phrase (16 characters).
+#
+# GitHub emails a failed scheduled run to whoever last changed its schedule.
+# It disables scheduled workflows of a public repository after 60 days with
+# no activity.
+name: DeepL live check
+
+on:
+  pull_request:
+    paths:
+      - cms/translation/**
+      - scripts/deepl-check.ts
+      - .github/workflows/deepl-live.yml
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deepl-live-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deepl:
+    name: DeepL live check
+    # Pull requests from forks get no secrets: they skip the check.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # The script imports no package, so no npm ci.
+      - env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          TRANSLATE: ${{ github.event_name == 'pull_request' && '--translate' || '' }}
+        run: node scripts/deepl-check.ts $TRANSLATE
