@@ -27,6 +27,8 @@ export const computedAt = () => new Date().toISOString();
 /** A product found by its reference: its id, and its name and address in each language. */
 export type ProductRoute = {
   id: number;
+  /** Its category, which its image comes from (issue #85). */
+  categoryId: number;
   names: Record<Locale, string>;
   paths: Record<Locale, string>;
   computedAt: string;
@@ -83,7 +85,13 @@ export function readProduct(product: Product): ProductRead {
     brand: product.brand.name,
   });
   return {
-    route: { id: product.id, names, paths, computedAt: computedAt() },
+    route: {
+      id: product.id,
+      categoryId: product.category.id,
+      names,
+      paths,
+      computedAt: computedAt(),
+    },
     brandId: product.brand.id,
     categoryId: product.category.id,
   };

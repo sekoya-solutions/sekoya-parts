@@ -28,12 +28,14 @@ import {
   getDictionary,
 } from "../../../../../site/dictionary.ts";
 import { SiteFrame } from "../../../../../site/frame.tsx";
+import { productImage } from "../../../../../site/images.ts";
 import {
   getReferenceRows,
   getReferenceTotal,
   ModelProducts,
   ReferenceList,
 } from "../../../../../site/models.tsx";
+import { MAIN_SIZES, Picture } from "../../../../../site/picture.tsx";
 import {
   ProductDescription,
   ProductPrice,
@@ -121,6 +123,7 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
   const route = await resolveProduct(locale, section, entry);
   const { id } = route;
   const dictionary = getDictionary(locale);
+  const image = productImage(route.categoryId, id);
   const [references, total] = await Promise.all([
     getReferenceRows(id, 1, PRODUCT_PAGE_REFERENCES),
     getReferenceTotal(id),
@@ -128,15 +131,28 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
 
   return (
     <SiteFrame locale={locale} paths={route.paths}>
-      <h1
-        data-computed-at={route.computedAt}
-        className="text-3xl font-bold sm:text-4xl"
-      >
-        {route.names[locale]}
-      </h1>
-      <div className="mt-4 space-y-4">
-        <ProductPrice id={id} locale={locale} />
-        <ProductDescription id={id} locale={locale} />
+      <div className="grid gap-8 md:grid-cols-[28rem_1fr]">
+        {image && (
+          <Picture
+            image={image}
+            alt={route.names[locale]}
+            sizes={MAIN_SIZES}
+            priority
+            className="aspect-square h-auto w-full rounded-md border border-line"
+          />
+        )}
+        <div>
+          <h1
+            data-computed-at={route.computedAt}
+            className="text-3xl font-bold sm:text-4xl"
+          >
+            {route.names[locale]}
+          </h1>
+          <div className="mt-4 space-y-4">
+            <ProductPrice id={id} locale={locale} />
+            <ProductDescription id={id} locale={locale} />
+          </div>
+        </div>
       </div>
       <h2 className="mt-10 mb-4 text-2xl font-bold">
         {dictionary.compatibleModels}

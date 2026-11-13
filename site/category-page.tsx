@@ -10,6 +10,7 @@ import { categoryPath, languageAlternates } from "./addresses.ts";
 import { categoryPaths, getCategoryRows } from "./categories.tsx";
 import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
+import { ProductCardImage } from "./picture.tsx";
 import { formatPrice } from "./product.tsx";
 import { resolveCategory } from "./resolve.ts";
 
@@ -79,8 +80,9 @@ export async function CategoryPage({
         <p className="mt-1 text-slate">{pageLabel(locale, page, pages)}</p>
       )}
       <ul data-computed-at={computedAt} className="product-list mt-6">
-        {rows.map(({ route, priceCents }) => (
+        {rows.map(({ route, priceCents }, index) => (
           <li key={route.id}>
+            <ProductCardImage route={route} locale={locale} index={index} />
             <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
             <span>{formatPrice(priceCents, locale)}</span>
           </li>

@@ -1,0 +1,74 @@
+{
+  "basket": [
+    "0eff05496b0f7e02",
+    "5d8f96812ff5d8e7",
+    "100239e6071ae259",
+    "853022d3cc665fc0"
+  ],
+  "belt": [
+    "d0b33ef61c441c9c",
+    "fb3506d50639ea14",
+    "9dcf113bb2242622",
+    "2caba2655eca9b01"
+  ],
+  "control-board": [
+    "390295ae6e758062",
+    "692c35afcd64053c",
+    "a4afc7952c091dda",
+    "45de3333a7cdd318"
+  ],
+  "door-seal": [
+    "ce197fc523d917e4",
+    "b7fdd62de7fbe54d",
+    "56556bf1d0c907a7",
+    "68eafbef9b34aad5"
+  ],
+  "drain-pump": [
+    "f8ba947c914c270a",
+    "7a3f093dcfd4dfa0",
+    "b743099093d60aa2",
+    "a8bcc2a0aa15d9db"
+  ],
+  "filter": [
+    "c7fd0965323723b8",
+    "4feb98b9b7ae9bb1",
+    "6488c610b7870e85",
+    "1b92fa7bda97390b"
+  ],
+  "heating-element": [
+    "69a40c0c58490425",
+    "efe9c08e7715c969",
+    "e72c2f6edd55283a",
+    "b37f07b3eeee00ca"
+  ],
+  "hinge": [
+    "a21bca03a0f5299e",
+    "8dabef3419c6b225",
+    "06a87f25deb313e7",
+    "c78f3ddea0c65390"
+  ],
+  "knob": [
+    "290d94dd0f889598",
+    "75db139d414968f9",
+    "36d60a72277679da",
+    "576d44708ac6f60d"
+  ],
+  "lamp": [
+    "d4c3ed7dbc6babe5",
+    "8d7d9ff8cf6c87cc",
+    "b54e0f009afda861",
+    "a7e2dd62d2b35675"
+  ],
+  "motor": [
+    "f40054f12dfca38f",
+    "85403107c0405fa7",
+    "e8d7c758e8556378",
+    "d08e89b3cbaa0e63"
+  ],
+  "thermostat": [
+    "4360b9611aa59771",
+    "f7975ded71ba8d62",
+    "02fee2fc6de2ab8d",
+    "b8e129ac5263eb33"
+  ]
+}
