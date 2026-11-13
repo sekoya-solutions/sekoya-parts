@@ -37,6 +37,16 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
     <SiteFrame locale={locale} paths={perLocale(homePath)}>
       <h1 className="text-3xl font-bold sm:text-4xl">Sekoya Parts</h1>
       <p className="mt-2 text-lg text-slate">{dictionary.homeTagline}</p>
+      {/* The first screen's largest element, painted with the HTML rather
+          than after the card images (issue #87); e2e/intro.spec.ts checks it. */}
+      <p data-intro className="mt-4 max-w-prose text-lg">
+        {fill(dictionary.homeIntro, {
+          products: format.format(
+            Object.values(counts).reduce((sum, count) => sum + count, 0),
+          ),
+          categories: format.format(categories.length),
+        })}
+      </p>
       <h2 className="mt-10 text-2xl font-bold">{dictionary.categories}</h2>
       <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] sm:gap-4">
         {sorted.map((category, index) => {
