@@ -40,12 +40,16 @@ export function ProductCardImage({
 
 /**
  * The width of an image in a product card or a category tile. Phones show
- * two cards per row (site/site.css and the home page), so half the screen;
- * wider screens fit cards of at least 14rem in a page of at most 72rem, so
- * at most half the screen, and about 17rem on a desktop. On a phone 412
- * pixels wide at 1.75x, as Lighthouse emulates, this picks the 480 width.
+ * two cards per row (site/site.css and the home page): half of the screen
+ * less the page's 1rem margins, the 0.75rem gap, and each card's 0.75rem
+ * padding and border, so 50vw - 3rem. From 40rem, cards of at least 14rem
+ * fill a page of at most 72rem, so at most half the screen, and about 17rem
+ * on a desktop. On a phone 412 pixels wide at 1.75x, as Lighthouse emulates,
+ * the image is 158 pixels wide and this picks the 320 width (issue #87);
+ * e2e/intro.spec.ts checks the width fetched.
  */
-export const CARD_SIZES = "(min-width: 72rem) 17rem, 50vw";
+export const CARD_SIZES =
+  "(min-width: 72rem) 17rem, (min-width: 40rem) 50vw, calc(50vw - 3rem)";
 
 /**
  * The width of the product page's main image: 28rem beside the text from

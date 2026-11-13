@@ -7,7 +7,11 @@
 import type { Metadata } from "next";
 import type { Locale } from "../cms/locales.ts";
 import { categoryPath, languageAlternates } from "./addresses.ts";
-import { categoryPaths, getCategoryRows } from "./categories.tsx";
+import {
+  categoryPaths,
+  getCategoryCounts,
+  getCategoryRows,
+} from "./categories.tsx";
 import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
 import { ProductCardImage } from "./picture.tsx";
@@ -71,7 +75,10 @@ export async function CategoryPage({
   );
   const dictionary = getDictionary(locale);
   const slug = category.slugs[locale];
-  const { rows, computedAt } = await getCategoryRows(category.id, page);
+  const [{ rows, computedAt }, counts] = await Promise.all([
+    getCategoryRows(category.id, page),
+    getCategoryCounts(),
+  ]);
 
   return (
     <SiteFrame locale={locale} paths={categoryPaths(category, page)}>
@@ -79,6 +86,14 @@ export async function CategoryPage({
       {pages > 1 && (
         <p className="mt-1 text-slate">{pageLabel(locale, page, pages)}</p>
       )}
+      {/* The first screen's largest element, painted with the HTML rather
+          than after the card images (issue #87); e2e/intro.spec.ts checks it. */}
+      <p data-intro className="mt-4 max-w-prose text-lg">
+        {fill(dictionary.categoryIntro, {
+          category: category.names[locale],
+          count: new Intl.NumberFormat(locale).format(counts[category.id] ?? 0),
+        })}
+      </p>
       <ul data-computed-at={computedAt} className="product-list mt-6">
         {rows.map(({ route, priceCents }, index) => (
           <li key={route.id}>
