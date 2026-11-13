@@ -2,5 +2,20 @@
   "languageName": "Nederlands",
   "siteDescription": "Catalogus van onderdelen.",
   "homeTagline": "Catalogus van onderdelen, binnenkort online.",
-  "compatibleModels": "Compatibele modellen"
+  "compatibleModels": "Compatibele modellen",
+  "compatibleParts": "Compatibele onderdelen",
+  "allCompatibleModels": "Alle {count} compatibele modellen bekijken",
+  "referencePageHeading": "{product}: compatibele modellen",
+  "pageOf": "Pagina {page} van {pages}",
+  "previousPage": "Vorige pagina",
+  "nextPage": "Volgende pagina",
+  "backToProduct": "Terug naar het onderdeel",
+  "appliance:washing-machine": "Wasmachine",
+  "appliance:dishwasher": "Vaatwasser",
+  "appliance:dryer": "Droger",
+  "appliance:oven": "Oven",
+  "appliance:refrigerator": "Koelkast",
+  "appliance:cooktop": "Kookplaat",
+  "appliance:range-hood": "Afzuigkap",
+  "appliance:microwave": "Magnetron"
 }

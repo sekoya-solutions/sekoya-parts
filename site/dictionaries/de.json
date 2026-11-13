@@ -2,5 +2,20 @@
   "languageName": "Deutsch",
   "siteDescription": "Ersatzteilkatalog.",
   "homeTagline": "Ersatzteilkatalog, bald online.",
-  "compatibleModels": "Kompatible Modelle"
+  "compatibleModels": "Kompatible Modelle",
+  "compatibleParts": "Kompatible Ersatzteile",
+  "allCompatibleModels": "Alle {count} kompatiblen Modelle ansehen",
+  "referencePageHeading": "{product}: kompatible Modelle",
+  "pageOf": "Seite {page} von {pages}",
+  "previousPage": "Vorherige Seite",
+  "nextPage": "Nächste Seite",
+  "backToProduct": "Zurück zum Ersatzteil",
+  "appliance:washing-machine": "Waschmaschine",
+  "appliance:dishwasher": "Geschirrspüler",
+  "appliance:dryer": "Wäschetrockner",
+  "appliance:oven": "Backofen",
+  "appliance:refrigerator": "Kühlschrank",
+  "appliance:cooktop": "Kochfeld",
+  "appliance:range-hood": "Dunstabzugshaube",
+  "appliance:microwave": "Mikrowelle"
 }

@@ -2,5 +2,20 @@
   "languageName": "Polski",
   "siteDescription": "Katalog części zamiennych.",
   "homeTagline": "Katalog części zamiennych, wkrótce online.",
-  "compatibleModels": "Zgodne modele"
+  "compatibleModels": "Zgodne modele",
+  "compatibleParts": "Kompatybilne części",
+  "allCompatibleModels": "Zobacz wszystkie kompatybilne modele ({count})",
+  "referencePageHeading": "{product}: kompatybilne modele",
+  "pageOf": "Strona {page} z {pages}",
+  "previousPage": "Poprzednia strona",
+  "nextPage": "Następna strona",
+  "backToProduct": "Powrót do części",
+  "appliance:washing-machine": "Pralka",
+  "appliance:dishwasher": "Zmywarka",
+  "appliance:dryer": "Suszarka",
+  "appliance:oven": "Piekarnik",
+  "appliance:refrigerator": "Lodówka",
+  "appliance:cooktop": "Płyta grzewcza",
+  "appliance:range-hood": "Okap",
+  "appliance:microwave": "Kuchenka mikrofalowa"
 }

@@ -2,5 +2,20 @@
   "languageName": "Português",
   "siteDescription": "Catálogo de peças sobresselentes.",
   "homeTagline": "Catálogo de peças sobresselentes, em breve online.",
-  "compatibleModels": "Modelos compatíveis"
+  "compatibleModels": "Modelos compatíveis",
+  "compatibleParts": "Peças compatíveis",
+  "allCompatibleModels": "Ver os {count} modelos compatíveis",
+  "referencePageHeading": "{product}: modelos compatíveis",
+  "pageOf": "Página {page} de {pages}",
+  "previousPage": "Página anterior",
+  "nextPage": "Página seguinte",
+  "backToProduct": "Voltar à peça",
+  "appliance:washing-machine": "Máquina de lavar roupa",
+  "appliance:dishwasher": "Máquina de lavar loiça",
+  "appliance:dryer": "Máquina de secar roupa",
+  "appliance:oven": "Forno",
+  "appliance:refrigerator": "Frigorífico",
+  "appliance:cooktop": "Placa de cozinha",
+  "appliance:range-hood": "Exaustor",
+  "appliance:microwave": "Micro-ondas"
 }

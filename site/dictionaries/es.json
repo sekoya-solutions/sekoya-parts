@@ -2,5 +2,20 @@
   "languageName": "Español",
   "siteDescription": "Catálogo de piezas de repuesto.",
   "homeTagline": "Catálogo de piezas de repuesto, muy pronto en línea.",
-  "compatibleModels": "Modelos compatibles"
+  "compatibleModels": "Modelos compatibles",
+  "compatibleParts": "Piezas compatibles",
+  "allCompatibleModels": "Ver los {count} modelos compatibles",
+  "referencePageHeading": "{product}: modelos compatibles",
+  "pageOf": "Página {page} de {pages}",
+  "previousPage": "Página anterior",
+  "nextPage": "Página siguiente",
+  "backToProduct": "Volver a la pieza",
+  "appliance:washing-machine": "Lavadora",
+  "appliance:dishwasher": "Lavavajillas",
+  "appliance:dryer": "Secadora",
+  "appliance:oven": "Horno",
+  "appliance:refrigerator": "Frigorífico",
+  "appliance:cooktop": "Placa de cocina",
+  "appliance:range-hood": "Campana extractora",
+  "appliance:microwave": "Microondas"
 }

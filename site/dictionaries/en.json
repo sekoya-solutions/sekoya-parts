@@ -2,5 +2,20 @@
   "languageName": "English",
   "siteDescription": "Spare parts catalog.",
   "homeTagline": "Spare parts catalog, coming soon.",
-  "compatibleModels": "Compatible models"
+  "compatibleModels": "Compatible models",
+  "compatibleParts": "Compatible parts",
+  "allCompatibleModels": "See all {count} compatible models",
+  "referencePageHeading": "{product}: compatible models",
+  "pageOf": "Page {page} of {pages}",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "backToProduct": "Back to the part",
+  "appliance:washing-machine": "Washing machine",
+  "appliance:dishwasher": "Dishwasher",
+  "appliance:dryer": "Dryer",
+  "appliance:oven": "Oven",
+  "appliance:refrigerator": "Refrigerator",
+  "appliance:cooktop": "Cooktop",
+  "appliance:range-hood": "Range hood",
+  "appliance:microwave": "Microwave"
 }

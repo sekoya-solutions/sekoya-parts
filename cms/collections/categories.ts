@@ -1,5 +1,5 @@
 import type { CollectionConfig } from "payload";
-import { CATEGORY_SLUG } from "../../site/addresses.ts";
+import { CATEGORY_SLUG, isModelWord } from "../../site/addresses.ts";
 import {
   revalidateCategoryAfterChange,
   revalidateCategoryAfterDelete,
@@ -26,6 +26,10 @@ export const Categories: CollectionConfig = {
       // A custom validate replaces Payload's own, so it checks both rules.
       validate: (value: string | null | undefined) => {
         if (!value) return "A slug is required.";
+        // The model section takes the category slug's place in addresses, in
+        // every language.
+        if (isModelWord(value))
+          return "This word starts model addresses; choose another slug.";
         return CATEGORY_SLUG.test(value)
           ? true
           : "Use lowercase letters, digits and single hyphens, such as joint-de-porte.";

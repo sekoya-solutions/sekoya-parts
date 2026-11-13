@@ -229,6 +229,8 @@ export const applianceTypes = [
   "microwave",
 ] as const;
 
+export type ApplianceType = (typeof applianceTypes)[number];
+
 // Invented brand names are built from these syllables.
 const brandStarts = [
   "Ka",

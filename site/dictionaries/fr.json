@@ -2,5 +2,20 @@
   "languageName": "Français",
   "siteDescription": "Catalogue de pièces détachées.",
   "homeTagline": "Catalogue de pièces détachées, bientôt en ligne.",
-  "compatibleModels": "Modèles compatibles"
+  "compatibleModels": "Modèles compatibles",
+  "compatibleParts": "Pièces compatibles",
+  "allCompatibleModels": "Voir les {count} modèles compatibles",
+  "referencePageHeading": "{product} : modèles compatibles",
+  "pageOf": "Page {page} sur {pages}",
+  "previousPage": "Page précédente",
+  "nextPage": "Page suivante",
+  "backToProduct": "Retour à la pièce",
+  "appliance:washing-machine": "Lave-linge",
+  "appliance:dishwasher": "Lave-vaisselle",
+  "appliance:dryer": "Sèche-linge",
+  "appliance:oven": "Four",
+  "appliance:refrigerator": "Réfrigérateur",
+  "appliance:cooktop": "Plaque de cuisson",
+  "appliance:range-hood": "Hotte",
+  "appliance:microwave": "Micro-ondes"
 }

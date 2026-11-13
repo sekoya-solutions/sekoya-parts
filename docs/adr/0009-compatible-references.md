@@ -42,12 +42,13 @@ Facts were checked on 2026-11-11.
 Chosen:
 
 - **1,000 references as text on the product page,** set by experiment 2, most popular first, in a plain list of links to the model pages. No code runs in the browser for the list.
-- **Reference pages for the rest,** at `/<lang>/<product path>/models/<n>`, 500 references each. Ranks are numbered from 1 for each product, so page `n` reads ranks `(n − 1) × 500 + 1` to `n × 500` straight from the index, with no `OFFSET`.
+- **Reference pages for the rest,** at the product's address followed by `/<n>` (ADR 0011), 500 references each. Ranks are numbered from 1 for each product, so page `n` reads ranks `(n − 1) × 500 + 1` to `n × 500` straight from the index, with no `OFFSET`.
   - Each page has its own address, with links to the previous and next pages. It does not mark the first page as canonical.
   - The product with a million models gets 2,000 pages per language. ADR 0002's showcase rule decides which of them search engines may crawl.
 - **Visitors looking for their model** usually come from its model page, which lists its compatible products. A search box on the product page is left to the search record.
-- **Cache.** The product page's list and every reference page carry the tag `product:<id>:references`.
-- **The same list in every language:** model names are a brand and a reference, which need no translation.
+- **Cache.** The product page's list and every reference page carry the tag `product:<id>:references`, with the tags of the brands they show.
+- **The same rows in every language:** model names are a brand and a reference, which need no translation. Model addresses carry a translated section word (ADR 0011), so the cache entry holds only the rows, shared by the ten languages, and the page builds the links in its language (owner decision, [#79](https://github.com/sekoya-solutions/sekoya-parts/issues/79)). It is the one part whose entry holds data rather than HTML.
+- **Pages start at rank 1 for now** (owner decision, #79): pages 1 and 2 repeat the product page's 1,000 references. Starting after them stays possible.
 
 Why:
 

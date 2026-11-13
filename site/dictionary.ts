@@ -2,6 +2,7 @@
 // loaded on the server (docs/adr/0011-languages-and-seo.md). French is the
 // source: its keys are the ones every language must have, which
 // tests/dictionaries.test.ts checks.
+import type { ApplianceType } from "../catalog/generator.ts";
 import type { Locale } from "../cms/locales.ts";
 import da from "./dictionaries/da.json" with { type: "json" };
 import de from "./dictionaries/de.json" with { type: "json" };
@@ -31,3 +32,31 @@ export const dictionaries: Record<Locale, Dictionary> = {
 
 export const getDictionary = (locale: Locale): Dictionary =>
   dictionaries[locale];
+
+/**
+ * A label with its {name} placeholders filled in. A placeholder with no value
+ * is an error, never text shown to visitors.
+ */
+export function fill(
+  template: string,
+  values: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (_, name: string) => {
+    const value = values[name];
+    if (value === undefined)
+      throw new Error(`No value for {${name}} in "${template}".`);
+    return String(value);
+  });
+}
+
+/** The placeholders a label uses, such as ["count"]. */
+export const placeholders = (template: string): string[] =>
+  [...template.matchAll(/\{(\w+)\}/g)]
+    .map((match) => match[1] as string)
+    .sort();
+
+/** An appliance type's name in one language. */
+export const applianceTypeName = (
+  dictionary: Dictionary,
+  type: ApplianceType,
+): string => dictionary[`appliance:${type}`];
