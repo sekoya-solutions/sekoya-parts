@@ -131,27 +131,36 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
 
   return (
     <SiteFrame locale={locale} paths={route.paths}>
-      <div className="grid gap-8 md:grid-cols-[28rem_1fr]">
+      {/* Text first on phones (issue #85): the image sits small beside the
+          name and price, so the text stays the page's largest element and
+          appears with the first paint, where an image would wait for the
+          font and scripts on a slow connection. From 48rem, the image takes
+          its 28rem column beside all the text. */}
+      <div className="grid grid-cols-[7rem_1fr] gap-x-4 gap-y-4 md:grid-cols-[28rem_1fr] md:grid-rows-[auto_1fr] md:gap-x-8">
         {image && (
-          <Picture
-            image={image}
-            alt={route.names[locale]}
-            sizes={MAIN_SIZES}
-            priority
-            className="mx-auto aspect-square h-auto w-full max-w-80 rounded-md border border-line md:max-w-none"
-          />
+          <div className="md:row-span-2">
+            <Picture
+              image={image}
+              alt={route.names[locale]}
+              sizes={MAIN_SIZES}
+              priority
+              className="aspect-square h-auto w-full rounded-md border border-line"
+            />
+          </div>
         )}
-        <div>
+        <div className={image ? undefined : "col-span-2"}>
           <h1
             data-computed-at={route.computedAt}
-            className="text-3xl font-bold sm:text-4xl"
+            className="text-2xl font-bold sm:text-4xl"
           >
             {route.names[locale]}
           </h1>
-          <div className="mt-4 space-y-4">
+          <div className="mt-2 md:mt-4">
             <ProductPrice id={id} locale={locale} />
-            <ProductDescription id={id} locale={locale} />
           </div>
+        </div>
+        <div className="col-span-2 md:col-span-1 md:col-start-2">
+          <ProductDescription id={id} locale={locale} />
         </div>
       </div>
       <h2 className="mt-10 mb-4 text-2xl font-bold">

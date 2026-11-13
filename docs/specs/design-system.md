@@ -5,10 +5,11 @@ The site's look, decided by the owner on 2026-11-13 in [issue #83](https://githu
 ## Images
 
 - **Originals:** 48 square JPEGs at 1,600 x 1,600 pixels, four per category, in `assets/images/<category>/<n>.jpg`. The owner generated them with Grok Imagine; [their source note](../../assets/images/README.md) gives the prompt and each subject.
-- **Resizing:** `scripts/images.ts`, run by every build, writes each at 320, 640 and 960 pixels in AVIF, WebP and JPEG into `public/images/`. A file's name holds a hash of its original and its encoding settings, so it is served with a year of immutable caching (`site/images-headers.ts`).
+- **Resizing:** `scripts/images.ts`, run by every build, writes each at 320, 480, 640 and 960 pixels in AVIF, WebP and JPEG into `public/images/`. A file's name holds a hash of its original and its encoding settings, so it is served with a year of immutable caching (`site/images-headers.ts`).
 - **Which image:** a product shows image `((id - 1) mod 4) + 1` of its category, so the four are spread evenly and a product always keeps the same one (`site/images.ts`). A category created later in Payload, with no images, shows none. The home page shows each category's first image.
 - **Markup:** `site/picture.tsx` writes `<picture>` with AVIF and WebP sources and a JPEG `<img>` that has its width, height, `sizes` and a text alternative in the page's language: the product's or the category's name.
-- **Loading:** the product page's main image loads at once with high priority. On the home, category and model pages, the first four images load at once, since they can be in the first screen, and the others lazily.
+- **Phones:** card grids show two cards per row, so a phone loads half-width images. The product page is text first: its image is a 7rem thumbnail beside the name and price, so the text stays the largest element and appears with the first paint; from 48rem the image takes a 28rem column beside the text. A Lighthouse run on PR #86 showed why: with a large image first, the simulated slow phone painted it only after the page's HTML, font and scripts, at about 3 s, and performance fell to 92 or 93.
+- **Loading:** the product page's main image loads at once with high priority. On the home, category and model pages, the first two images, a phone's first row, load at once, the first with high priority, and the others lazily.
 - **Where:** the product page's main image, the product cards of category and model pages, and the home page's category tiles. The product page's reference list stays text only.
 
 ## Typeface
