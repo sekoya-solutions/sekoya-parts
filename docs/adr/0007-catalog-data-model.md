@@ -80,6 +80,8 @@ Why:
 
 That leaves room within the 1 GB, with branches reset from main.
 
+**Measured** on the first full load ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77)): 1,451,992 compatibility rows, 264 MB of catalog tables with their indexes, and a 273 MB database, loaded in 33 seconds.
+
 What it costs, and where each cost is checked:
 
 - **Writing into Payload's tables** ties the generator to Payload's schema. The read-back test catches a mismatch after each Payload upgrade.
