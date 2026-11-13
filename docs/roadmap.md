@@ -62,7 +62,7 @@ Each step follows the usual flow: an issue, a branch, a pull request, then the o
    - **Done: a separate bypass secret for CI** ([#57](https://github.com/sekoya-solutions/sekoya-parts/issues/57)): the owner's "CI checks" secret, the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET`, so it can be revoked apart from the agents' "Agent checks" secret.
 2. **A minimal app,** in three issues:
    - **Done: Payload 3 and the catalog schema** ([#45](https://github.com/sekoya-solutions/sekoya-parts/issues/45)):
-     - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off;
+     - Payload 3.93.0 in the `app/(payload)` route group, the site in `app/(site)`, GraphQL off, and since [#88](https://github.com/sekoya-solutions/sekoya-parts/issues/88) its telemetry off, so the server sends no usage data to `telemetry.payloadcms.com` (owner decision);
      - the collections of [ADR 0007](adr/0007-catalog-data-model.md) in ten languages, and the project tables `appliance_models` and `compatibility` in a hand-written migration;
      - the schema only from committed migrations, run by `npm run payload -- migrate` over `DATABASE_URL_UNPOOLED`;
      - Vercel's Production builds apply pending migrations before `next build` (`scripts/build.js`); CI and local builds skip them, and since [#55](https://github.com/sekoya-solutions/sekoya-parts/issues/55) Preview builds apply them to the shared `preview` branch too;

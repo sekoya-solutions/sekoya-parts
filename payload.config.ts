@@ -31,6 +31,9 @@ export default buildConfig({
     defaultLocale: "fr",
   },
   secret: process.env.PAYLOAD_SECRET ?? "",
+  // Payload sends anonymous usage data to telemetry.payloadcms.com unless this
+  // is false; the site sends no data to third parties (issue #88).
+  telemetry: false,
   typescript: {
     outputFile: path.resolve(dirname, "cms/payload-types.ts"),
   },
