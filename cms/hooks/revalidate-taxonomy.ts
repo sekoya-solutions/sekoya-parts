@@ -7,20 +7,20 @@ import type {
   CollectionAfterChangeHook,
   CollectionAfterDeleteHook,
 } from "payload";
-import { categoryTag, tagsForBrandChange } from "../../site/tags.ts";
+import { tagsForBrandChange, tagsForCategoryChange } from "../../site/tags.ts";
 import { refresh } from "./refresh.ts";
 
 export const revalidateCategoryAfterChange: CollectionAfterChangeHook = ({
   doc,
 }) => {
-  refresh([categoryTag(doc.id)]);
+  refresh(tagsForCategoryChange(doc.id));
   return doc;
 };
 
 export const revalidateCategoryAfterDelete: CollectionAfterDeleteHook = ({
   id,
 }) => {
-  refresh([categoryTag(Number(id))]);
+  refresh(tagsForCategoryChange(Number(id)));
 };
 
 // A brand's slug starts its models' addresses, so a new slug refreshes the

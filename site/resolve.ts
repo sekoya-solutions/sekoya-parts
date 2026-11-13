@@ -1,16 +1,21 @@
 // Finds the page an address names, by its stable key
 // (docs/adr/0011-languages-and-seo.md): a product by its reference, a model
-// by its brand slug and reference. Anything else in the address, such as old
-// words, another language's section word or another letter case, redirects
-// permanently to the page's address; an unknown key is a 404.
+// by its brand slug and reference, a category by its slug. Anything else in
+// the address, such as old words, another language's section word or another
+// letter case, redirects permanently to the page's address; an unknown key is
+// a 404.
 import { notFound, permanentRedirect } from "next/navigation";
 import { MILLION_PRODUCT_ID, productReference } from "../catalog/generator.ts";
 import type { Locale } from "../cms/locales.ts";
 import {
+  categoryPageCount,
+  categoryPath,
+  findCategory,
   isLocale,
   parseModelSegment,
   parseProductSegment,
 } from "./addresses.ts";
+import { getCategories, getCategoryCounts } from "./categories.tsx";
 import { getModelRoute } from "./models.tsx";
 import { getProductRoute, readProductRoute } from "./product.tsx";
 
@@ -53,6 +58,28 @@ export async function resolveModel(
   const path = route.paths[lang];
   if (path !== `/${lang}/${section}/${entry}`) permanentRedirect(path);
   return route;
+}
+
+/**
+ * The category page an address names: `page` is 1 for /<lang>/<section>, or
+ * the number read from /<lang>/<section>/<n>, and `path` is the address as
+ * requested. A page past the last is a 404, checked before any page of rows
+ * is read; another language's slug, another letter case or /1 redirects.
+ */
+export async function resolveCategory(
+  lang: Locale,
+  section: string,
+  page: number,
+  path: string,
+) {
+  const category = findCategory(await getCategories(), lang, section);
+  if (!category) notFound();
+  const counts = await getCategoryCounts();
+  const pages = categoryPageCount(counts[category.id] ?? 0);
+  if (page > pages) notFound();
+  const canonical = categoryPath(lang, category.slugs[lang], page);
+  if (canonical !== path) permanentRedirect(canonical);
+  return { category, page, pages };
 }
 
 /**

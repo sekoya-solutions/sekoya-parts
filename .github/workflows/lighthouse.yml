@@ -41,11 +41,12 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      # Single loads, one after another, on three pages: the heaviest product
-      # page, its first reference page and its most popular model's page
-      # (issue #79). For each: one request to check the deployment answers
-      # (on production, that the public address serves this commit), one
-      # Lighthouse warm-up run that is not counted, then five measured runs.
+      # Single loads, one after another, on five pages: the French home page,
+      # the first category it lists (issue #81), the heaviest product page, its
+      # first reference page and its most popular model's page (issue #79).
+      # For each: one request to check the deployment answers (on production,
+      # that the public address serves this commit), one Lighthouse warm-up
+      # run that is not counted, then five measured runs.
       # Fails below 95, after writing the figures and the reports. The bypass
       # secret goes to previews only. /fr/p/sp000001 redirects to the French
       # address of product SP000001, whose words depend on the catalog; the
@@ -59,7 +60,8 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
         run: >-
           node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL"
-          /fr/p/sp000001 /fr/p/sp000001/1 first-link:/fr/p/sp000001:/fr/appareil/
+          /fr first-link:/fr:/fr/ /fr/p/sp000001 /fr/p/sp000001/1
+          first-link:/fr/p/sp000001:/fr/appareil/
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

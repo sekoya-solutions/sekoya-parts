@@ -2,6 +2,8 @@
   "languageName": "Français",
   "siteDescription": "Catalogue de pièces détachées.",
   "homeTagline": "Catalogue de pièces détachées, bientôt en ligne.",
+  "categories": "Catégories",
+  "productCount": "Produits : {count}",
   "compatibleModels": "Modèles compatibles",
   "compatibleParts": "Pièces compatibles",
   "allCompatibleModels": "Voir les {count} modèles compatibles",

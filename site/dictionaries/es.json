@@ -2,6 +2,8 @@
   "languageName": "Español",
   "siteDescription": "Catálogo de piezas de repuesto.",
   "homeTagline": "Catálogo de piezas de repuesto, muy pronto en línea.",
+  "categories": "Categorías",
+  "productCount": "Productos: {count}",
   "compatibleModels": "Modelos compatibles",
   "compatibleParts": "Piezas compatibles",
   "allCompatibleModels": "Ver los {count} modelos compatibles",

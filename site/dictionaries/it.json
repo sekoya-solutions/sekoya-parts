@@ -2,6 +2,8 @@
   "languageName": "Italiano",
   "siteDescription": "Catalogo di ricambi.",
   "homeTagline": "Catalogo di ricambi, presto online.",
+  "categories": "Categorie",
+  "productCount": "Prodotti: {count}",
   "compatibleModels": "Modelli compatibili",
   "compatibleParts": "Ricambi compatibili",
   "allCompatibleModels": "Vedi tutti i {count} modelli compatibili",

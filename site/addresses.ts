@@ -12,9 +12,11 @@ export const isLocale = (value: string): value is Locale =>
 /**
  * The rule for product references: uppercase letters and digits only, so the
  * reference is always the last hyphen-separated word of the address and reads
- * back unchanged. Payload checks it when a product is saved.
+ * back unchanged, with at least one letter, so a number after a category slug
+ * is always a category page (issue #81). Payload checks it when a product is
+ * saved.
  */
-export const PRODUCT_REFERENCE = /^[A-Z0-9]+$/;
+export const PRODUCT_REFERENCE = /^(?=[0-9]*[A-Z])[A-Z0-9]+$/;
 
 export const isProductReference = (value: string): boolean =>
   PRODUCT_REFERENCE.test(value);
@@ -231,4 +233,64 @@ export const referencePagePath = (productPath: string, page: number) =>
 export function parsePageNumber(segment: string): number | null {
   if (!/^[1-9][0-9]{0,6}$/.test(segment)) return null;
   return Number(segment);
+}
+
+/** Products on each category page (owner decision on issue #81). */
+export const PRODUCTS_PER_CATEGORY_PAGE = 48;
+
+/**
+ * A category page's address: /<lang>/<category slug> for page 1, then
+ * /<lang>/<category slug>/<n> (issue #81). The slug goes through slugify, as
+ * in product addresses.
+ */
+export function categoryPath(
+  locale: Locale,
+  categorySlug: string,
+  page = 1,
+): string {
+  const path = `/${locale}/${slugify(categorySlug)}`;
+  return page === 1 ? path : `${path}/${page}`;
+}
+
+/**
+ * The number of pages of a category with this many products. A category with
+ * no product still has its first page, which lists nothing.
+ */
+export const categoryPageCount = (products: number): number =>
+  Math.max(1, Math.ceil(products / PRODUCTS_PER_CATEGORY_PAGE));
+
+/**
+ * Whether the segment after a section is made of digits only, so it names a
+ * category page rather than a product, whose reference holds a letter.
+ * parsePageNumber then reads it, or refuses a form such as 01.
+ */
+export const isPageSegment = (segment: string): boolean =>
+  /^[0-9]+$/.test(segment);
+
+/** A category's names and slugs in each language, French filling any gap. */
+export type CategoryNaming = {
+  id: number;
+  names: Record<Locale, string>;
+  slugs: Record<Locale, string>;
+};
+
+/**
+ * The category a section names, found by its slug in any letter case: in the
+ * address's language first, then in any language, the categories taken in the
+ * order given, so the page can redirect to its slug in the address's language.
+ * Null when no category has that slug.
+ */
+export function findCategory(
+  categories: readonly CategoryNaming[],
+  locale: Locale,
+  section: string,
+): CategoryNaming | null {
+  const slug = section.toLowerCase();
+  return (
+    categories.find((category) => category.slugs[locale] === slug) ??
+    categories.find((category) =>
+      locales.some((other) => category.slugs[other] === slug),
+    ) ??
+    null
+  );
 }
