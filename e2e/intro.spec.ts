@@ -106,6 +106,15 @@ for (const locale of locales) {
 // Each page is measured on a first visit, in a browser context of its own, as
 // Lighthouse measures it: a context that has already shown the page may reuse
 // an image it holds at another width.
+//
+// The context first loads a light page of the same site (issue #132). A new
+// context's first page loads in a fresh renderer process, which chose its
+// first images before Playwright's phone emulation reached it: on CI run
+// 43598464941, both pages requested their first two card images at 480, then
+// again at 320 once the emulation applied, and /fr/ampoule kept the 480 file.
+// Lighthouse's own runs request 320 only. A second page of the same site loads
+// in the same process, whose emulation is in place. Every image request is
+// checked, not only the file shown, so a stray request fails the test.
 test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
   browser,
   request,
@@ -130,6 +139,13 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
     });
     try {
       const page = await context.newPage();
+      await page.goto("/robots.txt");
+      const requested: string[] = [];
+      page.on("request", (request) => {
+        const { pathname } = new URL(request.url());
+        if (pathname.startsWith("/images/"))
+          requested.push(pathname.split("/").pop() as string);
+      });
       await page.goto(path);
       await largestElement(page);
       const widths = await cardWidths(page);
@@ -137,6 +153,12 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
       // 158 CSS pixels at 1.75x need 277: the 320 file, not the 480 one.
       for (const { width, detail } of widths)
         expect(width, `${path}: ${detail}`).toBe(320);
+      expect(requested.length, path).toBeGreaterThan(0);
+      for (const file of requested)
+        expect(
+          Number(/-(\d+)-[0-9a-f]+\.\w+$/.exec(file)?.[1]),
+          `${path}: requested ${file}`,
+        ).toBe(320);
     } finally {
       await context.close();
     }
