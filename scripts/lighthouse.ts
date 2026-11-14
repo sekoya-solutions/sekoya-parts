@@ -35,7 +35,10 @@ import {
   belowThreshold,
   CATEGORIES,
   type CategoryId,
+  CRAWLABLE_AUDIT,
+  categoryScore,
   commitMismatch,
+  crawlableMismatch,
   FIGURES_FILE,
   type Figures,
   gateText,
@@ -51,6 +54,7 @@ import {
   targetOf,
   toolbarRequests,
 } from "./lighthouse-report.ts";
+import { isAllowed, parseRobots } from "./robots-match.ts";
 
 // Measured runs per address; each address also gets one warm-up run first,
 // which is not counted (splitWarmUp).
@@ -62,12 +66,22 @@ type Report = {
   fetchTime: string;
   runtimeError?: { message: string };
   configSettings: { extraHeaders?: unknown };
-  categories: Record<CategoryId, { score: number | null } | undefined>;
+  categories: Record<
+    CategoryId,
+    | { score: number | null; auditRefs?: { id: string; weight: number }[] }
+    | undefined
+  >;
   audits: Record<
     string,
-    {
-      details?: { debugData?: { totalElements?: number }; items?: unknown[] };
-    }
+    | {
+        score: number | null;
+        scoreDisplayMode?: string;
+        details?: {
+          debugData?: { totalElements?: number };
+          items?: unknown[];
+        };
+      }
+    | undefined
   >;
 };
 
@@ -238,6 +252,28 @@ for (const { page, address } of pages) {
   });
 }
 
+// Production: the site's own robots.txt, read once, from the same deployed
+// commit as the pages, says which measured pages must pass is-crawlable and
+// which must fail it (issue #130).
+const robotsUrl = new URL("/robots.txt", base).href;
+if (target === "production") {
+  const response = await request("/robots.txt");
+  const text = await response.text();
+  const mismatch = commitMismatch(
+    response.headers.get(COMMIT_HEADER),
+    expectedCommit,
+  );
+  if (response.status !== 200 || mismatch) {
+    console.error(
+      `::error title=Lighthouse::Stopped: /robots.txt: ${mismatch ?? `answered ${response.status}.`}`,
+    );
+    process.exit(1);
+  }
+  const { rules } = parseRobots(text);
+  for (const entry of figures)
+    entry.blockedByRobots = !isAllowed(rules, entry.path);
+}
+
 // Inside this try, failures throw rather than exit, so the finally block
 // always deletes the configuration, which holds the secret.
 // Lighthouse's default settings are the mobile ones PageSpeed Insights uses:
@@ -299,13 +335,26 @@ try {
               ? `${path}: the ${audit} audit did not run.`
               : `${path}: the ${audit} audit ran despite skipAudits.`,
           );
+      if (target === "production") {
+        const mismatch = crawlableMismatch(
+          report,
+          !entry.blockedByRobots,
+          robotsUrl,
+        );
+        if (mismatch) throw new Error(`${path}: ${mismatch}`);
+      }
       const toolbar = toolbarRequests(report);
       if (toolbar.length > 0)
         throw new Error(
           `${path}: Vercel's toolbar loaded (${toolbar[0]}); it must be off for pre-production deployments in the project settings.`,
         );
       const scores = CATEGORIES.map(([id, name]) => {
-        const score = report.categories[id]?.score;
+        // A page robots.txt disallows fails is-crawlable on purpose, so
+        // its SEO score leaves that audit out (issue #130).
+        const score =
+          id === "seo" && entry.blockedByRobots
+            ? categoryScore(report, id, [CRAWLABLE_AUDIT])
+            : report.categories[id]?.score;
         if (score === null || score === undefined)
           throw new Error(`${path}: no ${name} score.`);
         return [id, Math.round(score * 100)] as const;
