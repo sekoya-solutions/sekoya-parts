@@ -4,6 +4,10 @@ import {
   revalidateProductAfterChange,
   revalidateProductAfterDelete,
 } from "../hooks/revalidate-product.ts";
+import {
+  queueProductAfterChange,
+  queueProductAfterDelete,
+} from "../hooks/search-index.ts";
 
 // Products as docs/adr/0007-catalog-data-model.md defines them. Names and
 // descriptions are stored only for showcase products; the others are
@@ -11,8 +15,8 @@ import {
 export const Products: CollectionConfig = {
   slug: "products",
   hooks: {
-    afterChange: [revalidateProductAfterChange],
-    afterDelete: [revalidateProductAfterDelete],
+    afterChange: [revalidateProductAfterChange, queueProductAfterChange],
+    afterDelete: [revalidateProductAfterDelete, queueProductAfterDelete],
   },
   // Category pages read their products by category, in reference order
   // (issue #81).

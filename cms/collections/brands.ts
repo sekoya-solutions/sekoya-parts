@@ -4,6 +4,7 @@ import {
   revalidateBrandAfterChange,
   revalidateBrandAfterDelete,
 } from "../hooks/revalidate-taxonomy.ts";
+import { queueBrandAfterChange } from "../hooks/search-index.ts";
 
 // Brand names need no translation (docs/adr/0007-catalog-data-model.md).
 // An ordinary product's name and address include its brand's name, and a
@@ -12,7 +13,7 @@ import {
 export const Brands: CollectionConfig = {
   slug: "brands",
   hooks: {
-    afterChange: [revalidateBrandAfterChange],
+    afterChange: [revalidateBrandAfterChange, queueBrandAfterChange],
     afterDelete: [revalidateBrandAfterDelete],
   },
   admin: { useAsTitle: "name" },

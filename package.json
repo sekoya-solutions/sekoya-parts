@@ -43,7 +43,9 @@
     "generate": "node --env-file-if-exists=.env.local scripts/generate.ts",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "images": "node scripts/images.ts"
+    "images": "node scripts/images.ts",
+    "algolia:keys": "node --env-file=.env.local scripts/algolia-keys.ts",
+    "search-index": "node scripts/payload.js run scripts/search-index.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.93.0",

@@ -4,6 +4,7 @@ import {
   revalidateCategoryAfterChange,
   revalidateCategoryAfterDelete,
 } from "../hooks/revalidate-taxonomy.ts";
+import { queueCategoryAfterChange } from "../hooks/search-index.ts";
 
 // A part type, named in ten languages (docs/adr/0007-catalog-data-model.md).
 // Its slug starts each of its products' addresses
@@ -11,7 +12,7 @@ import {
 export const Categories: CollectionConfig = {
   slug: "categories",
   hooks: {
-    afterChange: [revalidateCategoryAfterChange],
+    afterChange: [revalidateCategoryAfterChange, queueCategoryAfterChange],
     afterDelete: [revalidateCategoryAfterDelete],
   },
   admin: { useAsTitle: "name" },

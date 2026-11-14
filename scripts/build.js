@@ -1,6 +1,7 @@
 // The build: on Vercel's Production and Preview builds, apply Payload's pending
 // migrations to that environment's database first; on Preview builds, then
-// create or update the automation user (issue #55); then resize the catalog's
+// create or update the automation user (issue #55); then bring the search
+// index in step (issue #115); then resize the catalog's
 // images (issue #85) and build Next.js.
 // If a step fails, the build fails and the previous deployment stays live.
 // CI and local builds skip the database steps; every build resizes the images.
@@ -27,6 +28,13 @@ if (env === "production" || env === "preview") {
 
 if (env === "preview") {
   run(["scripts/payload.js", "run", "scripts/seed-automation-user.ts"]);
+}
+
+// The search index, after the migrations and before the new code goes live
+// (issue #115). It skips without Algolia variables and never fails the build
+// on an Algolia error; the daily cron retries.
+if (env === "production" || env === "preview") {
+  run(["scripts/payload.js", "run", "scripts/search-index.ts"]);
 }
 
 run(["scripts/images.ts"]);
