@@ -15,6 +15,7 @@ import {
   jobVerdict,
   lighthouseConclusion,
   measuredAncestor,
+  pushDecision,
   rangeFiles,
   scoreChecks,
   settled,
@@ -304,6 +305,41 @@ describe("vercelPreviewPrevious", () => {
         VERCEL_GIT_COMMIT_SHA: "def456",
       }),
     ).toBeNull();
+  });
+});
+
+describe("pushDecision", () => {
+  it("never makes a documentation-only pull request a code push", () => {
+    // Its first run has no previous head: the stand-in must still post
+    // "Lighthouse", since Vercel skips the build.
+    expect(pushDecision(true, false, false)).toEqual({
+      docs_only_pull_request: true,
+      code_push: false,
+      mirror: false,
+    });
+    expect(pushDecision(true, true, true).mirror).toBe(false);
+  });
+
+  it("makes a code pull request's first run a code push", () => {
+    expect(pushDecision(false, false, false)).toEqual({
+      docs_only_pull_request: false,
+      code_push: true,
+      mirror: false,
+    });
+  });
+
+  it("mirrors a documentation-only push when the previous head has a run", () => {
+    expect(pushDecision(false, true, true)).toEqual({
+      docs_only_pull_request: false,
+      code_push: false,
+      mirror: true,
+    });
+    // No run to mirror: the heavy jobs run, and nothing is cancelled.
+    expect(pushDecision(false, true, false)).toEqual({
+      docs_only_pull_request: false,
+      code_push: false,
+      mirror: false,
+    });
   });
 });
 
