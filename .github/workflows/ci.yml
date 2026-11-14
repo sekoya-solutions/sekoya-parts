@@ -68,29 +68,17 @@ jobs:
           # gone, and the fetch below then fails toward a code push.
           BEFORE_SHA: ${{ github.event.action == 'synchronize' && github.event.before || '' }}
           GITHUB_TOKEN: ${{ github.token }}
+        # The previous head is fetched for the comparison; if it is gone, the
+        # push counts as code (scripts/docs-only.ts, pushDecision).
         run: |
           git fetch --quiet --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA"
-          if node scripts/docs-only.ts "$BASE_SHA" "$HEAD_SHA"; then
-            echo "docs_only_pull_request=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "docs_only_pull_request=false" >> "$GITHUB_OUTPUT"
-          fi
           if [ -n "$BEFORE_SHA" ] &&
-            git fetch --quiet --no-tags --depth=1 origin "$BEFORE_SHA" &&
-            node scripts/docs-only.ts "$BEFORE_SHA" "$HEAD_SHA"; then
-            echo "code_push=false" >> "$GITHUB_OUTPUT"
-            if node scripts/docs-only.ts --ci-run "$BEFORE_SHA"; then
-              echo "mirror=true" >> "$GITHUB_OUTPUT"
-              echo "previous=$BEFORE_SHA" >> "$GITHUB_OUTPUT"
-            else
-              echo "mirror=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "code_push=true" >> "$GITHUB_OUTPUT"
-            echo "mirror=false" >> "$GITHUB_OUTPUT"
+            ! git fetch --quiet --no-tags --depth=1 origin "$BEFORE_SHA"; then
+            BEFORE_SHA=""
           fi
-      # A code push, or a pull request's first run, cancels the older runs;
-      # any error cancels nothing.
+          node scripts/docs-only.ts --decide "$BASE_SHA" "$HEAD_SHA" "$BEFORE_SHA"
+      # A code push, or the first run of a pull request that changes code,
+      # cancels the older runs; any error cancels nothing.
       - name: Cancel the older commits' runs
         if: steps.decide.outputs.code_push == 'true'
         env:

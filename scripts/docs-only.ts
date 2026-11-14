@@ -22,6 +22,8 @@
 //                                             (two commits already fetched)
 //   node scripts/docs-only.ts --vercel        Vercel's ignoreCommand: fetches
 //                                             the base from GitHub itself
+//   node scripts/docs-only.ts --decide <base> <head> [<before>]
+//                                             writes Change detection's outputs
 //   node scripts/docs-only.ts --ci-run <sha>  exit 0 when <sha> has a CI run
 //   node scripts/docs-only.ts --mirror <job> <previous>
 //                                             waits for job <job> on
@@ -41,6 +43,7 @@
 //                                             Lighthouse result of the last
 //                                             built commit with the same code
 import { execFileSync } from "node:child_process";
+import { appendFileSync } from "node:fs";
 
 /**
  * True when every path ends in ".md". An empty list is true too: the two
@@ -626,9 +629,64 @@ const vercel = async () => {
   process.exit(building ? 0 : 1);
 };
 
+/**
+ * Change detection's outputs (issues #91 and #123).
+ * - A documentation-only pull request is never a code push, even on its first
+ *   run, which has no previous head: its stand-in must post "Lighthouse",
+ *   since Vercel skips its build.
+ * - Otherwise, a push whose changes since the previous head are Markdown only
+ *   is no code push, and mirrors the previous head when that head has a CI
+ *   run.
+ * - Anything else, a pull request's first run included, is a code push.
+ */
+export const pushDecision = (
+  docsOnlyPullRequest: boolean,
+  docsOnlyPush: boolean,
+  previousHasRun: boolean,
+) => ({
+  docs_only_pull_request: docsOnlyPullRequest,
+  code_push: !docsOnlyPullRequest && !docsOnlyPush,
+  mirror: !docsOnlyPullRequest && docsOnlyPush && previousHasRun,
+});
+
+// Each comparison that fails counts as code, and a failed lookup as no run.
+const decide = async (base: string, head: string, before?: string) => {
+  const docsOnly = (from: string) => {
+    try {
+      return isDocsOnly(changedFiles(from, head));
+    } catch {
+      return false;
+    }
+  };
+  const docsOnlyPullRequest = docsOnly(base);
+  const docsOnlyPush = before ? docsOnly(before) : false;
+  const previousHasRun =
+    before && docsOnlyPush && !docsOnlyPullRequest
+      ? await ciRun(before).then(
+          (run) => run !== null,
+          () => false,
+        )
+      : false;
+  const outputs = pushDecision(
+    docsOnlyPullRequest,
+    docsOnlyPush,
+    previousHasRun,
+  );
+  const lines = [
+    ...Object.entries(outputs).map(([key, value]) => `${key}=${value}`),
+    ...(outputs.mirror && before ? [`previous=${before}`] : []),
+  ];
+  console.log(`docs-only: ${lines.join(", ")}.`);
+  const file = process.env.GITHUB_OUTPUT;
+  if (!file) throw new Error("GITHUB_OUTPUT missing");
+  appendFileSync(file, `${lines.join("\n")}\n`);
+};
+
 const main = async () => {
   const args = process.argv.slice(2);
   if (args[0] === "--vercel") return vercel();
+  if (args[0] === "--decide" && args[1] && args[2])
+    return decide(args[1], args[2], args[3] || undefined);
   if (args[0] === "--ci-run" && args[1]) {
     const run = await ciRun(args[1]);
     console.log(
@@ -650,7 +708,7 @@ const main = async () => {
   if (args[0] === "--stand-in" && args[1]) return standIn(args[1]);
   if (args.length !== 2 || !args[0] || !args[1]) {
     console.error(
-      "Usage: docs-only.ts <base> <head> | --vercel | --ci-run <sha> | --mirror <job> <previous> | --cancel-stale <pull> <head> <branch> | --superseded <sha> [<pull>] | --stand-in <head>",
+      "Usage: docs-only.ts <base> <head> | --vercel | --decide <base> <head> [<before>] | --ci-run <sha> | --mirror <job> <previous> | --cancel-stale <pull> <head> <branch> | --superseded <sha> [<pull>] | --stand-in <head>",
     );
     process.exit(2);
   }
