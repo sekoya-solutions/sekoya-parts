@@ -216,7 +216,7 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - an empty or too long query spends no search; a refused, failing or slow Algolia call (2-second limit) leaves the models and says the part search is unavailable;
      - each language's name is now its own searchable attribute, since Algolia refuses a query restricted to part of a group. A fingerprint of the index settings, kept per environment in `search_index_settings`, makes the next reconcile run apply changed settings; Algolia applies them asynchronously, and queries answered 400 for a few seconds meanwhile;
      - the end-to-end tests run against a fake Algolia that Playwright starts beside the site;
-     - latency on the Preview: Neon's wake-up costs about 0.7 s once, in the search route's exact-match lookup; warm, that lookup takes 24 to 53 ms and the Algolia query 46 to 115 ms. Starting both queries at once would not remove the wake-up, which the results page's model list needs anyway, so the report recommends keeping ADR 0010's order;
+     - latency on the Preview: Neon's wake-up costs about 0.7 s once, in the search route's exact-match lookup; warm, that lookup takes 24 to 53 ms and the Algolia query 46 to 115 ms. Starting both queries at once would not remove the wake-up, which the results page's model list needs anyway, so the owner kept ADR 0010's order, which the ADR now records with these figures;
 8. The showcase sitemap and `robots.txt` (ADR 0011).
 9. Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
 

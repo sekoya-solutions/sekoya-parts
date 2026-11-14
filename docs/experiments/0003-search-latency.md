@@ -36,4 +36,4 @@ Run on 2026-11-14 at about 10:40 UTC. Durations in milliseconds; "total" is the 
 
 ## Conclusion
 
-The exact-match step does not slow search noticeably. Warm, it costs 24 to 53 ms. Cold, Neon's 0.7 s wake-up lands in it, but starting the Algolia query at the same time would not remove that wake-up: the results page needs the database for its model list anyway, so a cold search pays it once either way. At most, the 100 to 160 ms of the Algolia query would overlap it, at the cost of one search of quota on every exact match, the most common query. The recommendation is to keep the order of ADR 0010; the owner decides.
+The exact-match step does not slow search noticeably. Warm, it costs 24 to 53 ms. Cold, Neon's 0.7 s wake-up lands in it, but starting the Algolia query at the same time would not remove that wake-up: the results page needs the database for its model list anyway, so a cold search pays it once either way. At most, the 100 to 160 ms of the Algolia query would overlap it, at the cost of one search of quota on every exact match, the most common query. The owner kept the order of ADR 0010 (2026-11-14), and the ADR records these figures.
