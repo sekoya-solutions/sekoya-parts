@@ -6,7 +6,8 @@
 # (issue #123), with that commit's preview address, and the redacted reports are
 # uploaded. Since issue #67, it also
 # runs on each ready Production deployment of main, at the public address,
-# without the bypass secret and without a comment.
+# without a comment. Since issue #135, both send the bypass secret, so the
+# firewall's Bot Protection never challenges the runner.
 # deployment_status runs this file as it is on the deployed commit; Vercel
 # sends the event while the project's "deployment_status Events" Git setting
 # is on.
@@ -61,14 +62,15 @@ jobs:
       # that the public address serves this commit), one Lighthouse warm-up
       # run that is not counted, then five measured runs.
       # Fails below 95, after writing the figures and the reports. The bypass
-      # secret goes to previews only. /fr/p/sp000001 redirects to the French
+      # secret goes to both: past a preview's sign-in, and past Bot Protection
+      # on production (issue #135). /fr/p/sp000001 redirects to the French
       # address of product SP000001, whose words depend on the catalog; the
       # script measures the target. first-link: measures the first link on
       # that page whose address starts with the prefix. Each address follows
       # its page's name, which names its check (issue #96).
       - name: Measure the deployment
         env:
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ startsWith(github.event.deployment.environment, 'Preview') && secrets.VERCEL_AUTOMATION_BYPASS_SECRET || '' }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           DEPLOY_ENVIRONMENT: ${{ github.event.deployment.environment }}
           DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
           DEPLOY_SHA: ${{ github.event.deployment.sha }}

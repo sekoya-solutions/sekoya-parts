@@ -9,10 +9,11 @@
 // Usage: node scripts/lighthouse.ts <environment> <deployment URL> <page>=<path>...
 // <environment> is Vercel's name for it ("Production", "Preview"...).
 // <page> is the template measured, such as home, which names its check.
-// On a preview, it reads the bypass secret from VERCEL_AUTOMATION_BYPASS_SECRET.
+// It reads the bypass secret from VERCEL_AUTOMATION_BYPASS_SECRET on both
+// targets: a preview needs it past Vercel's sign-in, and since issue #135 it
+// keeps the firewall's Bot Protection from challenging production's runs.
 // The secret is sent as a header only, never printed or put in a URL.
-// On production, the secret must not be set: the public address is measured
-// as a visitor gets it, through the firewall, once its commit header names
+// Production is measured at its public address once its commit header names
 // DEPLOY_SHA. Lighthouse copies its
 // settings, headers included, into every report, so each report is redacted
 // and checked for the secret before it is saved, and Lighthouse CI's own
@@ -33,6 +34,7 @@ import { join } from "node:path";
 import { COMMIT_HEADER } from "../site/commit.ts";
 import {
   belowThreshold,
+  bypassHeaders,
   CATEGORIES,
   type CategoryId,
   CRAWLABLE_AUDIT,
@@ -103,30 +105,21 @@ const target = targetOf(environment);
 const skipped = skippedAudits(target);
 const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || null;
 const expectedCommit = process.env.DEPLOY_SHA ?? "";
-let base: string;
 let headers: Record<string, string>;
-if (target === "preview") {
-  if (!secret) {
-    console.error("VERCEL_AUTOMATION_BYPASS_SECRET is not set.");
-    process.exit(2);
-  }
-  base = deploymentUrl;
-  headers = { "x-vercel-protection-bypass": secret };
-} else {
-  // The bypass would skip the firewall and change what is measured.
-  if (secret) {
-    console.error(
-      "VERCEL_AUTOMATION_BYPASS_SECRET is set; production is measured without it.",
-    );
-    process.exit(2);
-  }
+try {
+  headers = bypassHeaders(secret);
+} catch (error) {
+  console.error((error as Error).message);
+  process.exit(2);
+}
+let base = deploymentUrl;
+if (target === "production") {
   if (!expectedCommit) {
     console.error("DEPLOY_SHA is not set.");
     process.exit(2);
   }
   // The deployment's own address is behind Vercel's sign-in.
   base = PRODUCTION_URL;
-  headers = {};
 }
 // Lighthouse reads these settings through --cli-flags-path, whose parser turns
 // numeric strings into numbers, and Chrome then refuses the header ("Invalid

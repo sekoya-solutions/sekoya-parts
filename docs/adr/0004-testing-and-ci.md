@@ -67,7 +67,7 @@ Chosen:
   - the median run must score at least 95 in performance.
 - **On every ready Production deployment of `main`** (issue #67), the same workflow runs the same measurement against the public site:
   - the same warm-up run, five runs and threshold of 95;
-  - no bypass header, since production is public, and every SEO audit, since nothing protects it;
+  - every SEO audit, since nothing protects it. Since issue #135, the run also sends the bypass header, so Bot Protection's challenge never stops the runner's headless Chrome (owner decision, 2026-11-14). It changes no figure: the 307 Lighthouse counts before each page also shows on production without the header;
   - at the public address, since Vercel's own address for each deployment stays behind its sign-in. The address only serves the new commit once Vercel moves the domain to it, so the first request checks that its `x-sekoya-commit` header names the deployed commit, and the run fails otherwise, with no retry (owner decision);
   - the scores in the job summary and in one "Lighthouse scores" check per page on `main`'s commit (issue #96), with the redacted reports, and no pull request comment.
 
@@ -118,7 +118,7 @@ Follow-up:
 - **Database and data-model records:** catalog data for the production build in CI.
 - **Experiments 1 and 2:** end-to-end tests of partial refresh, and the 2 MB test's target page, set to `/product/1`, which renders the full reference list (issue #60).
 - **The Lighthouse gate (issue #61):** the check showed on pull requests (#58), so no commit status is needed. It fails below a median of 95, after a warm-up run, and is required on `main` with Vercel's deployment status.
-- **Lighthouse on production (issue #67):** the production run goes through the firewall like any visitor. Phase 3's switch of Bot Protection to Challenge checks how it is treated.
+- **Lighthouse on production (issue #67):** the production run went through the firewall like any visitor. The firewall logs of issue #135 showed that Bot Protection would challenge it, so it sends the bypass header since then.
 - **Documentation-only changes (issue #91, owner decision):** a change is documentation only when every file differing between its base and head commits ends in `.md`, so its code is exactly the base commit's. Such a pull request runs Markdown lint only. The three other jobs are skipped by their `if:` condition, which counts as passed. Vercel skips its build through `ignoreCommand`, and reports its status as passed. With no deployment, Lighthouse does not run, so the CI workflow posts a passing "Lighthouse" check in its place on such a pull request. A documentation-only merge leaves production on the previous deployment, with the same code. Any failure to decide counts as a code change, so everything runs. PageSpeed is therefore checked on every commit that changes code.
 - **Pushes to a pull request (issue #106, revised by issue #123, owner rules):** a push is documentation only when every file differing between the previous head and the new head ends in `.md`.
   - **A documentation-only push never interrupts CI.** Each commit's run has its own concurrency group. The three heavy jobs keep their names and conclude like the same jobs on the previous head, waiting while they run; their database container does not start. So a failing code commit never shows green through a later documentation commit. A previous head with no CI run, or one lost to a force-push, runs everything.

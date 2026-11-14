@@ -66,7 +66,7 @@ Each deployment has its own ISR cache, and a new one does not reuse the previous
 
 - **Showcase.** `robots.txt` lets search engines crawl only a showcase: the home page, category pages, the twelve showcase products and a sample of appliance-model pages, in all ten languages. It stays at a few thousand pages, well under the 25,000 renders a month estimated above. The languages and search engine optimization record sets the exact list and the sitemaps. Every other page still renders for any visitor who asks, which is what demonstrates feasibility.
 - **Firewall, for clients that ignore `robots.txt`.** These protections are free on all plans:
-  - The Bot Protection ruleset challenges unverified bots and leaves verified crawlers such as Googlebot alone ([bot management](https://vercel.com/docs/bot-management)).
+  - The Bot Protection ruleset challenges unverified bots and leaves verified crawlers such as Googlebot alone ([bot management](https://vercel.com/docs/bot-management)). It is on Challenge since issue #135; CI's Lighthouse runs and agents' checks of production send their bypass secrets.
   - The AI Bots ruleset can deny AI crawlers ([bot management](https://vercel.com/docs/bot-management)).
   - Hobby's one rate-limiting rule per project caps the requests from each IP address ([rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting)).
   - Attack Mode is available for emergencies ([Attack Mode](https://vercel.com/docs/vercel-firewall/attack-mode)).
