@@ -29,7 +29,7 @@ Run on 2026-11-14 at about 10:40 UTC. Durations in milliseconds; "total" is the 
 | 6, exact reference | 138 | 33.7 | — | — | — |
 
 - **Neon's wake-up** costs about 0.7 s, once, in the route's lookup: 770.8 ms against 24 to 53 ms warm. The results page's lookup that follows took 184.8 ms, against 29 to 85 ms warm.
-- **Cold functions.** Round 1's totals, 2.0 s for the route and 1.5 s for the page, also hold each function's cold start, which the lookups do not explain: the page's two lookups, run at once, account for 185 ms of its 1,498.
+- **Cold functions.** Round 1's totals, 2.0 s for the route and 1.5 s for the page, hold time the lookups do not explain, most likely each function's cold start: the page's two lookups, run at once, account for 185 ms of its 1,498.
 - **Algolia** answers in 46 to 115 ms warm, seen from Frankfurt, while its own processing took 1 to 6 ms on `dev`: the rest is spent outside Algolia's processing, on the way there and back. The first query after the idle period took 162 ms.
 - **Warm, a search takes about 250 to 400 ms** for both requests, seen from France.
 - **The exact-match redirect** answers in 107 to 164 ms warm.
