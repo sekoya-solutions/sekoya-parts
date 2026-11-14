@@ -2,6 +2,7 @@
 // with Google's matching: the longest rule wins, `*` and `$` as documented.
 import { describe, expect, it } from "vitest";
 import { locales } from "../cms/locales.ts";
+import { isAllowed, parseRobots, type Rule } from "../scripts/robots-match.ts";
 import {
   categoryPath,
   modelPath,
@@ -11,7 +12,6 @@ import {
   searchPath,
 } from "../site/addresses.ts";
 import { crawlPaths, robotsRules, SITEMAP_PATH } from "../site/crawl.ts";
-import { isAllowed, parseRobots, type Rule } from "./robots-match.ts";
 
 const fridge = {
   id: 1,

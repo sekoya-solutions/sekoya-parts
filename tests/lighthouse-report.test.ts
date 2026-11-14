@@ -5,13 +5,17 @@
 import { describe, expect, it } from "vitest";
 import {
   assertNoSecret,
+  BLOCKED_LABEL,
   BYPASS_HEADER,
   belowThreshold,
   COMMENT_MARKER,
+  CRAWLABLE_AUDIT,
+  categoryScore,
   checkName,
   checkTitle,
   commentBody,
   commitMismatch,
+  crawlableMismatch,
   type Figures,
   gateText,
   MIN_SCORES,
@@ -22,6 +26,7 @@ import {
   pageArguments,
   redact,
   reportFiles,
+  type ScoredReport,
   SYMBOLS_LEGEND,
   sameOriginPath,
   scoreSymbol,
@@ -404,8 +409,10 @@ describe("production target", () => {
     const table = scoresTable(figures, 5, "production");
     expect(table).toContain(PRODUCTION_URL);
     expect(table).toContain("every SEO audit");
-    expect(table).not.toContain("`is-crawlable`");
-    expect(scoresTable(figures, 5, "preview")).toContain("`is-crawlable`");
+    expect(table).toContain("against the site's own robots.txt");
+    const preview = scoresTable(figures, 5, "preview");
+    expect(preview).toContain("leaves out `is-crawlable`");
+    expect(preview).not.toContain("against the site's own robots.txt");
   });
 });
 
@@ -463,5 +470,105 @@ describe("sameOriginPath", () => {
     expect(sameOriginPath(requested, "/fr/p/sp000001")).toBeNull();
     expect(sameOriginPath(requested, null)).toBeNull();
     expect(sameOriginPath(requested, "")).toBeNull();
+  });
+});
+
+// Production's run on 1872ae7 (issue #130): the reference page, which
+// robots.txt disallows on purpose (issue #121), scored SEO 66, with these
+// audits, weights and scores.
+const ROBOTS_URL = `${PRODUCTION_URL}/robots.txt`;
+const blockedReport = (
+  crawlable: { score: number | null; items?: unknown[] } = {
+    score: 0,
+    items: [
+      { source: { type: "source-location", url: ROBOTS_URL, line: 1035 } },
+    ],
+  },
+): ScoredReport => {
+  const refs: [string, number, number | null, string][] = [
+    ["is-crawlable", 4.043478260869565, crawlable.score, "binary"],
+    ["document-title", 1, 1, "binary"],
+    ["meta-description", 1, 1, "binary"],
+    ["http-status-code", 1, 1, "binary"],
+    ["link-text", 1, 1, "binary"],
+    ["crawlable-anchors", 1, 1, "binary"],
+    ["robots-txt", 1, 1, "binary"],
+    ["image-alt", 0, null, "notApplicable"],
+    ["hreflang", 1, 1, "binary"],
+    ["canonical", 1, 1, "binary"],
+    ["structured-data", 0, null, "manual"],
+  ];
+  return {
+    categories: {
+      seo: {
+        score: crawlable.score === 0 ? 0.66 : 1,
+        auditRefs: refs.map(([id, weight]) => ({ id, weight })),
+      },
+    },
+    audits: Object.fromEntries(
+      refs.map(([id, , score, scoreDisplayMode]) => [
+        id,
+        {
+          score,
+          scoreDisplayMode,
+          ...(id === CRAWLABLE_AUDIT && {
+            details: { items: crawlable.items ?? [] },
+          }),
+        },
+      ]),
+    ),
+  };
+};
+
+describe("is-crawlable against robots.txt on production", () => {
+  it("computes Lighthouse's own SEO score, then the score without is-crawlable", () => {
+    const report = blockedReport();
+    expect(Math.round(categoryScore(report, "seo") * 100)).toBe(66);
+    expect(categoryScore(report, "seo", [CRAWLABLE_AUDIT])).toBe(1);
+    expect(categoryScore(blockedReport({ score: 1 }), "seo")).toBe(1);
+  });
+
+  it("accepts a disallowed page blocked by robots.txt and an allowed page that passes", () => {
+    expect(crawlableMismatch(blockedReport(), false, ROBOTS_URL)).toBeNull();
+    expect(
+      crawlableMismatch(blockedReport({ score: 1 }), true, ROBOTS_URL),
+    ).toBeNull();
+  });
+
+  it("refuses every result that contradicts robots.txt", () => {
+    expect(crawlableMismatch(blockedReport(), true, ROBOTS_URL)).toMatch(
+      /allows it, but is-crawlable failed/,
+    );
+    expect(
+      crawlableMismatch(blockedReport({ score: 1 }), false, ROBOTS_URL),
+    ).toMatch(/disallows it, but is-crawlable passed/);
+    // Blocked by a noindex tag, or by robots.txt and a noindex tag.
+    const noindex = {
+      source: { type: "node", snippet: '<meta name="robots">' },
+    };
+    for (const items of [
+      [noindex],
+      [{ source: { type: "source-location", url: ROBOTS_URL } }, noindex],
+      [],
+    ])
+      expect(
+        crawlableMismatch(
+          blockedReport({ score: 0, items }),
+          false,
+          ROBOTS_URL,
+        ),
+      ).toMatch(/another reason than robots.txt/);
+    const missing = blockedReport();
+    delete missing.audits[CRAWLABLE_AUDIT];
+    expect(crawlableMismatch(missing, true, ROBOTS_URL)).toMatch(/did not run/);
+  });
+
+  it("marks a disallowed page in its check and in the table", () => {
+    const blocked = { ...(figures[0] as Figures), blockedByRobots: true };
+    expect(checkTitle(blocked)).toContain(BLOCKED_LABEL);
+    expect(scoresTable([blocked], 5, "production")).toContain(
+      ` (${BLOCKED_LABEL})`,
+    );
+    expect(checkTitle(figures[0] as Figures)).not.toContain(BLOCKED_LABEL);
   });
 });

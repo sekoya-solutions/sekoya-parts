@@ -3,7 +3,7 @@
 // a rule matches from the start of the path, `*` matches any sequence of
 // characters and a final `$` the end of the path; the most specific rule,
 // the longest, wins, and Allow wins a tie. A path no rule matches is allowed.
-// For the unit and end-to-end tests of issue #121.
+// For the tests of issue #121 and production's Lighthouse run (issue #130).
 
 export type Rule = { allow: boolean; pattern: string };
 

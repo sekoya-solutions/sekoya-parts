@@ -78,6 +78,97 @@ export const skippedAudits = (target: Target) =>
   target === "preview" ? PREVIEW_SKIPPED_AUDITS : [];
 
 /**
+ * The audit that fails on a page robots.txt disallows. On production, the
+ * site's own robots.txt says which pages must pass it and which must fail it
+ * (issue #130): the crawl showcase is allowed, every other page disallowed on
+ * purpose (issue #121).
+ */
+export const CRAWLABLE_AUDIT = "is-crawlable";
+
+type AuditResult = {
+  score: number | null;
+  scoreDisplayMode?: string;
+  details?: { items?: unknown[] };
+};
+
+/** The parts of a Lighthouse result the category scores are built from. */
+export type ScoredReport = {
+  categories: Record<
+    string,
+    | {
+        score: number | null;
+        auditRefs?: { id: string; weight: number }[];
+      }
+    | undefined
+  >;
+  audits: Record<string, AuditResult | undefined>;
+};
+
+/** Audits Lighthouse leaves out of a category's score. */
+const UNSCORED_MODES = new Set([
+  "notApplicable",
+  "manual",
+  "informative",
+  "error",
+]);
+
+/**
+ * A category's score as Lighthouse computes it, the weighted mean of its
+ * scored audits, from 0 to 1, leaving out the audits given. With nothing left
+ * out it gives Lighthouse's own score, which a test checks.
+ */
+export function categoryScore(
+  report: ScoredReport,
+  category: string,
+  leaveOut: readonly string[] = [],
+): number {
+  const refs = report.categories[category]?.auditRefs;
+  if (!refs) throw new Error(`No ${category} category in the report.`);
+  let weights = 0;
+  let total = 0;
+  for (const ref of refs) {
+    const audit = report.audits[ref.id];
+    if (!audit || leaveOut.includes(ref.id) || ref.weight === 0) continue;
+    if (
+      audit.score === null ||
+      UNSCORED_MODES.has(audit.scoreDisplayMode ?? "")
+    )
+      continue;
+    weights += ref.weight;
+    total += ref.weight * audit.score;
+  }
+  if (weights === 0) throw new Error(`No scored ${category} audit is left.`);
+  return total / weights;
+}
+
+/**
+ * Why a production run's is-crawlable result contradicts the site's
+ * robots.txt, or null when it agrees (issue #130). An allowed page must pass;
+ * a disallowed page must fail, blocked by robots.txt alone, so a stray
+ * noindex on it is still caught.
+ */
+export function crawlableMismatch(
+  report: ScoredReport,
+  allowed: boolean,
+  robotsUrl: string,
+): string | null {
+  const audit = report.audits[CRAWLABLE_AUDIT];
+  if (!audit) return `the ${CRAWLABLE_AUDIT} audit did not run.`;
+  if (allowed)
+    return audit.score === 1
+      ? null
+      : `robots.txt allows it, but ${CRAWLABLE_AUDIT} failed.`;
+  if (audit.score !== 0)
+    return `robots.txt disallows it, but ${CRAWLABLE_AUDIT} passed.`;
+  const sources = (audit.details?.items ?? []).map(
+    (item) => (item as { source?: { url?: string } }).source?.url ?? null,
+  );
+  return sources.length > 0 && sources.every((url) => url === robotsUrl)
+    ? null
+    : `${CRAWLABLE_AUDIT} failed for another reason than robots.txt.`;
+}
+
+/**
  * Why the public address does not serve the deployed commit, or null when it
  * does. The address moves to a new deployment only once Vercel assigns the
  * domain to it, which Vercel does not document as happening before the
@@ -113,8 +204,11 @@ export function toolbarRequests(lhr: {
 const NOTES: Record<Target, string> = {
   preview:
     "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.",
-  production: `Measured on the public address, ${PRODUCTION_URL}, without the bypass header and with every SEO audit, once it served this commit.`,
+  production: `Measured on the public address, ${PRODUCTION_URL}, without the bypass header and with every SEO audit, once it served this commit. \`is-crawlable\` is checked against the site's own robots.txt: a page it allows must pass, a page it disallows must fail because of robots.txt alone, and that page's SEO score leaves the audit out.`,
 };
+
+/** How a page robots.txt disallows is marked, in the table and its check. */
+export const BLOCKED_LABEL = "blocked by robots.txt, as intended";
 
 /** The figures of one measured address, across its runs. */
 export type Figures = {
@@ -128,6 +222,11 @@ export type Figures = {
   /** Scores from 0 to 100, one per measured run, in run order. */
   scores: Record<CategoryId, number[]>;
   elements: number | null;
+  /**
+   * Whether production's robots.txt disallows the page, whose SEO scores
+   * then leave is-crawlable out (issue #130). Absent on previews.
+   */
+  blockedByRobots?: boolean;
 };
 
 /**
@@ -297,10 +396,11 @@ export const checkName = (f: Figures) => `Lighthouse scores · ${f.page}`;
 /** A page check's title, which the checks list shows on one line. */
 export function checkTitle(f: Figures) {
   const values = medians(f);
-  return CATEGORIES.map(([, name], i) => {
+  const title = CATEGORIES.map(([, name], i) => {
     const value = values[i] as number;
     return `${scoreSymbol(value)} ${name} ${value}`;
   }).join(" · ");
+  return f.blockedByRobots ? `${title} · ${BLOCKED_LABEL}` : title;
 }
 
 /**
@@ -316,7 +416,9 @@ export function scoresTable(figures: Figures[], runs: number, target: Target) {
   ];
   for (const f of figures) {
     lines.push(
-      `| ${f.page} \`${f.path}\` | ${medians(f)
+      `| ${f.page} \`${f.path}\`${f.blockedByRobots ? ` (${BLOCKED_LABEL})` : ""} | ${medians(
+        f,
+      )
         .map((m) => `${scoreSymbol(m)} ${m}`)
         .join(
           " | ",

@@ -6,9 +6,9 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { showcaseProducts } from "../catalog/showcase.ts";
 import { locales } from "../cms/locales.ts";
+import { isAllowed, parseRobots } from "../scripts/robots-match.ts";
 import { searchPath } from "../site/addresses.ts";
 import { SHOWCASE_MODELS_PER_PRODUCT } from "../site/crawl.ts";
-import { isAllowed, parseRobots } from "../tests/robots-match.ts";
 import { productAddress } from "./addresses.ts";
 
 async function served(request: APIRequestContext) {
