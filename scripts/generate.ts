@@ -143,6 +143,11 @@ async function main(): Promise<void> {
         );
         console.log("  previous catalog deleted");
       }
+      // The search indices held the previous catalog: forgetting their state
+      // makes the next reconcile read each index and send every record again
+      // (cms/search-index/sync.ts).
+      await client.query("DELETE FROM search_index_state");
+      await client.query("DELETE FROM search_index_queue");
 
       await copy(
         client,
