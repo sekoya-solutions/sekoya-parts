@@ -65,6 +65,8 @@ const NON_TEXT_PAIRS: [string, string][] = [
   ["action", "sand"],
   ["leaf", "navy"],
   ["slate", "white"],
+  // The search field on the navy header (issue #113).
+  ["white", "navy"],
 ];
 
 describe("theme colours", () => {

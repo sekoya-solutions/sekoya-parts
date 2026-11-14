@@ -77,6 +77,25 @@
     outline-color: var(--color-leaf);
   }
 
+  /* The header's search box (issue #113): a white field with navy text and
+     a slate placeholder, beside a button in the action colour. */
+  .search-input {
+    background-color: var(--color-white);
+    color: var(--color-navy);
+  }
+  .search-input::placeholder {
+    color: var(--color-slate);
+    opacity: 1;
+  }
+  .search-button {
+    background-color: var(--color-action);
+    color: var(--color-white);
+    font-weight: 600;
+  }
+  .search-button:hover {
+    background-color: var(--color-action-hover);
+  }
+
   /* Long lists are styled through one class on their container, never
      classes on each item, which keeps their HTML short (ADR 0012). */
 
