@@ -1,16 +1,16 @@
 // Publishes the figures of scripts/lighthouse.ts on GitHub (issue #59): one
 // "Lighthouse scores · <page>" check per measured page on the deployed commit
 // (issue #96), whose title shows that page's medians with their symbols, and
-// one comment on its open pull request, replaced on each
-// preview. On production (issue #67), the check only: no pull request
+// one new comment per measured commit on its open pull request (issue #123),
+// never edited. On production (issue #67), the check only: no pull request
 // comment. It runs after the reports are uploaded, without the bypass secret.
 //
 // Reads GITHUB_TOKEN, GITHUB_REPOSITORY, DEPLOY_SHA and RUN_URL, and
-// REPORTS_URL (the uploaded reports, empty if the upload failed).
+// REPORTS_URL (the uploaded reports, empty if the upload failed) and
+// PREVIEW_URL (the deployment's own address, empty on production).
 import { readFileSync } from "node:fs";
 import {
   belowThreshold,
-  COMMENT_MARKER,
   checkName,
   checkTitle,
   commentBody,
@@ -30,6 +30,7 @@ const repo = env("GITHUB_REPOSITORY");
 const sha = env("DEPLOY_SHA");
 const runUrl = env("RUN_URL");
 const reportsUrl = process.env.REPORTS_URL || null;
+const previewUrl = process.env.PREVIEW_URL || null;
 
 const { target, runs, figures } = JSON.parse(
   readFileSync(FIGURES_FILE, "utf8"),
@@ -81,39 +82,20 @@ for (const f of figures)
 // Production's commit is on main, not on a pull request: the check is all.
 if (target === "production") process.exit(0);
 
-// The comment goes only on an open pull request whose head is still this
-// commit, so a slower run for an older push does not overwrite a newer one.
-type Pull = { number: number; state: string; head: { sha: string } };
-type Comment = { id: number; body?: string; user: { login: string } };
+// One new comment per measured commit, on each open pull request holding it,
+// even after later pushes, so measurements can be compared (issue #123). No
+// comment is edited. A run on a commit that a code push follows is cancelled,
+// by itself when it starts or by that push's CI (scripts/docs-only.ts).
+type Pull = { number: number; state: string };
 const pulls = await github<Pull[]>(
   "GET",
   `/repos/${repo}/commits/${sha}/pulls`,
 );
-const body = commentBody(figures, runs, sha, runUrl, reportsUrl);
+const body = commentBody(figures, runs, sha, runUrl, reportsUrl, previewUrl);
 for (const pull of pulls) {
-  if (pull.state !== "open" || pull.head.sha !== sha) continue;
-  let existing: Comment | undefined;
-  for (let page = 1; !existing; page++) {
-    const comments = await github<Comment[]>(
-      "GET",
-      `/repos/${repo}/issues/${pull.number}/comments?per_page=100&page=${page}`,
-    );
-    existing = comments.find(
-      (c) =>
-        c.user.login === "github-actions[bot]" &&
-        c.body?.startsWith(COMMENT_MARKER),
-    );
-    if (comments.length < 100) break;
-  }
-  if (existing)
-    await github("PATCH", `/repos/${repo}/issues/comments/${existing.id}`, {
-      body,
-    });
-  else
-    await github("POST", `/repos/${repo}/issues/${pull.number}/comments`, {
-      body,
-    });
-  console.log(
-    `${existing ? "Updated" : "Posted"} the comment on #${pull.number}.`,
-  );
+  if (pull.state !== "open") continue;
+  await github("POST", `/repos/${repo}/issues/${pull.number}/comments`, {
+    body,
+  });
+  console.log(`Posted the comment on #${pull.number}.`);
 }
