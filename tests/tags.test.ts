@@ -6,6 +6,8 @@ import {
   categoryPageTags,
   MAX_CACHE_TAGS,
   referenceListTags,
+  SHOWCASE_LIMIT,
+  showcaseTags,
   tagsForBrandChange,
   tagsForCategoryChange,
   tagsForProductChange,
@@ -36,16 +38,55 @@ describe("tagsForProductChange", () => {
     ).toEqual(["product:7:description"]);
   });
 
-  it.each(["name", "showcase"] as const)(
-    "refreshes the description, which the heading and the address share, and the category's listing, which shows the name, when %s changes",
-    (field) => {
-      const doc = { ...before, [field]: field === "showcase" ? true : "X" };
-      expect(tagsForProductChange(7, doc, before)).toEqual([
+  it("refreshes the description, which the heading and the address share, and the category's listing, which shows the name, when the name changes", () => {
+    expect(tagsForProductChange(7, { ...before, name: "X" }, before)).toEqual([
+      "product:7:description",
+      "category:2:listing",
+    ]);
+  });
+
+  it.each([
+    ["gains", before, { ...before, showcase: true }],
+    ["loses", { ...before, showcase: true }, before],
+  ])(
+    "also refreshes the home page's showcase list when the product %s the showcase flag",
+    (_, previous, doc) => {
+      expect(tagsForProductChange(7, doc, previous)).toEqual([
         "product:7:description",
         "category:2:listing",
+        "showcase",
       ]);
     },
   );
+
+  it("refreshes the showcase list, ordered by reference, when a showcase product's reference changes, and not an ordinary product's", () => {
+    const showcase = { ...before, showcase: true };
+    expect(
+      tagsForProductChange(7, { ...showcase, reference: "SK8" }, showcase),
+    ).toContain("showcase");
+    expect(
+      tagsForProductChange(7, { ...before, reference: "SK8" }, before),
+    ).not.toContain("showcase");
+  });
+
+  it("leaves the showcase list to the product's own tags on a showcase product's price or name edit, and alone on an ordinary product's", () => {
+    const showcase = { ...before, showcase: true };
+    expect(
+      tagsForProductChange(7, { ...showcase, priceCents: 1 }, showcase),
+    ).toEqual(["product:7:price"]);
+    expect(
+      tagsForProductChange(7, { ...showcase, name: "X" }, showcase),
+    ).toEqual(["product:7:description", "category:2:listing"]);
+    expect(
+      tagsForProductChange(7, { ...before, priceCents: 1 }, before),
+    ).toEqual(["product:7:price"]);
+  });
+
+  it("refreshes the showcase list when a new product is a showcase product", () => {
+    expect(
+      tagsForProductChange(7, { ...before, showcase: true }, undefined),
+    ).toContain("showcase");
+  });
 
   it("refreshes the description, both references' lookups and the listing, whose order follows references, when the reference changes", () => {
     expect(
@@ -188,6 +229,65 @@ describe("categoryPageTags", () => {
     expect(() => categoryPageTags(1, ids, ids)).toThrow(
       "over the limit of 128",
     );
+  });
+});
+
+describe("showcaseTags", () => {
+  it("tags the list with itself, the catalog, each product's price and description, and each category and brand once", () => {
+    expect(
+      showcaseTags([
+        { id: 30, categoryId: 2, brandId: 5 },
+        { id: 10, categoryId: 1, brandId: 5 },
+      ]),
+    ).toEqual([
+      "showcase",
+      "catalog",
+      "product:10:price",
+      "product:30:price",
+      "product:10:description",
+      "product:30:description",
+      "category:1",
+      "category:2",
+      "brand:5",
+    ]);
+  });
+
+  it("matches the tags a showcase product's save refreshes", () => {
+    const tags = showcaseTags([{ id: 7, categoryId: 2, brandId: 3 }]);
+    const showcase = { ...before, showcase: true };
+    for (const doc of [
+      { ...showcase, priceCents: 1 },
+      { ...showcase, name: "X" },
+      { ...showcase, brand: 4 },
+      { ...showcase, category: 5 },
+      before,
+    ])
+      expect(
+        tagsForProductChange(7, doc, showcase).some((tag) =>
+          tags.includes(tag),
+        ),
+      ).toBe(true);
+    expect(
+      tagsForProductDelete(7, showcase).some((tag) => tags.includes(tag)),
+    ).toBe(true);
+  });
+
+  it("stays within Next.js's limit at the cap, every product with its own category and brand", () => {
+    const products = Array.from({ length: SHOWCASE_LIMIT }, (_, i) => ({
+      id: i + 1,
+      categoryId: i + 1,
+      brandId: i + 1,
+    }));
+    expect(showcaseTags(products).length).toBeLessThanOrEqual(MAX_CACHE_TAGS);
+  });
+
+  it("refuses a list over the limit rather than an entry that misses refreshes", () => {
+    const products = Array.from({ length: 40 }, (_, i) => ({
+      id: i + 1,
+      categoryId: i + 1,
+      brandId: i + 1,
+    }));
+    expect(() => showcaseTags(products)).toThrow("over the limit of 128");
   });
 });
 

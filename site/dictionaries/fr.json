@@ -4,6 +4,7 @@
   "homeTagline": "Catalogue de pièces détachées, bientôt en ligne.",
   "homeIntro": "Sekoya Parts réunit {products} pièces détachées pour l’électroménager, des courroies aux cartes électroniques, classées en {categories} catégories. Chaque fiche donne le prix et la liste des modèles d’appareils compatibles, jusqu’à un million pour une seule pièce, pour trouver la bonne pièce du premier coup.",
   "categories": "Catégories",
+  "showcaseProducts": "Pièces à la une",
   "productCount": "Produits : {count}",
   "compatibleModels": "Modèles compatibles",
   "compatibleParts": "Pièces compatibles",

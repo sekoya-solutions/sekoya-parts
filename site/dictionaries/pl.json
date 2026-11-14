@@ -4,6 +4,7 @@
   "homeTagline": "Katalog części zamiennych, wkrótce online.",
   "homeIntro": "Sekoya Parts gromadzi {products} części zamiennych do sprzętu AGD, od pasków po płytki elektroniczne, w {categories} kategoriach. Każda strona podaje cenę i listę pasujących modeli urządzeń, nawet milion dla jednej części, aby od razu znaleźć właściwą część.",
   "categories": "Kategorie",
+  "showcaseProducts": "Polecane części",
   "productCount": "Produkty: {count}",
   "compatibleModels": "Zgodne modele",
   "compatibleParts": "Kompatybilne części",

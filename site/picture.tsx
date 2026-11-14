@@ -21,11 +21,14 @@ export function ProductCardImage({
   route,
   locale,
   index,
+  lazy = false,
 }: {
   route: ProductRoute;
   locale: Locale;
   /** The card's place in its list, from 0. */
   index: number;
+  /** Loaded lazily whatever its place: a list below the first screen. */
+  lazy?: boolean;
 }) {
   const image = productImage(route.categoryId, route.id);
   return image ? (
@@ -33,7 +36,7 @@ export function ProductCardImage({
       image={image}
       alt={route.names[locale]}
       sizes={CARD_SIZES}
-      {...cardLoading(index)}
+      {...(lazy ? {} : cardLoading(index))}
     />
   ) : null;
 }

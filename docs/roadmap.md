@@ -30,6 +30,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - Category pages, 48 products each, and a home page listing the categories, in the ten languages ([#81](https://github.com/sekoya-solutions/sekoya-parts/issues/81)).
   - Neon's `main`, `preview` and `dev` hold the full catalog: 100,000 products, 60 brands, 1,000,000 appliance models and 1,451,992 compatibility rows, in a 273 MB database ([#77](https://github.com/sekoya-solutions/sekoya-parts/issues/77)). CI keeps the small catalog.
   - Twelve showcase products, one per category, with French names and descriptions loaded by the generator ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98)).
+  - The home page lists them below the categories ([#111](https://github.com/sekoya-solutions/sekoya-parts/issues/111)).
   - A daily DeepL translation sweep translates them into the nine other languages, with a translation memory that keeps DeepL's 1,000,000 free characters for new and changed text only ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)). Production serves the ten languages since `f1c0f05`, and 91,220 of the 1,000,000 characters are spent.
   - The home, category and model pages open with a text introduction and load right-sized card images: 98 to 100 on every measured page ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)).
 - **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
@@ -151,7 +152,7 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
    - category pages at `/<lang>/<category slug>`, then `/<lang>/<category slug>/<n>`, 48 products each in reference order (owner decision), with previous and next links and their own canonical address. Another language's slug, another letter case or `/1` redirects permanently; a page past the last is a 404. Product references must now hold a letter, so a number after a category slug is always a page;
    - each page's rows are one cache entry per category and page, shared by the ten languages, tagged with the category's listing, the category, the catalog, and each shown product's price and brand: at most 99 tags, under Next.js's limit of 128, past which it drops tags with only a warning. A test checks the limit against the installed Next.js. A product created, deleted, moved, renamed or given another reference refreshes the listings of its categories before and after the save;
    - the rows are read from a new index on (category, reference). On the full catalog, the first page takes 0.09 ms and the last of the largest category, 8,469 products, 8 ms, where PostgreSQL sorts the category's rows rather than walk the index;
-   - the home page lists the 12 categories with their number of products, from two shared entries; the showcase products join it in step 6. Each category's first page and the home page are built in advance in each language;
+   - the home page lists the 12 categories with their number of products, from two shared entries; the showcase products joined it in step 6 ([#111](https://github.com/sekoya-solutions/sekoya-parts/issues/111)). Each category's first page and the home page are built in advance in each language;
    - Lighthouse also measures the French home page and the first category it lists. Locally, on the full catalog, the French home page is about 13 KB and a category page about 27 KB.
 5. **Done: the design, images and fonts** ([ADR 0012](adr/0012-front-end-assets.md)), in two parts:
    - **Done: the design system** ([#83](https://github.com/sekoya-solutions/sekoya-parts/issues/83), [design spec](specs/design-system.md)):
@@ -172,7 +173,7 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - the home, category and model pages open with a short introduction in large text, the largest element of a phone's first screen, as the product page is text first (owner decision);
      - removing Next.js's scripts is not possible in the App Router, and a later font would save at most about 0.1 s, so neither is done;
      - the home and category pages' largest paint moved from 3.0 to 3.2 s simulated to about 1.2 s. The model page, also led by its product cards, stayed at 95 to 98 with the right-sized images alone, its first card image painting at 2.4 to 2.9 s; with its introduction it scores 100.
-6. The showcase products and their translations ([ADR 0006](adr/0006-content-management.md), ADR 0011), in three parts:
+6. **Done: the showcase products and their translations** ([ADR 0006](adr/0006-content-management.md), ADR 0011), in three parts:
    - **Done: the twelve showcase products** ([#98](https://github.com/sekoya-solutions/sekoya-parts/issues/98), [ADR 0007](adr/0007-catalog-data-model.md)):
      - one per category, chosen by the owner: SP000027, SP000054, SP000043, SP000067, SP000033, SP000028, SP000039, SP000007, SP000017, SP000001 (the million-model knob), SP000008 and SP000034, all within the small catalog that CI loads;
      - their French names and descriptions are committed in `catalog/showcase.ts` and loaded by the generator at every scale and seed, which also keeps each one in its listed category. For seed 1, every other value of every product is unchanged, which a test pins;
@@ -188,7 +189,11 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - the key is set in Vercel's Production and locally, never on previews, which keep the French text;
      - the real runs on Neon's `dev` before the merge and on production after it (`f1c0f05`) each sent 9 requests and 45,594 characters and wrote 108 languages, so 91,220 of the 1,000,000 characters are spent. Production's `/en/p/sp000001` leads to `/en/knob/universal-programmer-button-6-mm-shaft-sp000001`, with the English name and description;
      - CI tests the logic against a fake DeepL. A live check (`.github/workflows/deepl-live.yml`) reads DeepL's usage every day, which spends no characters, and fails on a rejected key or from 90% of the quota; on pull requests that touch the translation code it also translates one phrase;
-   - **Next:** the showcase products on the home page.
+   - **Done: the showcase products on the home page** ([#111](https://github.com/sekoya-solutions/sekoya-parts/issues/111), ADR 0008):
+     - each language's home page lists them below the categories, as category-page cards: image, name in that language, price and link, sorted by name in that language (owner decisions);
+     - every one of their images loads lazily, so the first screen, the introduction and the first category tiles, is unchanged;
+     - the section is one cache entry shared by the ten languages, tagged with each product's price and description, the categories and brands its names and addresses are built from, and a new `showcase` tag. A product that gains or loses the showcase flag, or a showcase product given another reference, refreshes it; an ordinary product's price edit does not;
+     - it lists at most 24 products, the first by reference, so its entry stays under Next.js's 128 tags whatever is flagged in Payload;
 7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
 8. The showcase sitemap and `robots.txt` (ADR 0011).
 9. Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.

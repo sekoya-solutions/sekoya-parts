@@ -23,8 +23,7 @@ const slugOf = (id: number, locale: Locale): string => {
 async function homeCategories(page: Page, locale: Locale) {
   await page.goto(`/${locale}`);
   return page
-    .getByRole("main")
-    .locator("ul > li")
+    .locator('main ul[data-list="categories"] > li')
     .evaluateAll((items) =>
       items.map((item) => {
         const link = item.querySelector("a");

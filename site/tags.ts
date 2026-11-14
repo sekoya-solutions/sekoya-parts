@@ -78,6 +78,48 @@ export function categoryPageTags(
 export const brandTag = (id: number) => `brand:${id}`;
 
 /**
+ * Which products the home page's showcase section lists (issue #111): a
+ * product that gains or loses the showcase flag refreshes it, and so does a
+ * showcase product's new reference, which the section is ordered by.
+ */
+export const SHOWCASE_TAG = "showcase";
+
+/**
+ * The most showcase products the home page lists, the first by reference.
+ * The owner chose twelve; the cap keeps the section's entry under Next.js's
+ * tag limit whatever is flagged in Payload, rather than failing the page.
+ */
+export const SHOWCASE_LIMIT = 24;
+
+/**
+ * The showcase section's tags: the list itself, the catalog, and for each
+ * product shown its price, its description's tag, which covers its name,
+ * reference, brand and category, and the category and brand its name and
+ * address are built from. A list over the limit is an error, never an entry
+ * that misses refreshes.
+ */
+export function showcaseTags(
+  products: Iterable<{ id: number; categoryId: number; brandId: number }>,
+): string[] {
+  const list = [...products];
+  const sorted = (ids: number[]) => [...new Set(ids)].sort((a, b) => a - b);
+  const ids = sorted(list.map((p) => p.id));
+  const tags = [
+    SHOWCASE_TAG,
+    CATALOG_TAG,
+    ...ids.map((id) => productTags(id).price),
+    ...ids.map((id) => productTags(id).description),
+    ...sorted(list.map((p) => p.categoryId)).map(categoryTag),
+    ...sorted(list.map((p) => p.brandId)).map(brandTag),
+  ];
+  if (tags.length > MAX_CACHE_TAGS)
+    throw new Error(
+      `Showcase: ${tags.length} cache tags, over the limit of ${MAX_CACHE_TAGS}.`,
+    );
+  return tags;
+}
+
+/**
  * The model lookups of one brand slug. It also covers a slug no brand has yet,
  * whose absence a visit to a model address may have cached.
  */
@@ -158,6 +200,8 @@ const LISTING_FIELDS = [
 const referenceOf = (doc: ProductFields): string[] =>
   typeof doc.reference === "string" ? [referenceTag(doc.reference)] : [];
 
+const isShowcase = (doc: ProductFields | undefined) => doc?.showcase === true;
+
 const listingOf = (doc: ProductFields): string[] => {
   const category = comparable(doc.category);
   return typeof category === "number" ? [categoryListingTag(category)] : [];
@@ -186,6 +230,7 @@ export function tagsForProductChange(
       tags.references,
       ...referenceOf(doc),
       ...listingOf(doc),
+      ...(isShowcase(doc) ? [SHOWCASE_TAG] : []),
     ];
   const changed = (fields: readonly string[]) =>
     fields.some(
@@ -198,6 +243,8 @@ export function tagsForProductChange(
     result.push(...referenceOf(previousDoc), ...referenceOf(doc));
   if (changed(LISTING_FIELDS))
     result.push(...new Set([...listingOf(previousDoc), ...listingOf(doc)]));
+  if (changed(["showcase"]) || (isShowcase(doc) && changed(["reference"])))
+    result.push(SHOWCASE_TAG);
   return result;
 }
 
