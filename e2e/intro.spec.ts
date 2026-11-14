@@ -107,20 +107,23 @@ for (const locale of locales) {
 // Lighthouse measures it: a context that has already shown the page may reuse
 // an image it holds at another width.
 //
-// The context first loads a light page of the same site (issue #132). A new
-// context's first page loads in a fresh renderer process, which chose its
-// first images before Playwright's phone emulation reached it: on CI run
-// 43598464941, both pages requested their first two card images at 480, then
-// again at 320 once the emulation applied, and /fr/ampoule kept the 480 file.
-// Lighthouse's own runs request 320 only. A second page of the same site loads
-// in the same process, whose emulation is in place. Every image request is
-// checked, not only the file shown, so a stray request fails the test.
+// The context has the phone's viewport and pixel ratio, the only inputs of
+// the browser's choice of image width, but not Playwright's isMobile flag
+// (issue #132). With that flag, Chromium's first, speculative choice used a
+// viewport at least 1,714 CSS pixels wide with the right ratio, measured with
+// a 10-pixel srcset ladder: the first two card images were requested at 480,
+// then again at 320 once the real 412-pixel viewport applied, and either file
+// could end up shown (CI run 43598464941). It does so in Chrome Headless Shell
+// and in Chrome alike, and without the page's JavaScript. Lighthouse's
+// emulation has no such first pass: its reports show each image requested
+// once, at 320. Without the flag, the first choice is already right, and the
+// page's width=device-width gives the same 412-pixel layout. Every image
+// request is checked, not only the file shown, so a stray request fails.
 test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
   browser,
   request,
   viewport,
   deviceScaleFactor,
-  isMobile,
   hasTouch,
   baseURL,
 }) => {
@@ -133,13 +136,12 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
     const context = await browser.newContext({
       viewport,
       deviceScaleFactor,
-      isMobile,
+      isMobile: false,
       hasTouch,
       baseURL,
     });
     try {
       const page = await context.newPage();
-      await page.goto("/robots.txt");
       const requested: string[] = [];
       page.on("request", (request) => {
         const { pathname } = new URL(request.url());
