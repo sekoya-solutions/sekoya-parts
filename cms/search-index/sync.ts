@@ -152,7 +152,11 @@ const chunk = <T>(items: readonly T[], size: number): T[][] =>
 export async function reconcile(
   drizzle: Pick<Drizzle, "transaction">,
   connection: IndexConnection,
-  options: { all?: boolean } = {},
+  options: {
+    all?: boolean;
+    /** Tests only: a smaller index than the environment's. */
+    capacity?: number;
+  } = {},
 ): Promise<ReconcileResult> {
   const { environment, index } = connection;
   return drizzle.transaction(async (tx) => {
@@ -167,7 +171,7 @@ export async function reconcile(
         SELECT id, coalesce(showcase, false) AS showcase FROM products`)
     ).rows;
     const selected = new Set(
-      selectIndexed(products, INDEX_CAPACITY[environment]),
+      selectIndexed(products, options.capacity ?? INDEX_CAPACITY[environment]),
     );
     const state = new Set(
       (

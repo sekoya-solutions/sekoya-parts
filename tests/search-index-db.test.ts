@@ -25,15 +25,14 @@ vi.mock("next/server", () => ({
 import { reconcile } from "../cms/search-index/sync.ts";
 import config from "../payload.config.ts";
 import type { IndexConnection } from "../site/algolia.ts";
-import {
-  INDEX_CAPACITY,
-  type ProductRecord,
-  selectIndexed,
-} from "../site/algolia-record.ts";
+import { type ProductRecord, selectIndexed } from "../site/algolia-record.ts";
 
 for (const name of ["DATABASE_URL", "PAYLOAD_SECRET"]) {
   if (!process.env[name]) throw new Error(`${name} must be set for this test.`);
 }
+
+// Below the small catalog CI loads, so some products stay out of the index.
+const CAPACITY = 200;
 
 let payload: Payload;
 beforeAll(async () => {
@@ -123,12 +122,14 @@ describe("the search index on the database", () => {
       // A stale record from another catalog, which must go.
       const algolia = fakeAlgolia(["999999999"]);
 
-      const first = await reconcile(db, algolia.connection);
+      const first = await reconcile(db, algolia.connection, {
+        capacity: CAPACITY,
+      });
       expect(first).toMatchObject({ rebuilt: true, deleted: 1 });
-      expect(first.sent).toBe(INDEX_CAPACITY.dev);
-      expect(algolia.records.size).toBe(INDEX_CAPACITY.dev);
+      expect(first.sent).toBe(CAPACITY);
+      expect(algolia.records.size).toBe(CAPACITY);
       expect(algolia.records.has("999999999")).toBe(false);
-      expect(await count(db, "search_index_state")).toBe(INDEX_CAPACITY.dev);
+      expect(await count(db, "search_index_state")).toBe(CAPACITY);
 
       // Every showcase product is in, with its ten names.
       const { rows } = await db.execute<{ id: number }>(
@@ -144,7 +145,9 @@ describe("the search index on the database", () => {
       }
 
       algolia.calls.length = 0;
-      const second = await reconcile(db, algolia.connection);
+      const second = await reconcile(db, algolia.connection, {
+        capacity: CAPACITY,
+      });
       expect(second).toMatchObject({
         rebuilt: false,
         sent: 0,
@@ -159,7 +162,7 @@ describe("the search index on the database", () => {
     await inRollback(async (req, db) => {
       await emptyState(db);
       const algolia = fakeAlgolia();
-      await reconcile(db, algolia.connection);
+      await reconcile(db, algolia.connection, { capacity: CAPACITY });
       const id = Number([...algolia.records.keys()][5]);
 
       await payload.update({
@@ -171,7 +174,9 @@ describe("the search index on the database", () => {
       expect(await count(db, "search_index_queue")).toBe(1);
 
       algolia.calls.length = 0;
-      const result = await reconcile(db, algolia.connection);
+      const result = await reconcile(db, algolia.connection, {
+        capacity: CAPACITY,
+      });
       expect(result).toMatchObject({ sent: 1, deleted: 0, requests: 1 });
       expect(algolia.records.get(String(id))?.priceCents).toBe(12_345);
       expect(await count(db, "search_index_queue")).toBe(0);
@@ -182,12 +187,12 @@ describe("the search index on the database", () => {
     await inRollback(async (req, db) => {
       await emptyState(db);
       const algolia = fakeAlgolia();
-      await reconcile(db, algolia.connection);
+      await reconcile(db, algolia.connection, { capacity: CAPACITY });
 
       const { rows } = await db.execute<{ id: number; showcase: boolean }>(
         sql`SELECT id, coalesce(showcase, false) AS showcase FROM products`,
       );
-      const before = selectIndexed(rows, INDEX_CAPACITY.dev);
+      const before = selectIndexed(rows, CAPACITY);
       const outsider = rows.find((r) => !before.includes(r.id));
       if (!outsider) throw new Error("Every product is indexed.");
       const dropped = before.at(-1);
@@ -198,11 +203,13 @@ describe("the search index on the database", () => {
         data: { showcase: true },
         req,
       });
-      const result = await reconcile(db, algolia.connection);
+      const result = await reconcile(db, algolia.connection, {
+        capacity: CAPACITY,
+      });
       expect(result).toMatchObject({ sent: 1, deleted: 1 });
       expect(algolia.records.get(String(outsider.id))?.showcase).toBe(true);
       expect(algolia.records.has(String(dropped))).toBe(false);
-      expect(algolia.records.size).toBe(INDEX_CAPACITY.dev);
+      expect(algolia.records.size).toBe(CAPACITY);
     });
   });
 
@@ -210,7 +217,7 @@ describe("the search index on the database", () => {
     await inRollback(async (req, db) => {
       await emptyState(db);
       const algolia = fakeAlgolia();
-      await reconcile(db, algolia.connection);
+      await reconcile(db, algolia.connection, { capacity: CAPACITY });
       const id = Number([...algolia.records.keys()][3]);
       await payload.update({
         collection: "products",
@@ -220,9 +227,11 @@ describe("the search index on the database", () => {
       });
 
       algolia.fail();
-      await expect(reconcile(db, algolia.connection)).rejects.toThrow(/503/);
+      await expect(
+        reconcile(db, algolia.connection, { capacity: CAPACITY }),
+      ).rejects.toThrow(/503/);
       expect(await count(db, "search_index_queue")).toBe(1);
-      expect(await count(db, "search_index_state")).toBe(INDEX_CAPACITY.dev);
+      expect(await count(db, "search_index_state")).toBe(CAPACITY);
     });
   });
 
