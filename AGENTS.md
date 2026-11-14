@@ -60,8 +60,11 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 ## 4. Documentation
 
-- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/experiments/` (one report per experiment, with its setup, results and conclusion), `docs/chat-history/` (local log, see section 6), and [docs/roadmap.md](docs/roadmap.md) (current status and next steps).
-- **Roadmap:** read [docs/roadmap.md](docs/roadmap.md) at the start of each session, and update it in the same pull request whenever a step is done or the plan changes.
+- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/experiments/` (one report per experiment, with its setup, results and conclusion), `docs/chat-history/` (local log, see section 6), and [docs/roadmap.md](docs/roadmap.md) (a summary of the epics and their issues).
+- **Roadmap (owner rule, 2026-11-14):** a summary of the epics and their issues, what each delivers, never a status board. Read it at the start of each session.
+  - **No status in it:** no "done", "in progress" or "next" markers. Status is read and set on the board only, and on the issues' and epics' ticks.
+  - **Written once, in the issue's own pull request:** the issue's entry describes what it delivers, written for the merged state. A result known only after the merge (a production check, a deployment) goes in the issue's Result section, never in the roadmap.
+  - **Never a pull request of its own:** no issue or pull request is opened only to update the roadmap. Its summary also changes when the plan changes (a step added, split or reordered), in the pull request that changes the plan.
 - **ADR index integrity:** exactly one index row per ADR, with title, link and status matching the ADR file.
 - **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
 - Standard Markdown only (relative links, no tool-specific syntax), diagrams as Mermaid code blocks, so documents render on GitHub and in Obsidian.
@@ -76,10 +79,10 @@ Standing rules for every AI agent working on this repository. Read this file and
 - **Keep the tracking in step (owner rule):** the owner likes things tidy and up to date. In the same turn as an issue is opened, split or closed, update:
   - its epic: the step line, nested parts when a step is split into issues, the sub-issue link, and the tick once the part is done;
   - the board's Status;
-  - the roadmap, in the issue's own pull request.
+  - the roadmap's summary, in the issue's own pull request only (section 4).
 
-  Before reporting a step or a phase done, check that the issues, the epic, the board and the roadmap agree, and fix any gap first. An open issue outside every epic still appears in the roadmap.
-- **Finish an issue before merging (owner rule):** do every step the issue lists before asking for the merge go, including steps on outside services that can run from the branch (such as loading a database), and write the pull request's documentation, the roadmap included, for the finished state. Only a step that needs the merged code (such as a production deployment) waits for the merge: name it as such in the issue and the pull request, and never tick a criterion before it is true.
+  Before reporting a step or a phase done, check that the issues, the epic and the board agree, and fix any gap first. An issue outside every epic still appears in the roadmap's summary.
+- **Finish an issue before merging (owner rule):** do every step the issue lists before asking for the merge go, including steps on outside services that can run from the branch (such as loading a database), and write the pull request's documentation, the roadmap's summary included, for the finished state. Only a step that needs the merged code (such as a production deployment) waits for the merge: name it as such in the issue and the pull request, and never tick a criterion before it is true.
 - **Acceptance criteria and test plans:** tick each item as soon as it is verified (acceptance criteria against the merged result), and never close an issue before its pull request is merged.
 - **Issue and pull request bodies:** write them to a file without a byte-order mark and pass it with `--body-file`. After every edit, fetch the saved body and check its line, heading and checkbox counts. Before merging, check that `closingIssuesReferences` lists the issue.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`). Keep AI tool attribution as the tool emits it (for example Claude Code's `Co-Authored-By` trailer).
