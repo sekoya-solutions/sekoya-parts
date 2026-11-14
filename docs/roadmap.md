@@ -217,7 +217,11 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - each language's name is now its own searchable attribute, since Algolia refuses a query restricted to part of a group. A fingerprint of the index settings, kept per environment in `search_index_settings`, makes the next reconcile run apply changed settings; Algolia applies them asynchronously, and queries answered 400 for a few seconds meanwhile;
      - the end-to-end tests run against a fake Algolia that Playwright starts beside the site;
      - latency on the Preview: Neon's wake-up costs about 0.7 s once, in the search route's exact-match lookup; warm, that lookup takes 24 to 53 ms and the Algolia query 46 to 115 ms. Starting both queries at once would not remove the wake-up, which the results page's model list needs anyway, so the owner kept ADR 0010's order, which the ADR now records with these figures;
-8. The showcase sitemap and `robots.txt` (ADR 0011).
+8. **In progress: the showcase sitemap and `robots.txt`** ([#121](https://github.com/sekoya-solutions/sekoya-parts/issues/121), ADR 0011, [ADR 0002](adr/0002-hosting-and-environments.md) option B):
+   - the crawl showcase is the bare domain, the ten home pages, each category's first page, the showcase products' pages without their reference pages, and the 10 most popular compatible models of each showcase product, all in the ten languages: at most 1,451 addresses with the twelve showcase products;
+   - `site/crawl.ts` builds that one list; `/robots.txt` disallows everything, then allows each address exactly (`Allow: <path>$`), Next.js's static files, `/images/` and the sitemap, and `/sitemap.xml` lists the same addresses at full addresses. Search pages, `/api/`, `/admin`, later category pages, reference pages and every other product and model stay disallowed;
+   - both are rendered on each request from the shared cache entries the pages use, so a renamed category or brand, a changed showcase flag or a new reference order refreshes them with no tag of their own;
+   - a unit test checks the rules with Google's matching (longest rule wins, `*` and `$`), and an end-to-end test checks the served files against the built site, each listed address answering 200 without a redirect.
 9. Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
 
 ## Decisions open for the owner
