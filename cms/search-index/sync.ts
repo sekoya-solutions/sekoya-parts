@@ -22,6 +22,7 @@ import {
   type IndexConnection,
   listObjectIds,
   sendBatch,
+  settingsFingerprint,
 } from "../../site/algolia.ts";
 import {
   buildRecord,
@@ -187,10 +188,25 @@ export async function reconcile(
     const rebuilt = state.size === 0;
     let requests = 0;
     let held = state;
-    if (rebuilt) {
+    // The settings go with every rebuild, which may create the index, and
+    // whenever indexSettings changed since this environment last applied them.
+    const fingerprint = settingsFingerprint();
+    const applied = (
+      await tx.execute<{ fingerprint: string }>(sql`
+        SELECT fingerprint FROM search_index_settings
+        WHERE environment = ${environment}`)
+    ).rows[0]?.fingerprint;
+    if (rebuilt || applied !== fingerprint) {
       await applySettings(connection);
+      requests++;
+      await tx.execute(sql`
+        INSERT INTO search_index_settings (environment, fingerprint)
+        VALUES (${environment}, ${fingerprint})
+        ON CONFLICT (environment) DO UPDATE SET fingerprint = EXCLUDED.fingerprint`);
+    }
+    if (rebuilt) {
       held = new Set((await listObjectIds(connection)).map(Number));
-      requests += 1 + Math.max(1, Math.ceil(held.size / 1000));
+      requests += Math.max(1, Math.ceil(held.size / 1000));
     }
 
     const queuedIds = new Set(queued.map((row) => row.product_id));

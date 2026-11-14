@@ -45,7 +45,8 @@
     "test:e2e": "playwright test",
     "images": "node scripts/images.ts",
     "algolia:keys": "node --env-file=.env.local scripts/algolia-keys.ts",
-    "search-index": "node scripts/payload.js run scripts/search-index.ts"
+    "search-index": "node scripts/payload.js run scripts/search-index.ts",
+    "search-latency": "node --env-file-if-exists=.env.local scripts/search-latency.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.93.0",

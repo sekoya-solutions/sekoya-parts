@@ -17,12 +17,21 @@ import { findModels } from "../../../../site/model-search.ts";
 import { queryOf, searchKey } from "../../../../site/search-key.ts";
 
 /** A temporary redirect: the same query may lead elsewhere after a catalog change. */
-const redirectTo = (request: NextRequest, path: string) =>
+// Server-Timing gives the exact-match step's duration, Neon's wake-up
+// included, for the latency measurement (issue #119).
+const redirectTo = (
+  request: NextRequest,
+  path: string,
+  modelsMs: number | null,
+) =>
   new Response(null, {
     status: 307,
     headers: {
       Location: new URL(path, request.nextUrl).toString(),
       "Cache-Control": "private, no-store",
+      ...(modelsMs === null
+        ? {}
+        : { "Server-Timing": `models;dur=${modelsMs.toFixed(1)}` }),
     },
   });
 
@@ -33,13 +42,14 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response("Unknown language.", { status: 404 });
   const query = queryOf(params.get("q") ?? undefined);
   const key = query ? searchKey(query) : null;
-  if (key) {
-    const payload = await getPayload({ config });
-    const db = (payload.db as unknown as PostgresAdapter).drizzle;
-    // Exact matches come first, so two rows tell one match from several.
-    const [first, second] = await findModels(db, key, 2);
-    if (first?.exact && !second?.exact)
-      return redirectTo(request, modelPath(lang, first));
-  }
-  return redirectTo(request, searchPath(lang, query));
+  if (!key) return redirectTo(request, searchPath(lang, query), null);
+  const start = performance.now();
+  const payload = await getPayload({ config });
+  const db = (payload.db as unknown as PostgresAdapter).drizzle;
+  // Exact matches come first, so two rows tell one match from several.
+  const [first, second] = await findModels(db, key, 2);
+  const modelsMs = performance.now() - start;
+  if (first?.exact && !second?.exact)
+    return redirectTo(request, modelPath(lang, first), modelsMs);
+  return redirectTo(request, searchPath(lang, query), modelsMs);
 }

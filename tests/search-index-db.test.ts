@@ -24,7 +24,7 @@ vi.mock("next/server", () => ({
 
 import { reconcile } from "../cms/search-index/sync.ts";
 import config from "../payload.config.ts";
-import type { IndexConnection } from "../site/algolia.ts";
+import { type IndexConnection, indexSettings } from "../site/algolia.ts";
 import { type ProductRecord, selectIndexed } from "../site/algolia-record.ts";
 
 for (const name of ["DATABASE_URL", "PAYLOAD_SECRET"]) {
@@ -154,6 +154,31 @@ describe("the search index on the database", () => {
         deleted: 0,
         requests: 0,
       });
+      expect(algolia.calls).toHaveLength(0);
+    });
+  });
+
+  it("applies changed index settings once to an index already filled", async () => {
+    await inRollback(async (_req, db) => {
+      await emptyState(db);
+      const algolia = fakeAlgolia();
+      await reconcile(db, algolia.connection, { capacity: CAPACITY });
+      // Settings an earlier version of the code applied.
+      await db.execute(
+        sql`UPDATE search_index_settings SET fingerprint = 'earlier' WHERE environment = 'dev'`,
+      );
+
+      algolia.calls.length = 0;
+      const changed = await reconcile(db, algolia.connection, {
+        capacity: CAPACITY,
+      });
+      expect(changed).toMatchObject({ rebuilt: false, sent: 0, requests: 1 });
+      expect(algolia.calls).toEqual([
+        { path: "/1/indexes/products_dev/settings", body: indexSettings },
+      ]);
+
+      algolia.calls.length = 0;
+      await reconcile(db, algolia.connection, { capacity: CAPACITY });
       expect(algolia.calls).toHaveLength(0);
     });
   });
