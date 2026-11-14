@@ -8,6 +8,7 @@ import {
   BLOCKED_LABEL,
   BYPASS_HEADER,
   belowThreshold,
+  bypassHeaders,
   COMMENT_MARKER,
   CRAWLABLE_AUDIT,
   categoryScore,
@@ -380,6 +381,16 @@ describe("production target", () => {
   it("skips the SEO audits on previews only", () => {
     expect(skippedAudits("preview")).toEqual(PREVIEW_SKIPPED_AUDITS);
     expect(skippedAudits("production")).toEqual([]);
+  });
+  it("sends the bypass secret on both targets, and needs it (issue #135)", () => {
+    expect(bypassHeaders("s3cret-value")).toEqual({
+      [BYPASS_HEADER]: "s3cret-value",
+    });
+    expect(() => bypassHeaders(null)).toThrow(/not set/);
+    expect(() => bypassHeaders("")).toThrow(/not set/);
+    expect(scoresTable(figures, 5, "production")).not.toContain(
+      "without the bypass header",
+    );
   });
   it("measures the public address, not a deployment's own", () => {
     expect(PRODUCTION_URL).toBe("https://sekoya-parts.vercel.app");

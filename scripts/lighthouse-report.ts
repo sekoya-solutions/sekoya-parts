@@ -6,8 +6,21 @@
 // No input or output here, so Vitest tests it directly.
 import { ReportGenerator } from "lighthouse/report/generator/report-generator.js";
 
-/** The bypass header Lighthouse sends to reach a protected preview. */
+/**
+ * The bypass header every run sends: it reaches a protected preview, and on
+ * both targets it keeps the firewall's Bot Protection from challenging the
+ * runner's headless Chrome and its requests (issue #135).
+ */
 export const BYPASS_HEADER = "x-vercel-protection-bypass";
+
+/**
+ * The headers of every request and Lighthouse run, on both targets (issue
+ * #135): the bypass secret, which must be set.
+ */
+export function bypassHeaders(secret: string | null): Record<string, string> {
+  if (!secret) throw new Error("VERCEL_AUTOMATION_BYPASS_SECRET is not set.");
+  return { [BYPASS_HEADER]: secret };
+}
 
 /** The four categories PageSpeed Insights shows, in its order. */
 export const CATEGORIES = [
@@ -29,8 +42,9 @@ export type CategoryId = (typeof CATEGORIES)[number][0];
 export const PREVIEW_SKIPPED_AUDITS = ["is-crawlable", "robots-txt"];
 
 /**
- * What a run measures (issue #67): a protected preview, with the bypass header
- * and without the audits above, or the public production site, with neither.
+ * What a run measures (issue #67): a protected preview, without the audits
+ * above, or the public production site, with them. Both get the bypass header
+ * since issue #135.
  */
 export type Target = "preview" | "production";
 
@@ -204,7 +218,7 @@ export function toolbarRequests(lhr: {
 const NOTES: Record<Target, string> = {
   preview:
     "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.",
-  production: `Measured on the public address, ${PRODUCTION_URL}, without the bypass header and with every SEO audit, once it served this commit. \`is-crawlable\` is checked against the site's own robots.txt: a page it allows must pass, a page it disallows must fail because of robots.txt alone, and that page's SEO score leaves the audit out.`,
+  production: `Measured on the public address, ${PRODUCTION_URL}, with every SEO audit, once it served this commit. \`is-crawlable\` is checked against the site's own robots.txt: a page it allows must pass, a page it disallows must fail because of robots.txt alone, and that page's SEO score leaves the audit out.`,
 };
 
 /** How a page robots.txt disallows is marked, in the table and its check. */
@@ -364,7 +378,7 @@ export function redact<T extends Report>(lhr: T): T {
 /**
  * Throws if a text to be saved still holds the secret or the bypass header's
  * name. The name is checked too, since its value always comes with it. A null
- * secret means a run without one (production), where only the name is checked.
+ * secret means a text written without one, where only the name is checked.
  */
 export function assertNoSecret(
   text: string,
