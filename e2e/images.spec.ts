@@ -9,10 +9,10 @@ import { IMAGE_CACHE_CONTROL } from "../site/images-headers.ts";
 import { EAGER_IMAGES } from "../site/picture.tsx";
 import { productAddress } from "./addresses.ts";
 
-/** Every image of the main content, with what the tests check. */
-const mainImages = (page: Page) =>
+/** Every image of the main content, or of one part of it, with what the tests check. */
+const mainImages = (page: Page, within = "main") =>
   page
-    .getByRole("main")
+    .locator(within)
     .locator("picture > img")
     .evaluateAll((imgs) =>
       imgs.map((img) => ({
@@ -39,10 +39,13 @@ test("the home page shows an image per category, the first ones loaded at once",
   page,
 }) => {
   await page.goto("/fr");
-  const images = await mainImages(page);
+  const images = await mainImages(page, 'main ul[data-list="categories"]');
   expect(images).toHaveLength(12);
   expectDescribed(images);
   expectFirstRowFirst(images);
+  // The showcase products below the categories (issue #111) load lazily,
+  // which e2e/home-showcase.spec.ts checks.
+  expectDescribed(await mainImages(page, 'main ul[data-list="showcase"]'));
 });
 
 /** Only the first row loads at once, and only the first with high priority. */
