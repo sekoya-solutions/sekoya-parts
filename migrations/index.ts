@@ -5,6 +5,7 @@ import * as migration_20261113_121216_category_listing from "./20261113_121216_c
 import * as migration_20261113_230000_translation_memory from "./20261113_230000_translation_memory";
 import * as migration_20261114_120000_model_search from "./20261114_120000_model_search";
 import * as migration_20261114_150000_search_index from "./20261114_150000_search_index";
+import * as migration_20261114_200000_search_index_settings from "./20261114_200000_search_index_settings";
 
 export const migrations = [
   {
@@ -41,5 +42,10 @@ export const migrations = [
     up: migration_20261114_150000_search_index.up,
     down: migration_20261114_150000_search_index.down,
     name: "20261114_150000_search_index",
+  },
+  {
+    up: migration_20261114_200000_search_index_settings.up,
+    down: migration_20261114_200000_search_index_settings.down,
+    name: "20261114_200000_search_index_settings",
   },
 ];

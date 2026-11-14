@@ -82,7 +82,7 @@ What it costs, and where each cost is checked:
 - **Conflicting free-plan figures.** Algolia's pages disagree on the number of indices (10 or 20) and show other plans elsewhere. The free plan terms above are taken as the reference, and the dashboard confirms them when the account is created.
 - **Attribution.** Algolia's support pages, which could not be read, may ask free plans for its logo. The text link covers that without a script.
 - **Search route cost.** Each search costs one Vercel function invocation.
-- **Search latency is not measured yet.** The exact-match step runs before Algolia, so Neon's wake-up after five idle minutes would delay every search. The implementation measures both latencies, Neon's wake-up included. If the step slows search, both queries start at once, and on an exact match the Algolia result is dropped, at the cost of one search of quota.
+- **Search latency** ([experiment 3](../experiments/0003-search-latency.md), 2026-11-14). Neon's wake-up after five idle minutes costs about 0.7 s, once, in the exact-match step; warm, that step takes 24 to 53 ms and the Algolia query 46 to 115 ms. Starting both queries at once would not remove the wake-up, since the results page reads the models from PostgreSQL anyway, and would spend a search on every exact match. The order stays (owner decision, 2026-11-14).
 - **Less popular models of a large product.** Searching for one of them does not find the product through Algolia. The model search finds the model, and its page lists the product.
 - **Record size.** The generator checks each record's size before sending it, so a long name never pushes a record over 10 KB.
 

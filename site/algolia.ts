@@ -1,6 +1,7 @@
 // Algolia's REST API (docs/adr/0010-search.md, issue #115): only the calls the
 // project needs, with fetch, so no SDK and no telemetry. Nothing here
 // retries: a failed call throws, and the caller decides.
+import { createHash } from "node:crypto";
 import { locales } from "../cms/locales.ts";
 import {
   type IndexEnvironment,
@@ -12,6 +13,11 @@ import {
 export type AlgoliaClient = {
   appId: string;
   key: string;
+  /**
+   * Where calls go, by default the application's main host. Searches use the
+   * Distributed Search Network host, and the end-to-end tests a fake.
+   */
+  baseUrl?: string;
   /** Replaced by the tests, which fake Algolia. */
   fetch?: typeof globalThis.fetch;
 };
@@ -24,24 +30,26 @@ export class AlgoliaError extends Error {
   }
 }
 
-/** One call to the application's main host. */
+/** One call to the client's host, by default the application's main host. */
 export async function algoliaRequest<T>(
   client: AlgoliaClient,
   method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
   body?: unknown,
+  options: { headers?: Record<string, string>; timeoutMs?: number } = {},
 ): Promise<T> {
   const response = await (client.fetch ?? fetch)(
-    `https://${client.appId}.algolia.net${path}`,
+    `${client.baseUrl ?? `https://${client.appId}.algolia.net`}${path}`,
     {
       method,
       headers: {
+        ...options.headers,
         "X-Algolia-Application-Id": client.appId,
         "X-Algolia-API-Key": client.key,
         ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
     },
   );
   if (!response.ok) {
@@ -202,11 +210,16 @@ export async function listObjectIds(
  * The index's settings (ADR 0010): every language's name searchable, then the
  * reference, the models and the brand; popularity breaks ties; the ten
  * languages are set explicitly, as Algolia recommends. Queries restrict the
- * searched names to the visitor's language.
+ * searched names to the visitor's language (site/algolia-search.ts).
+ *
+ * Each name is its own entry: Algolia refuses a restriction to part of a
+ * group of names sharing one priority (a 400 on the query, issue #119). A
+ * query searches one name only, so the names' order among themselves never
+ * ranks one hit against another.
  */
 export const indexSettings = {
   searchableAttributes: [
-    locales.map((locale) => `name_${locale}`).join(","),
+    ...locales.map((locale) => `name_${locale}`),
     "reference",
     "unordered(models)",
     "brand",
@@ -217,6 +230,13 @@ export const indexSettings = {
   attributesForFaceting: ["filterOnly(categoryId)"],
   unretrievableAttributes: ["models"],
 };
+
+/**
+ * A fingerprint of indexSettings: reconcile applies the settings again when
+ * the one stored for its environment differs (issue #119).
+ */
+export const settingsFingerprint = (): string =>
+  createHash("sha256").update(JSON.stringify(indexSettings)).digest("hex");
 
 /** Applies indexSettings; the same call creates the index when it is new. */
 export async function applySettings(
