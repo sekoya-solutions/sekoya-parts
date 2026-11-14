@@ -2,7 +2,8 @@
 # docs/adr/0004-testing-and-ci.md. Since issue #61, the job fails when an
 # address's median mobile performance is below 95. Since issue #59, the
 # scores also appear in one "Lighthouse scores · <page>" check per page (issue
-# #96) and in one comment on the pull request, and the redacted reports are
+# #96) and in a new comment on the pull request for each measured commit
+# (issue #123), with that commit's preview address, and the redacted reports are
 # uploaded. Since issue #67, it also
 # runs on each ready Production deployment of main, at the public address,
 # without the bypass secret and without a comment.
@@ -19,6 +20,9 @@ permissions:
   # The "Lighthouse scores" checks and the pull request comment (issue #59).
   checks: write
   pull-requests: write
+  # A preview run cancels itself when a code push follows its commit (issue
+  # #123).
+  actions: write
 
 concurrency:
   group: lighthouse-${{ github.event.deployment.environment }}-${{ github.event.deployment.sha }}
@@ -41,6 +45,14 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
+      # A preview of a commit that a later code push follows is useless: the
+      # run cancels itself before measuring. Any error lets it go on.
+      - name: Stop if a later push changed code
+        if: startsWith(github.event.deployment.environment, 'Preview')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+        run: node scripts/docs-only.ts --superseded "$DEPLOY_SHA"
       - run: npm ci
       # Single loads, one after another, on five pages: the French home page,
       # the first category it lists (issue #81), the heaviest product page, its
@@ -86,4 +98,5 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPORTS_URL: ${{ steps.reports.outputs.artifact-url }}
+          PREVIEW_URL: ${{ startsWith(github.event.deployment.environment, 'Preview') && github.event.deployment_status.environment_url || '' }}
         run: node scripts/lighthouse-publish.ts

@@ -345,6 +345,21 @@ describe("texts", () => {
       "could not be uploaded",
     );
   });
+  it("links the measured commit's own preview (issue #123)", () => {
+    expect(
+      commentBody(
+        figures,
+        5,
+        "c52f0a476e3633dfb74cf5077b70b2674def698a",
+        "u",
+        null,
+        "https://sekoya-parts-abc.vercel.app",
+      ),
+    ).toContain("[Preview](https://sekoya-parts-abc.vercel.app) of `c52f0a4`");
+    expect(commentBody(figures, 5, "abc", "u", null)).toContain(
+      "Preview of `abc`",
+    );
+  });
 });
 
 // Production (issue #67): the public address, without the secret, with every

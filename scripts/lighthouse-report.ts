@@ -341,15 +341,19 @@ export function commentBody(
   sha: string,
   runUrl: string,
   reportsUrl: string | null,
+  previewUrl: string | null = null,
 ) {
   const reports = reportsUrl
     ? `[Download the HTML and JSON reports](${reportsUrl}) (any signed-in GitHub user, 30 days).`
     : "The reports could not be uploaded; see the run.";
+  // Each commit's own preview address stays reachable after later pushes,
+  // which Vercel's comment no longer shows (issue #123).
+  const preview = previewUrl ? `[Preview](${previewUrl})` : "Preview";
   return [
     COMMENT_MARKER,
     "### Lighthouse",
     "",
-    `Preview of \`${sha.slice(0, 7)}\`, [run](${runUrl}).`,
+    `${preview} of \`${sha.slice(0, 7)}\`, [run](${runUrl}).`,
     "",
     scoresTable(figures, runs, "preview"),
     reports,
