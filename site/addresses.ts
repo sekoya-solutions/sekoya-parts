@@ -165,6 +165,44 @@ export const isModelWord = (section: string): boolean =>
   modelWords.has(section.toLowerCase());
 
 /**
+ * The section word of the search results page in each language (ADR 0010,
+ * issue #113): /<lang>/<search word>?q=<query>. Like the model words, each
+ * is a valid category slug's form, and Payload refuses a category slug equal
+ * to any of them.
+ */
+export const SEARCH_WORDS: Record<Locale, string> = {
+  fr: "recherche",
+  en: "search",
+  de: "suche",
+  es: "busqueda",
+  it: "ricerca",
+  nl: "zoeken",
+  pt: "pesquisa",
+  pl: "szukaj",
+  sv: "sok",
+  da: "sog",
+};
+
+const searchWords = new Set(Object.values(SEARCH_WORDS));
+
+/** Whether a section is the search page's, in any language. */
+export const isSearchWord = (section: string): boolean =>
+  searchWords.has(section.toLowerCase());
+
+/** The search results page in one language, for a query if one is given. */
+export function searchPath(locale: Locale, query?: string): string {
+  const path = `/${locale}/${SEARCH_WORDS[locale]}`;
+  return query ? `${path}?q=${encodeURIComponent(query)}` : path;
+}
+
+/**
+ * Whether a word is reserved for a section of addresses, so no category may
+ * take it as its slug.
+ */
+export const isReservedWord = (section: string): boolean =>
+  isModelWord(section) || isSearchWord(section);
+
+/**
  * The rule for brand slugs: lowercase letters and digits, with no hyphen, so
  * the brand is always the first hyphen-separated word of a model address.
  * Payload checks it when a brand is saved.

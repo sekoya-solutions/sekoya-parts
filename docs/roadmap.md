@@ -35,6 +35,7 @@ Where Sekoya Parts stands and what comes next. Agents read this file at the star
   - The home, category and model pages open with a text introduction and load right-sized card images: 98 to 100 on every measured page ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)).
 - **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
 - **Documentation-only pushes** to a pull request that already changes code run Markdown lint only too, when every check on the previous head passed: Vercel skips the build when only `.md` files changed since the branch's last preview, and the stand-in copies that preview's Lighthouse result ([#106](https://github.com/sekoya-solutions/sekoya-parts/issues/106), ADR 0004).
+- **Search:** a search box on every page finds appliance models in PostgreSQL, and an exact model reference leads straight to its page ([#113](https://github.com/sekoya-solutions/sekoya-parts/issues/113)).
 - **Not set up yet:** no Algolia account for Sekoya Parts.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
 
@@ -194,7 +195,15 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
      - every one of their images loads lazily, so the first screen, the introduction and the first category tiles, is unchanged;
      - the section is one cache entry shared by the ten languages, tagged with each product's price and description, the categories and brands its names and addresses are built from, and a new `showcase` tag. A product that gains or loses the showcase flag, or a showcase product given another reference, refreshes it; an ordinary product's price edit does not;
      - it lists at most 24 products, the first by reference, so its entry stays under Next.js's 128 tags whatever is flagged in Payload;
-7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, once the owner has an Algolia account.
+7. Algolia's index and the single search flow ([ADR 0010](adr/0010-search.md)), with search latency measured, in three parts:
+   - **Done: the search box and model search in PostgreSQL** ([#113](https://github.com/sekoya-solutions/sekoya-parts/issues/113)), which needs no Algolia account:
+     - every page's header holds a search box, a plain `GET` form with no browser code, sent to `/api/search` with the page's language;
+     - that route answers before any page renders: a query equal to exactly one model's reference, in any letter case and with or without spaces and dashes, gets a 307 to that model's page; any other query gets a 307 to the results page, `/<lang>/<search word>?q=<query>` (`recherche`, `search`, `suche` and so on). A page that reads the query cannot send a 307 itself: with Cache Components, it streams after a 200;
+     - the results page lists at most 20 models whose reference starts with the query, says when none matches, and carries `noindex`. It is not cached, since each query differs;
+     - a B-tree index with `text_pattern_ops` on the reference in upper case without spaces or dashes serves both the prefix and the exact match, and gives their order, so a one-letter query reads 21 rows: about 1 ms on Neon's `dev`, and 30 MB on each branch. A database test checks the plan uses it;
+     - Payload refuses a search word as a category slug, as it refuses the model words;
+   - Algolia's index, filled by the generator and kept in step by Payload's save hook, once the owner has an Algolia account;
+   - parts from Algolia on the results page, with search latency measured.
 8. The showcase sitemap and `robots.txt` (ADR 0011).
 9. Bot Protection switched from Log to Challenge before the catalog pages go public, once the firewall logs show how CI, PageSpeed Insights and the agents' checks are treated, with a fix for any of them that would be challenged.
 
