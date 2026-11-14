@@ -38,6 +38,7 @@ A summary of Sekoya Parts' epics and their issues: what each phase and step deli
 - **Search:** a search box on every page finds appliance models in PostgreSQL, and an exact model reference leads straight to its page ([#113](https://github.com/sekoya-solutions/sekoya-parts/issues/113)). The results page lists the matching models, then the parts Algolia finds in the visitor's language ([#119](https://github.com/sekoya-solutions/sekoya-parts/issues/119)).
 - **Algolia:** one application on the free plan, in EU West, with one index per environment: `products_production` (45,000 records), `products_preview` and `products_dev` (2,000 each), each with its own write and search keys limited to its index ([#115](https://github.com/sekoya-solutions/sekoya-parts/issues/115)). The three hold 45,000, 2,000 and 2,000 records, kept in step with Payload's edits.
 - **Shared Hobby limits:** the owner's Vercel Hobby account holds other projects, which share its monthly limits, the Runtime Cache included ([ADR 0002](adr/0002-hosting-and-environments.md)).
+- **Local end-to-end tests** ([#101](https://github.com/sekoya-solutions/sekoya-parts/issues/101)): `npm run test:e2e:local` runs CI's end-to-end job on the owner's machine, with a throwaway portable PostgreSQL 18.6 (owner decision, 2026-11-14) and Chrome Headless Shell from `.tools/`, never `.env.local` or Neon; the README says how. The first full run passed the 134 tests in 44 s. On Windows it makes `.next` case-sensitive first, as `/FR` and `/fr` would otherwise share one prerendered file.
 
 ## Phases
 
@@ -229,7 +230,6 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
 ## Decisions open for the owner
 
 - **Vercel Hobby's terms:** whether a freelance portfolio counts as commercial use (ADR 0002).
-- **Local end-to-end tests:** a portable PostgreSQL or a dedicated Neon branch for running them on the owner's machine ([#101](https://github.com/sekoya-solutions/sekoya-parts/issues/101)).
 
 ## Working notes for a new session
 
