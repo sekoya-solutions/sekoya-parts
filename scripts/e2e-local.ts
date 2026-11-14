@@ -119,6 +119,10 @@ const env: NodeJS.ProcessEnv = {
   DATABASE_URL: url,
   DATABASE_URL_UNPOOLED: url,
   PAYLOAD_SECRET: randomBytes(24).toString("hex"),
+  // The catalog this run loads, which the fake Algolia rebuilds its records
+  // from: an empty value is an error there, not the default.
+  CATALOG_SCALE: "small",
+  CATALOG_SEED: "1",
   NEXT_TELEMETRY_DISABLED: "1",
   PLAYWRIGHT_BROWSERS_PATH: browsers,
 };
