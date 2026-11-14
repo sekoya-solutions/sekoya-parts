@@ -1,7 +1,8 @@
-// The documentation-only decisions (issues #91 and #106): only Markdown
+// The documentation-only decisions (issues #91, #106 and #123): only Markdown
 // changes skip the heavy checks and Vercel's build, a missing base or history
-// means building, a push skips only after a fully passing previous head, and
-// the Lighthouse stand-in follows what Vercel actually did.
+// means building, a documentation push mirrors the previous head's jobs, a
+// code push cancels the stale runs, and the Lighthouse stand-in follows what
+// Vercel actually did.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,15 +11,19 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   type CheckRun,
   changedFiles,
-  checksPassed,
   isDocsOnly,
+  jobVerdict,
   lighthouseConclusion,
   measuredAncestor,
-  REQUIRED_CHECKS,
   rangeFiles,
+  scoreChecks,
+  settled,
+  staleRuns,
+  supersedingHead,
   vercelBase,
   vercelOutcome,
   vercelPreviewPrevious,
+  type WorkflowRun,
 } from "../scripts/docs-only.ts";
 
 describe("isDocsOnly", () => {
@@ -302,61 +307,146 @@ describe("vercelPreviewPrevious", () => {
   });
 });
 
-describe("checksPassed", () => {
-  const passing: CheckRun[] = [
-    ...REQUIRED_CHECKS.map((name) => ({
-      name,
-      status: "completed",
-      conclusion: "success",
-    })),
-    { name: "Lighthouse stand-in", status: "completed", conclusion: "skipped" },
+describe("staleRuns", () => {
+  const runs: WorkflowRun[] = [
+    { id: 1, head_sha: "old", status: "in_progress" },
+    { id: 2, head_sha: "old", status: "queued" },
+    { id: 3, head_sha: "old", status: "completed" },
+    { id: 4, head_sha: "head", status: "in_progress" },
+    { id: 5, head_sha: "elsewhere", status: "in_progress" },
   ];
-  const vercel = [{ context: "Vercel", state: "success" }];
 
-  it("passes when every check succeeded or was skipped", () => {
-    expect(checksPassed(passing, vercel, true).passed).toBe(true);
+  it("keeps the unfinished runs of other commits", () => {
+    expect(staleRuns(runs, "head").map((run) => run.id)).toEqual([1, 2, 5]);
   });
 
-  it("fails on a failed, cancelled, neutral or timed-out check", () => {
-    for (const conclusion of ["failure", "cancelled", "neutral", "timed_out"]) {
-      const runs = passing.map((run) =>
-        run.name === "Generator and tests" ? { ...run, conclusion } : run,
-      );
-      expect(checksPassed(runs, vercel, true)).toEqual({
-        passed: false,
-        reason: `"Generator and tests" is ${conclusion}`,
-      });
-    }
+  it("keeps only the pull request's commits when given", () => {
+    expect(
+      staleRuns(runs, "head", new Set(["old", "head"])).map((run) => run.id),
+    ).toEqual([1, 2]);
+  });
+});
+
+describe("jobVerdict", () => {
+  const job = (status: string, conclusion: string | null) => [
+    { name: "End-to-end tests", status, conclusion },
+    { name: "Generator and tests", status: "completed", conclusion: "failure" },
+  ];
+
+  it("passes on a job that succeeded or was skipped", () => {
+    expect(
+      jobVerdict(job("completed", "success"), "End-to-end tests", true),
+    ).toBe("pass");
+    expect(
+      jobVerdict(job("completed", "skipped"), "End-to-end tests", true),
+    ).toBe("pass");
   });
 
-  it("fails while a check is still running", () => {
-    const runs = passing.map((run) =>
-      run.name === "Lighthouse"
-        ? { ...run, status: "in_progress", conclusion: null }
-        : run,
-    );
-    expect(checksPassed(runs, vercel, true).passed).toBe(false);
-  });
-
-  it("fails when a required check or Vercel's status is missing", () => {
-    const runs = passing.filter((run) => run.name !== "Lighthouse");
-    expect(checksPassed(runs, vercel, true)).toEqual({
-      passed: false,
-      reason: '"Lighthouse" is missing',
-    });
-    expect(checksPassed(passing, [], true).passed).toBe(false);
-  });
-
-  it("fails on a pending or failed status", () => {
-    for (const state of ["pending", "failure", "error"]) {
+  it("fails on any other end, cancelled included", () => {
+    for (const conclusion of ["failure", "cancelled", "timed_out", "neutral"])
       expect(
-        checksPassed(passing, [{ context: "Vercel", state }], true).passed,
-      ).toBe(false);
-    }
+        jobVerdict(job("completed", conclusion), "End-to-end tests", true),
+      ).toBe("fail");
   });
 
-  it("fails when the API returned part of the list", () => {
-    expect(checksPassed(passing, vercel, false).passed).toBe(false);
+  it("waits while the job is queued or running, or not yet listed", () => {
+    expect(
+      jobVerdict(job("in_progress", null), "End-to-end tests", false),
+    ).toBe("pending");
+    expect(jobVerdict([], "End-to-end tests", false)).toBe("pending");
+  });
+
+  it("reports a job missing from a finished run", () => {
+    expect(jobVerdict([], "End-to-end tests", true)).toBe("missing");
+  });
+});
+
+describe("supersedingHead", () => {
+  const changes: Record<string, string[]> = {
+    docs: ["docs/roadmap.md"],
+    code: ["app/page.tsx", "docs/roadmap.md"],
+  };
+  const compare = (_base: string, head: string) => {
+    const files = changes[head];
+    if (!files) throw new Error("unknown commit");
+    return files;
+  };
+
+  it("is null while the run's commit is still the head", () => {
+    expect(supersedingHead("sha", ["sha"], compare)).toBeNull();
+  });
+
+  it("is null when only documentation follows", () => {
+    expect(supersedingHead("sha", ["docs"], compare)).toBeNull();
+  });
+
+  it("names a later head that changes code", () => {
+    expect(supersedingHead("sha", ["docs", "code"], compare)).toBe("code");
+  });
+
+  it("lets the run go on when the comparison fails", () => {
+    expect(supersedingHead("sha", ["gone"], compare)).toBeNull();
+  });
+});
+
+describe("settled", () => {
+  // A stand-in for the 30-second wait: reads until a value or the cap.
+  const reads =
+    (limit: number) =>
+    async <T>(read: () => Promise<T | null>) => {
+      for (let i = 0; i < limit; i++) {
+        const value = await read();
+        if (value !== null) return value;
+      }
+      return null;
+    };
+
+  it("waits for a build that is still running", async () => {
+    const answers = ["pending", "pending", "built"] as const;
+    let call = 0;
+    const outcome = settled(
+      async () => answers[call++] ?? "built",
+      reads(5),
+      20,
+    );
+    expect(await outcome("sha")).toBe("built");
+    expect(call).toBe(3);
+  });
+
+  it("gives up as pending at the cap", async () => {
+    const outcome = settled(async () => "pending" as const, reads(3), 20);
+    expect(await outcome("sha")).toBe("pending");
+  });
+
+  it("does not wait for a commit Vercel never reported", async () => {
+    const outcome = settled(async () => "unreported" as const, reads(3), 20);
+    expect(await outcome("sha")).toBe("unreported");
+  });
+});
+
+describe("scoreChecks", () => {
+  it("keeps the finished per-page checks only", () => {
+    const runs: CheckRun[] = [
+      { name: "Lighthouse", status: "completed", conclusion: "success" },
+      {
+        name: "Lighthouse scores · home",
+        status: "completed",
+        conclusion: "success",
+      },
+      {
+        name: "Lighthouse scores · product",
+        status: "in_progress",
+        conclusion: null,
+      },
+      {
+        name: "Lighthouse stand-in",
+        status: "completed",
+        conclusion: "skipped",
+      },
+    ];
+    expect(scoreChecks(runs).map((run) => run.name)).toEqual([
+      "Lighthouse scores · home",
+    ]);
   });
 });
 
@@ -365,8 +455,8 @@ describe("vercelOutcome", () => {
     { context: "Vercel", state, description },
   ];
 
-  it("waits while Vercel has not reported or is still running", () => {
-    expect(vercelOutcome([], 0)).toBe("pending");
+  it("tells a missing status from a build still running", () => {
+    expect(vercelOutcome([], 0)).toBe("unreported");
     expect(
       vercelOutcome(status("pending", "Vercel is deploying your app"), 0),
     ).toBe("pending");

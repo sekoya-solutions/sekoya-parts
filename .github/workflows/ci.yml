@@ -3,8 +3,11 @@
 # issue #91, a documentation-only pull request skips the three heavy jobs
 # through their if: condition (a skipped job counts as passed), and gets a
 # stand-in "Lighthouse" check, since Vercel does not deploy it. Since issue
-# #106, so does a push that changes only .md files compared with the previous
-# head, when every check on that head passed.
+# #123, a push is compared with the previous head:
+# - a documentation-only push cancels nothing, and its heavy jobs conclude
+#   like the same jobs on the previous head, waiting for them;
+# - a code push cancels the pull request's unfinished CI and Lighthouse runs
+#   of other commits, which are useless.
 name: CI
 
 on:
@@ -13,27 +16,34 @@ on:
 permissions:
   contents: read
 
+# One group per commit, so no push cancels another commit's run through it:
+# Change detection decides what a push cancels (issue #123). A re-run of the
+# same commit replaces the running one.
 concurrency:
-  group: ci-${{ github.event.pull_request.number }}
+  group: ci-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
   cancel-in-progress: true
 
 jobs:
-  # Documentation only when every file differing between the base and head
-  # commits ends in .md (scripts/docs-only.ts), or, on a push, between the
-  # previous and new heads, when every check on the previous head passed. Any
-  # failure here leaves the outputs empty, and the heavy jobs then run.
+  # A pull request is documentation only when every file differing between
+  # its base and head ends in .md (scripts/docs-only.ts). A push is
+  # documentation only when the same holds between the previous head and the
+  # new one; it then mirrors the previous head's CI run when there is one.
+  # Any failure here leaves the outputs empty: the heavy jobs then run, the
+  # stand-in waits for Vercel, and nothing is cancelled.
   changes:
     name: Change detection
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: read
-      # The previous head's checks and statuses (issue #106).
-      checks: read
-      statuses: read
+      # Cancelling stale runs, this one included (issue #123).
+      actions: write
+      pull-requests: read
     outputs:
-      docs_only: ${{ steps.decide.outputs.docs_only }}
       docs_only_pull_request: ${{ steps.decide.outputs.docs_only_pull_request }}
+      code_push: ${{ steps.decide.outputs.code_push }}
+      mirror: ${{ steps.decide.outputs.mirror }}
+      previous: ${{ steps.decide.outputs.previous }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -41,46 +51,73 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
+      # A run that starts after a later code push cancels itself; any error
+      # lets it go on.
+      - name: Stop if a later push changed code
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL: ${{ github.event.pull_request.number }}
+        run: node scripts/docs-only.ts --superseded "$HEAD_SHA" "$PULL"
       - id: decide
+        name: Decide
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           # Only a push has a previous head; after a force-push it may be
-          # gone, and the fetch below then fails toward running everything.
+          # gone, and the fetch below then fails toward a code push.
           BEFORE_SHA: ${{ github.event.action == 'synchronize' && github.event.before || '' }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           git fetch --quiet --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA"
           if node scripts/docs-only.ts "$BASE_SHA" "$HEAD_SHA"; then
             echo "docs_only_pull_request=true" >> "$GITHUB_OUTPUT"
-            echo "docs_only=true" >> "$GITHUB_OUTPUT"
-          elif [ -n "$BEFORE_SHA" ] &&
-            git fetch --quiet --no-tags --depth=1 origin "$BEFORE_SHA" &&
-            node scripts/docs-only.ts "$BEFORE_SHA" "$HEAD_SHA" &&
-            node scripts/docs-only.ts --checks-passed "$BEFORE_SHA"; then
-            echo "docs_only_pull_request=false" >> "$GITHUB_OUTPUT"
-            echo "docs_only=true" >> "$GITHUB_OUTPUT"
           else
             echo "docs_only_pull_request=false" >> "$GITHUB_OUTPUT"
-            echo "docs_only=false" >> "$GITHUB_OUTPUT"
           fi
+          if [ -n "$BEFORE_SHA" ] &&
+            git fetch --quiet --no-tags --depth=1 origin "$BEFORE_SHA" &&
+            node scripts/docs-only.ts "$BEFORE_SHA" "$HEAD_SHA"; then
+            echo "code_push=false" >> "$GITHUB_OUTPUT"
+            if node scripts/docs-only.ts --ci-run "$BEFORE_SHA"; then
+              echo "mirror=true" >> "$GITHUB_OUTPUT"
+              echo "previous=$BEFORE_SHA" >> "$GITHUB_OUTPUT"
+            else
+              echo "mirror=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "code_push=true" >> "$GITHUB_OUTPUT"
+            echo "mirror=false" >> "$GITHUB_OUTPUT"
+          fi
+      # A code push, or a pull request's first run, cancels the older runs;
+      # any error cancels nothing.
+      - name: Cancel the older commits' runs
+        if: steps.decide.outputs.code_push == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL: ${{ github.event.pull_request.number }}
+          BRANCH: ${{ github.head_ref }}
+        run: node scripts/docs-only.ts --cancel-stale "$PULL" "$HEAD_SHA" "$BRANCH"
 
   # Vercel skips the build of a documentation-only change (vercel.json), so
   # no deployment starts the Lighthouse workflow, and this job posts the
   # required "Lighthouse" check on the head commit in its place. Its own name
   # differs on purpose: a skipped job named "Lighthouse" would satisfy the
-  # required check on every pull request.
+  # required check on every pull request. It is skipped on a code push:
+  # Vercel's skip rules are narrower than CI's, so Vercel builds every code
+  # push and the real Lighthouse runs. If detection failed, it runs.
   # - A documentation-only pull request: posted at once, since the code is
   #   identical to the base commit's (issue #91).
-  # - Any other pull request (issue #106): the job waits for Vercel's status on
-  #   the head commit. Only if Vercel skipped the build, because every commit
-  #   since the branch's last preview changes only .md files, does it copy that
-  #   preview's Lighthouse result. When Vercel builds, the real Lighthouse runs
-  #   and this job posts nothing.
+  # - Otherwise (issues #106 and #123): the job waits for Vercel's status on
+  #   the head commit. Only if Vercel skipped the build does it copy the
+  #   Lighthouse result and scores of the nearest ancestor Vercel built,
+  #   waiting for that build and its measurement. When Vercel builds, the
+  #   real Lighthouse runs and this job posts nothing.
   lighthouse-stand-in:
     name: Lighthouse stand-in
     needs: changes
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.changes.outputs.code_push != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     permissions:
@@ -131,19 +168,29 @@ jobs:
       - run: npm ci
       - run: npm run lint:md
 
+  # The three heavy jobs below share one pattern (issue #123). On a
+  # documentation-only pull request they are skipped (issue #91). On a
+  # documentation-only push whose previous head has a CI run, MIRROR is true:
+  # the PostgreSQL container does not start (an empty image), the first step
+  # waits for the same job on the previous head and concludes like it, and
+  # every other step is skipped. Otherwise the job runs for real.
+
   # The build prerenders a product page, which reads the catalog (issue #47),
   # so this job loads the small catalog into its own PostgreSQL 18 container
   # first, as the "Generator and tests" job does.
   app-checks:
     name: Lint, types and build
     needs: changes
-    # Skipped on a documentation-only pull request or push; runs if detection failed.
-    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only_pull_request != 'true' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # The mirror waits up to 45 minutes for the previous head's job.
+    timeout-minutes: ${{ needs.changes.outputs.mirror == 'true' && 50 || 15 }}
+    permissions:
+      contents: read
+      actions: read
     services:
       postgres:
-        image: postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42
+        image: ${{ needs.changes.outputs.mirror != 'true' && 'postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42' || '' }}
         env:
           POSTGRES_USER: sekoya
           POSTGRES_PASSWORD: ci-only-password
@@ -156,6 +203,7 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     env:
+      MIRROR: ${{ needs.changes.outputs.mirror }}
       # No usage data is sent from CI builds.
       NEXT_TELEMETRY_DISABLED: "1"
       # A throwaway database that only exists for this job: these values
@@ -170,27 +218,42 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
+          cache: ${{ env.MIRROR != 'true' && 'npm' || '' }}
+      - name: Conclude like the previous head
+        if: env.MIRROR == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PREVIOUS: ${{ needs.changes.outputs.previous }}
+        run: node scripts/docs-only.ts --mirror "Lint, types and build" "$PREVIOUS"
+      - if: env.MIRROR != 'true'
+        run: npm ci
       # Biome runs in CI mode: it reports problems and changes no file.
-      - run: npx biome ci
-      - run: npm run typecheck
-      - run: npm run payload -- migrate
-      - run: npm run generate -- --scale small --seed 1
-      - run: npm run build
+      - if: env.MIRROR != 'true'
+        run: npx biome ci
+      - if: env.MIRROR != 'true'
+        run: npm run typecheck
+      - if: env.MIRROR != 'true'
+        run: npm run payload -- migrate
+      - if: env.MIRROR != 'true'
+        run: npm run generate -- --scale small --seed 1
+      - if: env.MIRROR != 'true'
+        run: npm run build
 
   # The generator at the small scale and Vitest, against a PostgreSQL 18
   # service container with the committed migrations (issue #46).
   catalog-tests:
     name: Generator and tests
     needs: changes
-    # Skipped on a documentation-only pull request or push; runs if detection failed.
-    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only_pull_request != 'true' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # The mirror waits up to 45 minutes for the previous head's job.
+    timeout-minutes: ${{ needs.changes.outputs.mirror == 'true' && 50 || 15 }}
+    permissions:
+      contents: read
+      actions: read
     services:
       postgres:
-        image: postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42
+        image: ${{ needs.changes.outputs.mirror != 'true' && 'postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42' || '' }}
         env:
           POSTGRES_USER: sekoya
           POSTGRES_PASSWORD: ci-only-password
@@ -204,6 +267,7 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     env:
+      MIRROR: ${{ needs.changes.outputs.mirror }}
       # A throwaway database that only exists for this job: these values
       # protect nothing.
       DATABASE_URL: postgres://sekoya:ci-only-password@localhost:5432/sekoya
@@ -218,11 +282,21 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
-      - run: npm run payload -- migrate
-      - run: npm run generate -- --scale "$CATALOG_SCALE" --seed "$CATALOG_SEED"
-      - run: npm test
+          cache: ${{ env.MIRROR != 'true' && 'npm' || '' }}
+      - name: Conclude like the previous head
+        if: env.MIRROR == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PREVIOUS: ${{ needs.changes.outputs.previous }}
+        run: node scripts/docs-only.ts --mirror "Generator and tests" "$PREVIOUS"
+      - if: env.MIRROR != 'true'
+        run: npm ci
+      - if: env.MIRROR != 'true'
+        run: npm run payload -- migrate
+      - if: env.MIRROR != 'true'
+        run: npm run generate -- --scale "$CATALOG_SCALE" --seed "$CATALOG_SEED"
+      - if: env.MIRROR != 'true'
+        run: npm test
 
   # Playwright and the 2 MB test against this job's own production build, on
   # the small catalog in its own PostgreSQL 18 container (issue #60). Chromium
@@ -230,13 +304,16 @@ jobs:
   end-to-end:
     name: End-to-end tests
     needs: changes
-    # Skipped on a documentation-only pull request or push; runs if detection failed.
-    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only_pull_request != 'true' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # The mirror waits up to 45 minutes for the previous head's job.
+    timeout-minutes: ${{ needs.changes.outputs.mirror == 'true' && 50 || 20 }}
+    permissions:
+      contents: read
+      actions: read
     services:
       postgres:
-        image: postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42
+        image: ${{ needs.changes.outputs.mirror != 'true' && 'postgres:18.6-trixie@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42' || '' }}
         env:
           POSTGRES_USER: sekoya
           POSTGRES_PASSWORD: ci-only-password
@@ -249,6 +326,7 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     env:
+      MIRROR: ${{ needs.changes.outputs.mirror }}
       NEXT_TELEMETRY_DISABLED: "1"
       # A throwaway database that only exists for this job: these values
       # protect nothing.
@@ -262,19 +340,31 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
-      - run: npm run payload -- migrate
-      - run: npm run generate -- --scale small --seed 1
-      - run: npm run build
+          cache: ${{ env.MIRROR != 'true' && 'npm' || '' }}
+      - name: Conclude like the previous head
+        if: env.MIRROR == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PREVIOUS: ${{ needs.changes.outputs.previous }}
+        run: node scripts/docs-only.ts --mirror "End-to-end tests" "$PREVIOUS"
+      - if: env.MIRROR != 'true'
+        run: npm ci
+      - if: env.MIRROR != 'true'
+        run: npm run payload -- migrate
+      - if: env.MIRROR != 'true'
+        run: npm run generate -- --scale small --seed 1
+      - if: env.MIRROR != 'true'
+        run: npm run build
       # The headless shell is all a headless run needs; --with-deps adds the
       # system libraries it uses.
-      - run: npx playwright install --with-deps --only-shell chromium
-      - run: npm run test:e2e
+      - if: env.MIRROR != 'true'
+        run: npx playwright install --with-deps --only-shell chromium
+      - if: env.MIRROR != 'true'
+        run: npm run test:e2e
       # Traces of failed tests only. The repository is public, so anyone can
       # download them: they hold this job's pages and throwaway values, no
       # secret.
-      - if: failure()
+      - if: failure() && env.MIRROR != 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-traces
