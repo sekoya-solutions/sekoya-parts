@@ -20,6 +20,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -80,6 +81,46 @@ const freePort = () =>
       );
     });
   });
+
+/**
+ * On Windows, makes the build folder case-sensitive, as on Linux, keeping
+ * Next.js's build cache. Next.js stores each prerendered page as a file named
+ * after its address, so on a case-insensitive folder /FR and /fr share one
+ * file: /FR answered 200 with the French home page instead of 404, and a
+ * request to it overwrote /fr's cached page for the next test. Windows sets
+ * the attribute only on an empty folder, without administrator rights, and
+ * the folders created in it inherit it.
+ */
+function caseSensitiveBuildFolder() {
+  if (process.platform !== "win32") return;
+  const next = join(root, ".next");
+  const cache = join(next, "cache");
+  const kept = join(work, "next-cache");
+  if (existsSync(cache)) renameSync(cache, kept);
+  rmSync(next, { recursive: true, force: true });
+  mkdirSync(next);
+  run(
+    "fsutil.exe",
+    ["file", "setCaseSensitiveInfo", next, "enable"],
+    process.env,
+  );
+  if (existsSync(kept)) renameSync(kept, cache);
+}
+
+/** Throws unless the prerendered pages' folder is case-sensitive. */
+function assertCaseSensitivePages() {
+  if (process.platform !== "win32") return;
+  const pages = join(root, ".next", "server", "app");
+  const result = spawnSync(
+    "fsutil.exe",
+    ["file", "queryCaseSensitiveInfo", pages],
+    { encoding: "utf8" },
+  );
+  if (!/ is enabled\./.test(result.stdout ?? ""))
+    throw new Error(
+      `${pages} is not case-sensitive: ${(result.stdout || result.stderr || "").trim()}`,
+    );
+}
 
 /** Stops a cluster left in the work folder, then deletes the folder. */
 function cleanUp() {
@@ -189,7 +230,9 @@ try {
   // The same steps as CI's job, in its order.
   run("npm", ["run", "payload", "--", "migrate"], env);
   run("npm", ["run", "generate", "--", "--scale", "small", "--seed", "1"], env);
+  caseSensitiveBuildFolder();
   run("npm", ["run", "build"], env);
+  assertCaseSensitivePages();
   run("npm", ["run", "test:e2e", "--", ...process.argv.slice(2)], env);
 } catch (error) {
   failed = true;
