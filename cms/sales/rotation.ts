@@ -39,13 +39,19 @@ export async function rotateSales(
        SELECT ceil(count(*) * $3::numeric) AS n FROM products
      ), running AS (
        SELECT count(*) AS n FROM products WHERE sale_ends_at > $1
-     ), drawn AS (
-       SELECT id, (2 + floor(random() * 5)) * 0.05 AS discount,
-              7 + floor(random() * 22) AS days, random() AS offset_draw
-         FROM products
+     ), chosen AS (
+       -- The products first, then their draws: with the draws in the same
+       -- SELECT, PostgreSQL matches ORDER BY random() to the identical
+       -- random() column and sorts by it, which picked only the smallest
+       -- offsets and gave every sale one length (checked on PostgreSQL 18).
+       SELECT id FROM products
         WHERE sale_ends_at IS NULL OR sale_ends_at <= $1
         ORDER BY random()
         LIMIT GREATEST(0, (SELECT n FROM target) - (SELECT n FROM running))
+     ), drawn AS (
+       SELECT id, (2 + floor(random() * 5)) * 0.05 AS discount,
+              7 + floor(random() * 22) AS days, random() AS offset_draw
+         FROM chosen
      ), picked AS (
        SELECT id, discount, days,
               $2::timestamptz - CASE WHEN $4 THEN floor(offset_draw * days)

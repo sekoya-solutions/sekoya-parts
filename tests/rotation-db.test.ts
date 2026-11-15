@@ -73,16 +73,26 @@ describe.runIf(inCi)("rotateSales", () => {
     });
     expect(added).toHaveLength(Math.ceil((await products()) * SALE_SHARE));
     for (const sale of await sales()) {
+      // numeric columns come back from pg as strings.
       const cents = Number(sale.sale);
-      expect(cents, String(sale.id)).toBeLessThan(sale.price);
+      const price = Number(sale.price);
+      expect(cents, String(sale.id)).toBeLessThan(price);
       expect(cents % 10).toBe(0);
-      expect(cents / sale.price).toBeGreaterThanOrEqual(0.69);
-      expect(cents / sale.price).toBeLessThanOrEqual(0.9);
+      expect(cents / price).toBeGreaterThanOrEqual(0.69);
+      expect(cents / price).toBeLessThanOrEqual(0.9);
       expect(sale.starts.getTime()).toBe(NEXT.getTime());
       const days = (sale.ends.getTime() - sale.starts.getTime()) / DAY;
       expect(days).toBeGreaterThanOrEqual(7);
       expect(days).toBeLessThanOrEqual(28);
     }
+    // Drawn per product: one length for all was a bug (ORDER BY random()
+    // matched to a random() column).
+    const lengths = new Set(
+      (await sales()).map(
+        (sale) => sale.ends.getTime() - sale.starts.getTime(),
+      ),
+    );
+    expect(lengths.size).toBeGreaterThan(1);
   });
 
   it("adds nothing while the share is reached, then replaces the sales that ended", async () => {
