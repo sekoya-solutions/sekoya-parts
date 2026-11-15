@@ -4,17 +4,17 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 ## 1. Project context
 
-- **Sekoya Parts:** a spare-parts e-commerce catalog, built as a portfolio project for the owner's Malt profile. It demonstrates the **feasibility** of a very large catalog, and only that.
+- **Sekoya Parts:** a spare-parts e-commerce catalog, built as a portfolio project for the owner's Malt profile. It demonstrates the **feasibility** of a very large catalog and, since Phase 4, of a demo shop around it.
 - **Owner:** Tech Lead, 15+ years of experience, who reviews every technical choice and most of the code. Vibe-coded in the sense that the owner steers through chat and AI writes the code.
 - **Owner decisions so far:**
   - **Catalog:** about 100,000 products. One product is compatible with up to 1,000,000 appliance models (500,000 or 200,000 if that proves a problem); the other products have few.
-  - **Four page templates:** home, category listing, product page, and one page per appliance model.
+  - **Four page templates:** home, category listing, product page, and one page per appliance model. Phase 4 adds brand, information and shop pages (epic #138).
   - **References on the product page:** only the most popular ones are rendered as text, keeping the page under Google's 2 MB crawl limit (enforced by a CI test) and at a PageSpeed score of 95 or more.
   - **Languages:** ten, on one domain under path prefixes: `fr` (the source), `en`, `de`, `es`, `it`, `nl`, `pt`, `pl`, `sv`, `da`.
   - **Content:** twelve showcase products, one per category (owner decision, 2026-11-13), get real descriptions, translated automatically when a product is added; the others use placeholder text (lorem ipsum) in every language.
   - **Translation budget (owner decisions, 2026-11-13):** DeepL's free API allows 1,000,000 characters in total, once, so spend it very conservatively. A translation memory keeps every translation through catalog reloads. The key lives in Vercel's Production, the owner's `.env.local` and a GitHub Actions secret for the live check, never on previews, and no real translation runs on a preview.
   - **Search:** a hosted search engine like Algolia is mandatory. Algolia and the database stay on free tiers unless that severely blocks feasibility; capping search at about 50,000 products is acceptable. One Algolia application holds three indices, sharing its free plan (owner decision, 2026-11-14): Production 45,000 records, Preview and dev 2,000 each, each environment with its own write and search keys restricted to its own index; CI uses a fake Algolia.
-  - **Scope:** catalog only, with prices in euros: no cart, checkout, accounts or payment.
+  - **Scope:** a demo shop, with prices in euros (owner decision, 2026-11-15, epic #138): the catalog, a cart, a mock checkout and customer accounts, but no real payment, no email sent, and no order ever delivered or charged. Every shop page says it is a demo.
   - **Images:** about 50 original or CC0 images, reused across products and resized at import.
   - **No third-party scripts:** no analytics, chat widget or cookie banner. The server sends no usage data to third parties either, so library telemetry is turned off (owner decision, 2026-11-13; Payload's since #88).
   - **Requirements:** PageSpeed 95 to 100, checked on every commit that changes code (a documentation-only change skips the heavy checks, ADR 0004); fine-grained cache invalidation (a price or description change refreshes only that part of a page); full non-regression tests; automatic Vercel deployments for branches and `main`.
