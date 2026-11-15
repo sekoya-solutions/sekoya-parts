@@ -30,6 +30,7 @@ async function toStepThree(page: import("@playwright/test").Page) {
   const typeLink = page.locator('[data-finder-step="type"] li a').first();
   const href = (await typeLink.getAttribute("href")) as string;
   await typeLink.click();
+  await page.waitForURL((url) => url.searchParams.has("appliance"));
   const type = new URL(href, "http://site.test").searchParams.get(
     "appliance",
   ) as string;
@@ -49,6 +50,7 @@ test("the home page's form leads to the brand's appliance types, each with its m
     .getAttribute("value")) as string;
   await form.locator("select").selectOption(brand);
   await form.getByRole("button").click();
+  await page.waitForURL((url) => url.searchParams.has("make"));
   expect(new URL(page.url()).pathname).toBe(FINDER);
   expect(new URL(page.url()).searchParams.get("make")).toBe(brand);
   const types = page.locator('[data-finder-step="type"] li');
@@ -86,7 +88,7 @@ test("an exact reference goes straight to its model page", async ({ page }) => {
     .locator('[data-finder-step="model"] form')
     .getByRole("button")
     .click();
-  expect(new URL(page.url()).pathname).toBe(target);
+  await page.waitForURL((url) => url.pathname === target);
 });
 
 test("a partial reference lists the matching models of the pair only", async ({
@@ -103,6 +105,9 @@ test("a partial reference lists the matching models of the pair only", async ({
     .locator('[data-finder-step="model"] form')
     .getByRole("button")
     .click();
+  // The form goes through /api/finder's 307: wait for the new address, as the
+  // step-3 page before it has the same path and choices.
+  await page.waitForURL((url) => url.searchParams.has("q"));
   const url = new URL(page.url());
   expect(url.pathname).toBe(FINDER);
   expect(url.searchParams.get("make")).toBe(brand);
