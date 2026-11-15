@@ -26,10 +26,10 @@ const before = {
 };
 
 describe("tagsForProductChange", () => {
-  it("refreshes only the price when the price changes", () => {
+  it("refreshes the price and its category's price order when the price changes", () => {
     expect(
       tagsForProductChange(7, { ...before, priceCents: 2490 }, before),
-    ).toEqual(["product:7:price"]);
+    ).toEqual(["product:7:price", "category:2:prices"]);
   });
 
   it("refreshes only the description when the description changes", () => {
@@ -75,7 +75,7 @@ describe("tagsForProductChange", () => {
     const showcase = { ...before, showcase: true };
     expect(
       tagsForProductChange(7, { ...showcase, priceCents: 1 }, showcase),
-    ).toEqual(["product:7:price"]);
+    ).toEqual(["product:7:price", "category:2:prices"]);
     expect(
       tagsForProductChange(7, { ...showcase, name: "X" }, showcase),
     ).toEqual([
@@ -85,7 +85,7 @@ describe("tagsForProductChange", () => {
     ]);
     expect(
       tagsForProductChange(7, { ...before, priceCents: 1 }, before),
-    ).toEqual(["product:7:price"]);
+    ).toEqual(["product:7:price", "category:2:prices"]);
   });
 
   it("refreshes the showcase list when a new product is a showcase product", () => {
@@ -134,7 +134,11 @@ describe("tagsForProductChange", () => {
         { ...before, priceCents: 1, description: "Neuf" },
         before,
       ),
-    ).toEqual(["product:7:price", "product:7:description"]);
+    ).toEqual([
+      "product:7:price",
+      "category:2:prices",
+      "product:7:description",
+    ]);
   });
 
   it("refreshes nothing when nothing changed", () => {

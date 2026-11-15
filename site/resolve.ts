@@ -4,18 +4,27 @@
 // the address, such as old words, another language's section word or another
 // letter case, redirects permanently to the page's address; an unknown key is
 // a 404.
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { MILLION_PRODUCT_ID, productReference } from "../catalog/generator.ts";
 import type { Locale } from "../cms/locales.ts";
 import {
   categoryPageCount,
   categoryPath,
+  categoryViewPath,
   findCategory,
   isLocale,
+  isPlainView,
+  isReservedWord,
+  type ListingView,
   parseModelSegment,
   parseProductSegment,
 } from "./addresses.ts";
-import { getCategories, getCategoryCounts } from "./categories.tsx";
+import { getBrands } from "./brands.tsx";
+import {
+  getCategories,
+  getCategoryBrandCounts,
+  getCategoryCounts,
+} from "./categories.tsx";
 import { getModelRoute } from "./models.tsx";
 import { getProductRoute, readProductRoute } from "./product.tsx";
 
@@ -80,6 +89,51 @@ export async function resolveCategory(
   const canonical = categoryPath(lang, category.slugs[lang], page);
   if (canonical !== path) permanentRedirect(canonical);
   return { category, page, pages };
+}
+
+/**
+ * The sorted or filtered category page the internal route names (issue #148),
+ * reached through a query rewrite, so the address the visitor sees is the
+ * category's with its query:
+ * - another language's slug or letter case, or the plain view, redirects
+ *   permanently, like a plain category page;
+ * - a query on a section that is not a category, such as the search page,
+ *   redirects to that page without it, and on an unknown section is a 404;
+ * - a brand that is unknown or has no product in the category redirects to
+ *   the same view without it, temporarily, since a product may join later;
+ * - a page past the last is a 404.
+ */
+export async function resolveCategoryView(
+  lang: Locale,
+  section: string,
+  page: number,
+  view: ListingView,
+) {
+  const category = findCategory(await getCategories(), lang, section);
+  if (!category) {
+    if (isReservedWord(section))
+      redirect(
+        page === 1 ? `/${lang}/${section}` : `/${lang}/${section}/${page}`,
+      );
+    notFound();
+  }
+  const slug = category.slugs[lang];
+  if (isPlainView(view)) permanentRedirect(categoryPath(lang, slug, page));
+  const brand =
+    view.brand === null
+      ? null
+      : ((await getBrands()).find((b) => b.slug === view.brand) ?? null);
+  const brandCounts = await getCategoryBrandCounts(category.id);
+  if (view.brand !== null && (!brand || !brandCounts[brand.id]))
+    redirect(categoryViewPath(lang, slug, 1, { ...view, brand: null }));
+  const count = brand
+    ? (brandCounts[brand.id] ?? 0)
+    : ((await getCategoryCounts())[category.id] ?? 0);
+  const pages = categoryPageCount(count);
+  if (page > pages) notFound();
+  if (slug !== section)
+    permanentRedirect(categoryViewPath(lang, slug, page, view));
+  return { category, page, pages, brand, count, view };
 }
 
 /**

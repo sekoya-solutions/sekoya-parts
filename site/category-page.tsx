@@ -1,4 +1,5 @@
 // The category page (issue #81): 48 products per page in reference order,
+// or sorted by price or filtered by brand (issue #148),
 // page 1 at /<lang>/<category slug> and page n at /<lang>/<category slug>/<n>,
 // with links to the previous and next pages. Each page is its own canonical
 // address, the first included, and links to the same page in the other
@@ -6,11 +7,23 @@
 // site/categories.tsx in its language.
 import type { Metadata } from "next";
 import type { Locale } from "../cms/locales.ts";
-import { categoryPath, languageAlternates } from "./addresses.ts";
+import {
+  categoryPath,
+  categoryViewPath,
+  isPlainView,
+  LISTING_SORTS,
+  type ListingSort,
+  type ListingView,
+  languageAlternates,
+  PLAIN_VIEW,
+  perLocale,
+} from "./addresses.ts";
+import { type Brand, getBrands } from "./brands.tsx";
 import { Breadcrumbs } from "./breadcrumbs.tsx";
 import {
   type CategoryRow,
   categoryPaths,
+  getCategoryBrandCounts,
   getCategoryCounts,
   getCategoryRows,
 } from "./categories.tsx";
@@ -18,7 +31,7 @@ import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
 import { ProductCardImage } from "./picture.tsx";
 import { formatPrice } from "./product.tsx";
-import { resolveCategory } from "./resolve.ts";
+import { resolveCategory, resolveCategoryView } from "./resolve.ts";
 
 /** The address a category route was requested at. */
 export const requestedPath = (lang: string, section: string, page?: string) =>
@@ -32,25 +45,47 @@ export function pageLabel(locale: Locale, page: number, pages: number) {
   });
 }
 
+/** What a category route resolved to, in its view. */
+async function resolve(
+  locale: Locale,
+  section: string,
+  page: number,
+  path: string,
+  view: ListingView | undefined,
+) {
+  if (view) return resolveCategoryView(locale, section, page, view);
+  const resolved = await resolveCategory(locale, section, page, path);
+  const counts = await getCategoryCounts();
+  return {
+    ...resolved,
+    brand: null,
+    count: counts[resolved.category.id] ?? 0,
+    view: PLAIN_VIEW,
+  };
+}
+
 export async function categoryMetadata(
   locale: Locale,
   section: string,
   page: number,
   path: string,
+  view?: ListingView,
 ): Promise<Metadata> {
-  const { category, pages } = await resolveCategory(
-    locale,
-    section,
-    page,
-    path,
-  );
+  const resolved = await resolve(locale, section, page, path, view);
+  const { category, pages } = resolved;
   const paths = categoryPaths(category, page);
-  const name = category.names[locale];
+  const name = resolved.brand
+    ? `${category.names[locale]} ${resolved.brand.name}`
+    : category.names[locale];
+  const title =
+    page === 1
+      ? `${name} | Sekoya Parts`
+      : `${name} (${pageLabel(locale, page, pages)}) | Sekoya Parts`;
+  // A sorted or filtered page stays out of search engines' indexes, with no
+  // canonical address or hreflang, like the search page (issue #148).
+  if (!isPlainView(resolved.view)) return { title, robots: { index: false } };
   return {
-    title:
-      page === 1
-        ? `${name} | Sekoya Parts`
-        : `${name} (${pageLabel(locale, page, pages)}) | Sekoya Parts`,
+    title,
     alternates: {
       canonical: paths[locale],
       languages: languageAlternates(paths, paths.fr),
@@ -63,27 +98,39 @@ export async function CategoryPage({
   section,
   page,
   path,
+  view: requested,
 }: {
   locale: Locale;
   section: string;
   page: number;
   path: string;
+  /** The internal route's view (issue #148); absent on a plain address. */
+  view?: ListingView;
 }) {
-  const { category, pages } = await resolveCategory(
+  const { category, pages, brand, count, view } = await resolve(
     locale,
     section,
     page,
     path,
+    requested,
   );
   const dictionary = getDictionary(locale);
   const slug = category.slugs[locale];
-  const [{ rows, computedAt }, counts] = await Promise.all([
-    getCategoryRows(category.id, page),
-    getCategoryCounts(),
+  const plain = isPlainView(view);
+  const [{ rows, computedAt }, brandCounts, brands] = await Promise.all([
+    getCategoryRows(category.id, page, view.sort, brand?.id ?? null),
+    getCategoryBrandCounts(category.id),
+    getBrands(),
   ]);
+  const format = new Intl.NumberFormat(locale);
 
   return (
-    <SiteFrame locale={locale} paths={categoryPaths(category, page)}>
+    <SiteFrame
+      locale={locale}
+      paths={perLocale((l) =>
+        categoryViewPath(l, category.slugs[l], page, view),
+      )}
+    >
       <Breadcrumbs
         locale={locale}
         crumbs={[
@@ -92,7 +139,7 @@ export async function CategoryPage({
             ? [
                 {
                   name: pageLabel(locale, page, pages),
-                  path: categoryPath(locale, slug, page),
+                  path: categoryViewPath(locale, slug, page, view),
                 },
               ]
             : []),
@@ -105,20 +152,89 @@ export async function CategoryPage({
       {/* The first screen's largest element, painted with the HTML rather
           than after the card images (issue #87); e2e/intro.spec.ts checks it. */}
       <p data-intro className="mt-4 max-w-prose text-lg">
-        {fill(dictionary.categoryIntro, {
-          category: category.names[locale],
-          count: new Intl.NumberFormat(locale).format(counts[category.id] ?? 0),
-        })}
+        {plain
+          ? fill(dictionary.categoryIntro, {
+              category: category.names[locale],
+              count: format.format(count),
+            })
+          : fill(dictionary.categoryViewIntro, {
+              category: category.names[locale],
+              count: format.format(count),
+            })}
       </p>
+      <ListingControls
+        locale={locale}
+        action={categoryPath(locale, slug)}
+        view={view}
+        brands={brands
+          .filter((b) => (brandCounts[b.id] ?? 0) > 0)
+          .map((b) => ({ ...b, count: brandCounts[b.id] ?? 0 }))}
+      />
       <ProductListing
         locale={locale}
         rows={rows}
         computedAt={computedAt}
         page={page}
         pages={pages}
-        pathOf={(n) => categoryPath(locale, slug, n)}
+        pathOf={(n) => categoryViewPath(locale, slug, n, view)}
       />
     </SiteFrame>
+  );
+}
+
+/**
+ * The sort and brand controls (issue #148): one GET form to the category's
+ * first page, so a new choice starts on page 1, with no browser code. The
+ * query rewrites of next.config.ts serve its address.
+ */
+export function ListingControls({
+  locale,
+  action,
+  view,
+  brands,
+}: {
+  locale: Locale;
+  action: string;
+  view: ListingView;
+  brands: (Brand & { count: number })[];
+}) {
+  const dictionary = getDictionary(locale);
+  const format = new Intl.NumberFormat(locale);
+  const sortLabels: Record<ListingSort, string> = {
+    reference: dictionary.sortReference,
+    "price-asc": dictionary.sortPriceAsc,
+    "price-desc": dictionary.sortPriceDesc,
+  };
+  return (
+    <form
+      method="get"
+      action={action}
+      data-listing-controls
+      className="listing-controls mt-6"
+    >
+      <label>
+        <span>{dictionary.sortLabel}</span>
+        <select name="sort" defaultValue={view.sort}>
+          {LISTING_SORTS.map((sort) => (
+            <option key={sort} value={sort}>
+              {sortLabels[sort]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>{dictionary.brandFilter}</span>
+        <select name="brand" defaultValue={view.brand ?? ""}>
+          <option value="">{dictionary.allBrands}</option>
+          {brands.map((brand) => (
+            <option key={brand.id} value={brand.slug}>
+              {`${brand.name} (${format.format(brand.count)})`}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button type="submit">{dictionary.applyFilters}</button>
+    </form>
   );
 }
 
