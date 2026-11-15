@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Hilfe und FAQ",
+    "title": "Hilfe und häufige Fragen",
+    "description": "Das Ersatzteil für Ihr Gerät finden, die Kompatibilität prüfen und diese Demo-Website verstehen.",
+    "sections": [
+      {
+        "heading": "Wie finde ich das Ersatzteil für mein Gerät?",
+        "paragraphs": [
+          "Geben Sie die Modellnummer Ihres Geräts in das Suchfeld oben auf jeder Seite ein. Stimmt sie genau mit einem Modell überein, gelangen Sie auf dessen Seite mit den passenden Ersatzteilen; andernfalls listet die Suche die ähnlichsten Modelle und Ersatzteile auf."
+        ]
+      },
+      {
+        "heading": "Wo finde ich die Modellnummer meines Geräts?",
+        "paragraphs": [
+          "Auf dem Typenschild, einem Aufkleber, der sich oft im Türrahmen, auf der Rückseite oder unter dem Gerät befindet."
+        ]
+      },
+      {
+        "heading": "Woher weiß ich, ob ein Ersatzteil passt?",
+        "paragraphs": [
+          "Jede Produktseite listet die kompatiblen Modelle auf, bis zu einer Million für ein einzelnes Ersatzteil. Die ersten tausend stehen auf der Seite, die übrigen auf nummerierten Seiten."
+        ]
+      },
+      {
+        "heading": "Sind die Produkte und Preise echt?",
+        "paragraphs": [
+          "Nein. Produkte, Marken, Referenzen und Preise sind fiktiv: Sekoya Parts ist eine Demo-Website."
+        ]
+      },
+      {
+        "heading": "Kann ich bestellen?",
+        "paragraphs": [
+          "Nein. Echte Bestellungen sind nicht möglich: Nichts wird bezahlt oder geliefert."
+        ]
+      },
+      {
+        "heading": "In welchen Sprachen gibt es die Website?",
+        "paragraphs": [
+          "In zehn Sprachen: Französisch, Englisch, Deutsch, Spanisch, Italienisch, Niederländisch, Portugiesisch, Polnisch, Schwedisch und Dänisch. Die Sprachauswahl oben auf den Seiten führt zur selben Seite in einer anderen Sprache."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Versand und Rücksendung",
+    "title": "Versand und Rücksendung",
+    "description": "Sekoya Parts ist ein Demo-Shop: Es wird keine Bestellung versandt.",
+    "sections": [
+      {
+        "heading": "Kein Versand",
+        "paragraphs": [
+          "Sekoya Parts ist ein Demo-Shop: Keine Bestellung wird versandt, und keine Rücksendung ist möglich, da nichts verkauft wird."
+        ]
+      },
+      {
+        "heading": "Angezeigte Lieferzeiten und Kosten",
+        "paragraphs": [
+          "Die Lieferzeiten, Versandkosten und Schwellen für kostenlosen Versand, die die Website anzeigt, sind fiktive Beispiele, die die Demonstration realistisch machen."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Impressum",
+    "title": "Impressum",
+    "description": "Herausgeber und Hoster der Demo-Website Sekoya Parts.",
+    "sections": [
+      {
+        "heading": "Herausgeber",
+        "paragraphs": [
+          "Die Website Sekoya Parts wird herausgegeben von {publisherName}, {publisherAddress}.",
+          "Verantwortlich für den Inhalt: {publicationDirector}.",
+          "Kontakt: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Hosting",
+        "paragraphs": [
+          "Die Website wird gehostet von {hostName}, {hostAddress}. Ihr Code läuft in Frankfurt (Deutschland)."
+        ]
+      },
+      {
+        "heading": "Eine Demo-Website",
+        "paragraphs": [
+          "Sekoya Parts ist ein Portfolio-Projekt: Es zeigt, dass ein sehr großer Ersatzteilkatalog und ein Shop darum herum schnell bleiben können. Produkte, Marken, Referenzen und Preise sind fiktiv, und auf dieser Website wird nichts verkauft."
+        ]
+      },
+      {
+        "heading": "Geistiges Eigentum",
+        "paragraphs": [
+          "Name, Logo, Texte und Bilder der Website wurden für dieses Projekt geschaffen. Ihr Quellcode ist auf GitHub einsehbar, aber seine Lizenz gewährt kein Recht, ihn weiterzuverwenden."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Verkaufsbedingungen",
+    "title": "Allgemeine Verkaufsbedingungen (Demo)",
+    "description": "Die Bedingungen des Demo-Shops Sekoya Parts, in dem nichts verkauft wird.",
+    "sections": [
+      {
+        "heading": "Gegenstand",
+        "paragraphs": [
+          "Diese Bedingungen beschreiben den Demo-Shop Sekoya Parts. Sie sind nicht vertraglich bindend: Auf dieser Website wird nichts verkauft."
+        ]
+      },
+      {
+        "heading": "Produkte und Preise",
+        "paragraphs": [
+          "Die Produkte, ihre Referenzen und ihre Preise in Euro sind fiktiv. Sie zeigen, wie sich ein sehr großer Katalog verhält."
+        ]
+      },
+      {
+        "heading": "Bestellungen und Zahlung",
+        "paragraphs": [
+          "Die Website nimmt keine echten Bestellungen an: Keine Zahlung wird verlangt oder eingezogen, keine Kartendaten werden abgefragt, und nichts wird geliefert."
+        ]
+      },
+      {
+        "heading": "Kontakt",
+        "paragraphs": [
+          "Bei Fragen zu diesem Projekt schreiben Sie dem Herausgeber, dessen Angaben im Impressum stehen."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Datenschutz",
+    "title": "Datenschutzerklärung",
+    "description": "Welche Daten die Website Sekoya Parts erhält, was sie damit tut und an wen sie sie weitergibt.",
+    "sections": [
+      {
+        "heading": "Kurz gesagt",
+        "paragraphs": [
+          "Die Website verwendet weder Reichweitenmessung noch Werbung noch Skripte von Drittanbietern und fragt keine personenbezogenen Daten ab, um den Katalog zu durchsuchen."
+        ]
+      },
+      {
+        "heading": "Hosting und Sicherheit",
+        "paragraphs": [
+          "Wie jede Website erhält Sekoya Parts die IP-Adresse und die Header, die Ihr Browser sendet. Der Hoster Vercel verarbeitet sie, um die Seiten auszuliefern und die Website zu schützen, und kann sie nach seiner eigenen Datenschutzerklärung in seinen technischen Protokollen speichern.",
+          "Die Firewall von Vercel kann prüfen, ob Ihr Browser kein Bot ist, und dann ein technisches Cookie setzen, das sich diese Prüfung merkt."
+        ]
+      },
+      {
+        "heading": "Suche",
+        "paragraphs": [
+          "Wenn Sie nach einem Ersatzteil suchen, leitet der Server der Website Ihre Suche an Algolia weiter, ihre Suchmaschine mit Sitz in Europa. Algolia erhält Ihre IP-Adresse nicht, sondern nur eine Kennung, die die Website mit einem geheimen Schlüssel daraus ableitet und die die Zahl der Suchen pro Besucher begrenzt. Die Statistiken und die Personalisierung von Algolia sind ausgeschaltet."
+        ]
+      },
+      {
+        "heading": "Cookies",
+        "paragraphs": [
+          "Die Website selbst setzt kein Cookie, um den Katalog zu durchsuchen: Deshalb zeigt sie kein Einwilligungsbanner."
+        ]
+      },
+      {
+        "heading": "Ihre Rechte",
+        "paragraphs": [
+          "Sie können Ihre Rechte auf Auskunft, Berichtigung und Löschung beim Herausgeber ausüben, dessen Angaben im Impressum stehen, und sich bei der CNIL, der französischen Datenschutzbehörde, beschweren."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Barrierefreiheit",
+    "title": "Erklärung zur Barrierefreiheit",
+    "description": "Welches Niveau der Barrierefreiheit Sekoya Parts anstrebt, was geprüft wird und die bekannten Grenzen.",
+    "sections": [
+      {
+        "heading": "Ziel",
+        "paragraphs": [
+          "Sekoya Parts strebt die Stufe AA der Richtlinien für barrierefreie Webinhalte (WCAG) an."
+        ]
+      },
+      {
+        "heading": "Was geprüft wird",
+        "paragraphs": [
+          "Bei jeder Codeänderung misst Lighthouse die Barrierefreiheit der wichtigsten Seiten auf dem Mobilgerät, und eine Änderung, die sie unter 95 von 100 senken würde, wird nicht veröffentlicht. Ein Test prüft außerdem den Kontrast jedes Farbpaars der Website."
+        ]
+      },
+      {
+        "heading": "Was hilft",
+        "paragraphs": [
+          "Die Katalogseiten funktionieren ohne JavaScript. Ein Sprunglink führt zum Hauptinhalt, und sowohl die Sprachauswahl als auch die Suche sind Standard-HTML-Elemente, die sich per Tastatur bedienen lassen."
+        ]
+      },
+      {
+        "heading": "Bekannte Grenzen",
+        "paragraphs": [
+          "Es wurde kein vollständiges Audit durchgeführt. Die Seite „Nicht gefunden“ bleibt leer, bis die Skripte der Seite geladen sind oder wenn JavaScript ausgeschaltet ist, und erscheint bei einer unbekannten Sprache auf Englisch."
+        ]
+      },
+      {
+        "heading": "Ein Problem melden",
+        "paragraphs": [
+          "Wenn ein Inhalt für Sie nicht zugänglich ist, schreiben Sie dem Herausgeber, dessen Angaben im Impressum stehen."
+        ]
+      }
+    ]
+  }
+}

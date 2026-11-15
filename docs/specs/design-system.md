@@ -48,6 +48,8 @@ A wordmark only: "Sekoya Parts" in Manrope, "Sekoya" in cream and "Parts" in mis
 - Every page in a language has a skip link, a navy header with the wordmark and the language switch, its main content and a footer (`site/frame.tsx`).
 - The language switch is a native `<details>` element holding plain links to the same page in the other nine languages, the addresses of its `hreflang` tags. It runs no browser code.
 - Long lists are styled through one class on their container, never classes on each item: `.reference-list` for the product page's 1,000 references, `.product-list` for category and model pages, and `.pager` for the previous and next links.
+- The navy footer (issue #143) has two link columns, each a `<nav>` named by its heading: help (help and frequently asked questions, delivery and returns) and legal information (legal notice, demo terms of sale, privacy, accessibility statement). The demo notice follows them. `.footer-links` gives each link the height to tap it on a phone. The columns sit side by side from the `sm` breakpoint, one under the other below it.
+- The information pages are one template (`site/info-page.tsx`): a heading, then sections of a second-level heading and paragraphs, in a column of prose width, styled by `.info-page`. Their texts are in `site/info/<lang>.json`; the legal notice's details are in `site/publisher.ts`.
 
 ## The 404 page and its limits
 

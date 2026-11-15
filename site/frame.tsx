@@ -1,6 +1,7 @@
 // The site layout around every page in a language (issue #83): a navy header
 // with the wordmark, the search box (issue #113) and the language switch, the page's main content, and a
-// footer. The skip link sits in the root layout, before it.
+// footer with the information pages' links (issue #143). The skip link sits
+// in the root layout, before it.
 //
 // The language switch is plain links, with no browser code
 // (docs/adr/0012-front-end-assets.md): each page passes its own addresses in
@@ -8,8 +9,9 @@
 // element folds the list on small screens without any script.
 import type { ReactNode } from "react";
 import { type Locale, locales } from "../cms/locales.ts";
-import { homePath } from "./addresses.ts";
-import { getDictionary } from "./dictionary.ts";
+import { homePath, type InfoPage, infoPagePath } from "./addresses.ts";
+import { type Dictionary, getDictionary } from "./dictionary.ts";
+import { getInfoText } from "./info-texts.ts";
 import { MAX_QUERY_LENGTH } from "./search-key.ts";
 import { Wordmark } from "./wordmark.tsx";
 
@@ -122,11 +124,49 @@ export function SiteHeader({
   );
 }
 
+/**
+ * The footer's columns of information pages (issue #143), each with its
+ * heading's dictionary key and the id that labels its navigation.
+ */
+const FOOTER_COLUMNS = [
+  { label: "footerHelp", id: "footer-help", pages: ["help", "delivery"] },
+  {
+    label: "footerLegal",
+    id: "footer-legal",
+    pages: ["legal", "terms", "privacy", "accessibility"],
+  },
+] as const satisfies readonly {
+  label: keyof Dictionary;
+  id: string;
+  pages: readonly InfoPage[];
+}[];
+
+/**
+ * The footer: two columns of links to the information pages, then the demo
+ * notice, all in the page's language.
+ */
 export function SiteFooter({ locale }: { locale: Locale }) {
+  const dictionary = getDictionary(locale);
   return (
     <footer className="on-navy mt-16">
-      <div className="mx-auto max-w-page px-4 py-6 text-sm">
-        <p>{getDictionary(locale).footerNote}</p>
+      <div className="mx-auto grid max-w-page gap-6 px-4 py-8 text-sm sm:grid-cols-2">
+        {FOOTER_COLUMNS.map((column) => (
+          <nav key={column.id} aria-labelledby={column.id}>
+            <h2 id={column.id} className="font-bold text-cream">
+              {dictionary[column.label]}
+            </h2>
+            <ul className="footer-links mt-2">
+              {column.pages.map((page) => (
+                <li key={page}>
+                  <a href={infoPagePath(locale, page)}>
+                    {getInfoText(locale, page).link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+        <p className="sm:col-span-2">{dictionary.footerNote}</p>
       </div>
     </footer>
   );

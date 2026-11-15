@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Hjälp och vanliga frågor",
+    "title": "Hjälp och vanliga frågor",
+    "description": "Hitta reservdelen till din apparat, kontrollera att den passar och förstå den här demonstrationssajten.",
+    "sections": [
+      {
+        "heading": "Hur hittar jag reservdelen till min apparat?",
+        "paragraphs": [
+          "Skriv apparatens modellnummer i sökfältet högst upp på varje sida. Stämmer det exakt med en modell kommer du till modellens sida, som listar de reservdelar som passar; annars visar sökningen de modeller och reservdelar som ligger närmast."
+        ]
+      },
+      {
+        "heading": "Var hittar jag apparatens modellnummer?",
+        "paragraphs": [
+          "På typskylten, en etikett som ofta sitter i dörrkarmen, på baksidan eller under apparaten."
+        ]
+      },
+      {
+        "heading": "Hur vet jag om en reservdel passar?",
+        "paragraphs": [
+          "Varje produktsida listar de kompatibla modellerna, upp till en miljon för en enda reservdel. De första tusen visas på sidan, resten på numrerade sidor."
+        ]
+      },
+      {
+        "heading": "Är produkterna och priserna verkliga?",
+        "paragraphs": [
+          "Nej. Produkterna, märkena, artikelnumren och priserna är fiktiva: Sekoya Parts är en demonstrationssajt."
+        ]
+      },
+      {
+        "heading": "Kan jag beställa?",
+        "paragraphs": [
+          "Nej. Ingen riktig beställning är möjlig: ingenting betalas eller levereras."
+        ]
+      },
+      {
+        "heading": "På vilka språk finns sajten?",
+        "paragraphs": [
+          "På tio språk: franska, engelska, tyska, spanska, italienska, nederländska, portugisiska, polska, svenska och danska. Språkväljaren högst upp på sidorna leder till samma sida på ett annat språk."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Leverans och retur",
+    "title": "Leverans och retur",
+    "description": "Sekoya Parts är en demonstrationsbutik: ingen beställning skickas.",
+    "sections": [
+      {
+        "heading": "Ingen leverans",
+        "paragraphs": [
+          "Sekoya Parts är en demonstrationsbutik: ingen beställning skickas och ingen retur är möjlig, eftersom ingenting säljs."
+        ]
+      },
+      {
+        "heading": "Visade leveranstider och kostnader",
+        "paragraphs": [
+          "De leveranstider, fraktkostnader och gränser för fri frakt som sajten visar är fiktiva exempel som gör demonstrationen realistisk."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Juridisk information",
+    "title": "Juridisk information",
+    "description": "Utgivaren och webbhotellet för demonstrationssajten Sekoya Parts.",
+    "sections": [
+      {
+        "heading": "Utgivare",
+        "paragraphs": [
+          "Sajten Sekoya Parts ges ut av {publisherName}, {publisherAddress}.",
+          "Ansvarig utgivare: {publicationDirector}.",
+          "Kontakt: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Webbhotell",
+        "paragraphs": [
+          "Sajten drivs av {hostName}, {hostAddress}. Dess kod körs i Frankfurt (Tyskland)."
+        ]
+      },
+      {
+        "heading": "En demonstrationssajt",
+        "paragraphs": [
+          "Sekoya Parts är ett portföljprojekt: det visar att en mycket stor reservdelskatalog, och en butik runt den, kan förbli snabba. Produkterna, märkena, artikelnumren och priserna är fiktiva, och ingen försäljning sker på den här sajten."
+        ]
+      },
+      {
+        "heading": "Immateriella rättigheter",
+        "paragraphs": [
+          "Sajtens namn, logotyp, texter och bilder har skapats för det här projektet. Källkoden kan läsas på GitHub, men licensen ger ingen rätt att återanvända den."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Köpvillkor",
+    "title": "Allmänna köpvillkor (demonstration)",
+    "description": "Villkoren för demonstrationsbutiken Sekoya Parts, där ingenting säljs.",
+    "sections": [
+      {
+        "heading": "Syfte",
+        "paragraphs": [
+          "Dessa villkor beskriver demonstrationsbutiken Sekoya Parts. De har inget avtalsvärde: ingen försäljning sker på den här sajten."
+        ]
+      },
+      {
+        "heading": "Produkter och priser",
+        "paragraphs": [
+          "Produkterna, deras artikelnummer och deras priser i euro är fiktiva. De visar hur en mycket stor katalog beter sig."
+        ]
+      },
+      {
+        "heading": "Beställning och betalning",
+        "paragraphs": [
+          "Sajten tar inte emot några riktiga beställningar: ingen betalning begärs eller dras, inga kortuppgifter efterfrågas och ingenting levereras."
+        ]
+      },
+      {
+        "heading": "Kontakt",
+        "paragraphs": [
+          "Har du frågor om projektet kan du skriva till utgivaren, vars uppgifter finns i den juridiska informationen."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Integritet",
+    "title": "Integritetspolicy",
+    "description": "Vilka uppgifter sajten Sekoya Parts tar emot, vad den gör med dem och till vem den lämnar dem.",
+    "sections": [
+      {
+        "heading": "Kortfattat",
+        "paragraphs": [
+          "Sajten använder ingen besöksmätning, ingen reklam och inga skript från tredje part, och ber inte om några personuppgifter för att du ska kunna bläddra i katalogen."
+        ]
+      },
+      {
+        "heading": "Webbhotell och säkerhet",
+        "paragraphs": [
+          "Som alla webbplatser tar Sekoya Parts emot den IP-adress och de rubriker som din webbläsare skickar. Webbhotellet Vercel behandlar dem för att leverera sidorna och skydda sajten, och kan spara dem i sina tekniska loggar enligt sin egen integritetspolicy.",
+          "Vercels brandvägg kan kontrollera att din webbläsare inte är en robot och då spara en teknisk cookie som minns kontrollen."
+        ]
+      },
+      {
+        "heading": "Sökning",
+        "paragraphs": [
+          "När du söker efter en reservdel skickar sajtens server din sökning vidare till Algolia, sajtens sökmotor, som drivs i Europa. Algolia får inte din IP-adress, bara en identifierare som sajten härleder från den med en hemlig nyckel och som begränsar antalet sökningar per besökare. Algolias statistik och personalisering är avstängda."
+        ]
+      },
+      {
+        "heading": "Cookies",
+        "paragraphs": [
+          "Sajten själv sparar ingen cookie för att du ska kunna bläddra i katalogen: därför visar den ingen samtyckesruta."
+        ]
+      },
+      {
+        "heading": "Dina rättigheter",
+        "paragraphs": [
+          "Du kan utöva din rätt till tillgång, rättelse och radering hos utgivaren, vars uppgifter finns i den juridiska informationen, och lämna klagomål till CNIL, den franska dataskyddsmyndigheten."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Tillgänglighet",
+    "title": "Tillgänglighetsredogörelse",
+    "description": "Den tillgänglighetsnivå Sekoya Parts siktar på, vad som kontrolleras och de kända begränsningarna.",
+    "sections": [
+      {
+        "heading": "Mål",
+        "paragraphs": [
+          "Sekoya Parts siktar på nivå AA i riktlinjerna för tillgängligt webbinnehåll (WCAG)."
+        ]
+      },
+      {
+        "heading": "Vad som kontrolleras",
+        "paragraphs": [
+          "Vid varje kodändring mäter Lighthouse tillgängligheten på de viktigaste sidorna i mobilen, och en ändring som skulle sänka den under 95 av 100 publiceras inte. Ett test kontrollerar också kontrasten för varje färgpar på sajten."
+        ]
+      },
+      {
+        "heading": "Vad som hjälper",
+        "paragraphs": [
+          "Katalogsidorna fungerar utan JavaScript. En hopplänk leder till huvudinnehållet, och både språkväljaren och sökningen är vanliga HTML-element som kan användas med tangentbordet."
+        ]
+      },
+      {
+        "heading": "Kända begränsningar",
+        "paragraphs": [
+          "Ingen fullständig granskning har gjorts. Sidan ”hittades inte” förblir tom tills sidans skript har laddats, eller om JavaScript är avstängt, och visas på engelska för ett okänt språk."
+        ]
+      },
+      {
+        "heading": "Rapportera ett problem",
+        "paragraphs": [
+          "Om något innehåll inte är tillgängligt för dig kan du skriva till utgivaren, vars uppgifter finns i den juridiska informationen."
+        ]
+      }
+    ]
+  }
+}

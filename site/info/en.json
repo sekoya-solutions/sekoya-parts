@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Help and FAQ",
+    "title": "Help and frequently asked questions",
+    "description": "Finding the part for your appliance, checking that it fits, and what this demonstration site is.",
+    "sections": [
+      {
+        "heading": "How do I find the part for my appliance?",
+        "paragraphs": [
+          "Type your appliance’s model number into the search box at the top of every page. If it matches a model exactly, you land on that model’s page, which lists the parts that fit it; otherwise, the search lists the closest models and parts."
+        ]
+      },
+      {
+        "heading": "Where is my appliance’s model number?",
+        "paragraphs": [
+          "On its rating plate, a label often found around the door frame, on the back or underneath the appliance."
+        ]
+      },
+      {
+        "heading": "How do I know whether a part fits?",
+        "paragraphs": [
+          "Each product page lists the compatible models, up to a million for a single part. The first thousand are shown on the page, the rest on numbered pages."
+        ]
+      },
+      {
+        "heading": "Are the products and prices real?",
+        "paragraphs": [
+          "No. The products, brands, references and prices are fictitious: Sekoya Parts is a demonstration site."
+        ]
+      },
+      {
+        "heading": "Can I place an order?",
+        "paragraphs": [
+          "No. No real order can be placed: nothing is paid for or delivered."
+        ]
+      },
+      {
+        "heading": "Which languages is the site in?",
+        "paragraphs": [
+          "Ten: French, English, German, Spanish, Italian, Dutch, Portuguese, Polish, Swedish and Danish. The language switch at the top of the pages leads to the same page in another language."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Delivery and returns",
+    "title": "Delivery and returns",
+    "description": "Sekoya Parts is a demonstration shop: no order is ever shipped.",
+    "sections": [
+      {
+        "heading": "No delivery",
+        "paragraphs": [
+          "Sekoya Parts is a demonstration shop: no order is shipped, and no return is possible, since nothing is sold."
+        ]
+      },
+      {
+        "heading": "Delivery times and costs shown",
+        "paragraphs": [
+          "The delivery times, shipping costs and free-delivery thresholds the site shows are fictitious examples that make the demonstration realistic."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Legal notice",
+    "title": "Legal notice",
+    "description": "The publisher and host of the Sekoya Parts demonstration site.",
+    "sections": [
+      {
+        "heading": "Publisher",
+        "paragraphs": [
+          "The Sekoya Parts site is published by {publisherName}, {publisherAddress}.",
+          "Publication director: {publicationDirector}.",
+          "Contact: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Hosting",
+        "paragraphs": [
+          "The site is hosted by {hostName}, {hostAddress}. Its code runs in Frankfurt (Germany)."
+        ]
+      },
+      {
+        "heading": "A demonstration site",
+        "paragraphs": [
+          "Sekoya Parts is a portfolio project: it shows that a very large spare-parts catalog, and a shop around it, can stay fast. The products, brands, references and prices are fictitious, and no sale is made on this site."
+        ]
+      },
+      {
+        "heading": "Intellectual property",
+        "paragraphs": [
+          "The site’s name, logo, texts and images were created for this project. Its source code can be read on GitHub, but its licence grants no right to reuse it."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Terms of sale",
+    "title": "Terms of sale (demonstration)",
+    "description": "The terms of the Sekoya Parts demonstration shop, where nothing is sold.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "paragraphs": [
+          "These terms describe the Sekoya Parts demonstration shop. They have no contractual value: no sale is made on this site."
+        ]
+      },
+      {
+        "heading": "Products and prices",
+        "paragraphs": [
+          "The products, their references and their prices, shown in euros, are fictitious. They show how a very large catalog behaves."
+        ]
+      },
+      {
+        "heading": "Orders and payment",
+        "paragraphs": [
+          "The site takes no real order: no payment is requested or taken, no card details are asked for, and nothing is delivered."
+        ]
+      },
+      {
+        "heading": "Contact",
+        "paragraphs": [
+          "For any question about this project, write to the publisher, whose details are in the legal notice."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Privacy",
+    "title": "Privacy policy",
+    "description": "The data the Sekoya Parts site receives, what it does with it, and who it passes it to.",
+    "sections": [
+      {
+        "heading": "In short",
+        "paragraphs": [
+          "The site uses no audience measurement, no advertising and no third-party script, and asks for no personal data to browse the catalog."
+        ]
+      },
+      {
+        "heading": "Hosting and security",
+        "paragraphs": [
+          "Like any website, Sekoya Parts receives the IP address and headers your browser sends. Its host, Vercel, processes them to serve the pages and protect the site, and may keep them in its technical logs, under its own privacy policy.",
+          "Vercel’s firewall may check that your browser is not a bot, and then set a technical cookie that remembers this check."
+        ]
+      },
+      {
+        "heading": "Search",
+        "paragraphs": [
+          "When you search for a part, the site’s server passes your search to Algolia, its search engine, hosted in Europe. Algolia does not receive your IP address: only an identifier the site derives from it with a secret key, used to limit the number of searches per visitor. Algolia’s analytics and personalization are turned off."
+        ]
+      },
+      {
+        "heading": "Cookies",
+        "paragraphs": [
+          "The site itself sets no cookie to browse the catalog: that is why it shows no consent banner."
+        ]
+      },
+      {
+        "heading": "Your rights",
+        "paragraphs": [
+          "You can exercise your rights of access, rectification and erasure with the publisher, whose details are in the legal notice, and lodge a complaint with the CNIL, the French data protection authority."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Accessibility",
+    "title": "Accessibility statement",
+    "description": "The accessibility level Sekoya Parts aims for, what is checked, and the known limits.",
+    "sections": [
+      {
+        "heading": "Aim",
+        "paragraphs": [
+          "Sekoya Parts aims for level AA of the Web Content Accessibility Guidelines (WCAG)."
+        ]
+      },
+      {
+        "heading": "What is checked",
+        "paragraphs": [
+          "On every code change, Lighthouse measures the accessibility of the main pages on mobile, and a change that would take it below 95 out of 100 is not published. A test also checks the contrast of every pair of colours on the site."
+        ]
+      },
+      {
+        "heading": "What helps",
+        "paragraphs": [
+          "The catalog pages work without JavaScript. A skip link leads to the main content, and both the language switch and the search are standard HTML elements, usable with a keyboard."
+        ]
+      },
+      {
+        "heading": "Known limits",
+        "paragraphs": [
+          "No full audit has been carried out. The “page not found” page stays blank until the page’s scripts have loaded, or when JavaScript is off, and shows in English for an unknown language."
+        ]
+      },
+      {
+        "heading": "Report a problem",
+        "paragraphs": [
+          "If some content is not accessible to you, write to the publisher, whose details are in the legal notice."
+        ]
+      }
+    ]
+  }
+}

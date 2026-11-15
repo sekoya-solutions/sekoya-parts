@@ -102,15 +102,17 @@ describe("category slugs", () => {
   );
 });
 
-// Model and search words take the category slug's place in addresses
-// (issues #79 and #113).
-describe("category slugs equal to a model or search word", () => {
+// Model and search words and information page slugs take the category
+// slug's place in addresses (issues #79, #113 and #143).
+describe("category slugs equal to a model or search word or a page slug", () => {
   it.each([
     ["fr", "appareil"],
     ["fr", "geraet"],
     ["de", "apparat"],
     ["fr", "recherche"],
     ["en", "suche"],
+    ["fr", "mentions-legales"],
+    ["de", "privacy"],
   ] as const)(
     "refuses %s %j and leaves the slug unchanged",
     async (locale, slug) => {
