@@ -2,6 +2,7 @@
 // daily cron with CRON_SECRET; anyone else gets 401.
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { SALES_RUN_PATH } from "../cms/sales/endpoint.ts";
 import { SEARCH_INDEX_RUN_PATH } from "../cms/search-index/endpoint.ts";
 import {
   deeplFromEnvironment,
@@ -60,13 +61,15 @@ describe("deeplFromEnvironment", () => {
 });
 
 describe("the daily crons", () => {
-  it("call the translation and search index runs once a day, as Hobby allows", () => {
+  it("call the translation, search index and sale runs once a day, as Hobby allows", () => {
     const vercel = JSON.parse(readFileSync("vercel.json", "utf8")) as {
       crons?: { path: string; schedule: string }[];
     };
     expect(vercel.crons).toEqual([
       { path: `/api${TRANSLATION_RUN_PATH}`, schedule: "0 3 * * *" },
       { path: `/api${SEARCH_INDEX_RUN_PATH}`, schedule: "0 4 * * *" },
+      // The sale rotation (issue #151).
+      { path: `/api${SALES_RUN_PATH}`, schedule: "0 5 * * *" },
     ]);
   });
 });

@@ -8,6 +8,7 @@ import * as migration_20261114_150000_search_index from "./20261114_150000_searc
 import * as migration_20261114_200000_search_index_settings from "./20261114_200000_search_index_settings";
 import * as migration_20261115_180000_brand_listing from "./20261115_180000_brand_listing";
 import * as migration_20261115_210000_category_prices from "./20261115_210000_category_prices";
+import * as migration_20261115_210953_merchandising from "./20261115_210953_merchandising";
 
 export const migrations = [
   {
@@ -59,5 +60,10 @@ export const migrations = [
     up: migration_20261115_210000_category_prices.up,
     down: migration_20261115_210000_category_prices.down,
     name: "20261115_210000_category_prices",
+  },
+  {
+    up: migration_20261115_210953_merchandising.up,
+    down: migration_20261115_210953_merchandising.down,
+    name: "20261115_210953_merchandising",
   },
 ];

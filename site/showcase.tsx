@@ -4,9 +4,11 @@
 // docs/adr/0008-caching-and-partial-refresh.md; the home page, which is not
 // cached, picks its language.
 import config from "@payload-config";
-import { cacheLife, cacheTag } from "next/cache";
+import { cacheTag } from "next/cache";
 import { getPayload } from "payload";
 import type { CategoryRow } from "./categories.tsx";
+import { priceAt } from "./merchandising.ts";
+import { setPriceLifetime } from "./price-cache.ts";
 import { computedAt, readProduct } from "./product.tsx";
 import { SHOWCASE_LIMIT, showcaseTags } from "./tags.ts";
 
@@ -19,8 +21,8 @@ export type ShowcaseRows = { rows: CategoryRow[]; computedAt: string };
  */
 export async function getShowcaseRows(): Promise<ShowcaseRows> {
   "use cache: remote";
-  cacheLife("max");
 
+  const now = Date.now();
   const payload = await getPayload({ config });
   const { docs } = await payload.find({
     collection: "products",
@@ -40,10 +42,11 @@ export async function getShowcaseRows(): Promise<ShowcaseRows> {
       })),
     ),
   );
+  setPriceLifetime(docs, now);
   return {
     rows: reads.map(({ doc, read }) => ({
       route: read.route,
-      priceCents: doc.priceCents,
+      price: priceAt(doc, now),
     })),
     computedAt: computedAt(),
   };

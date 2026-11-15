@@ -44,6 +44,7 @@ import {
 } from "../../../../../site/models.tsx";
 import { MAIN_SIZES, Picture } from "../../../../../site/picture.tsx";
 import {
+  ProductAvailability,
   ProductDescription,
   ProductPrice,
 } from "../../../../../site/product.tsx";
@@ -191,6 +192,7 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
           </h1>
           <div className="mt-2 md:mt-4">
             <ProductPrice id={id} locale={locale} />
+            <ProductAvailability id={id} locale={locale} />
           </div>
         </div>
         <div className="col-span-2 md:col-span-1 md:col-start-2">

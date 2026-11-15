@@ -3,6 +3,7 @@
 // showcase products (issue #111), whose images all load lazily so the first
 // screen is unchanged. Built from the shared entries of site/categories.tsx
 // and site/showcase.tsx; the page itself is not cached.
+
 import type { Metadata } from "next";
 import { categoryPath, homePath, perLocale } from "../../../site/addresses.ts";
 import { getCategories, getCategoryCounts } from "../../../site/categories.tsx";
@@ -10,13 +11,8 @@ import { fill, getDictionary } from "../../../site/dictionary.ts";
 import { SiteFrame } from "../../../site/frame.tsx";
 import { homeAlternates } from "../../../site/home.ts";
 import { categoryImage } from "../../../site/images.ts";
-import {
-  CARD_SIZES,
-  cardLoading,
-  Picture,
-  ProductCardImage,
-} from "../../../site/picture.tsx";
-import { formatPrice } from "../../../site/product.tsx";
+import { CARD_SIZES, cardLoading, Picture } from "../../../site/picture.tsx";
+import { ProductCard } from "../../../site/product-card.tsx";
 import { localeOf } from "../../../site/resolve.ts";
 import { getShowcaseRows } from "../../../site/showcase.tsx";
 
@@ -109,17 +105,15 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             data-computed-at={showcase.computedAt}
             className="product-list mt-4"
           >
-            {products.map(({ route, priceCents }, index) => (
-              <li key={route.id}>
-                <ProductCardImage
-                  route={route}
-                  locale={locale}
-                  index={index}
-                  lazy
-                />
-                <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
-                <span>{formatPrice(priceCents, locale)}</span>
-              </li>
+            {products.map(({ route, price }, index) => (
+              <ProductCard
+                key={route.id}
+                route={route}
+                price={price}
+                locale={locale}
+                index={index}
+                lazy
+              />
             ))}
           </ul>
         </>

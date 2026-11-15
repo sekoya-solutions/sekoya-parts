@@ -6,6 +6,7 @@
 // table's name, so a table's rows do not depend on the order in which the
 // tables are read. Math.random is never used.
 import { type Locale, locales } from "../cms/locales.ts";
+import type { Availability } from "../site/merchandising.ts";
 import { showcaseProducts } from "./showcase.ts";
 
 /** Appliance models at every scale: the million-model product needs them all. */
@@ -309,6 +310,7 @@ export type ProductRow = [
   categoryId: number,
   priceCents: number,
   showcase: boolean,
+  availability: Availability,
 ];
 export type ProductLocaleRow = [
   name: string,
@@ -354,11 +356,24 @@ export function brandRows(seed: number, scale: ScaleName): BrandRow[] {
   return [...names].map((name, index) => [index + 1, name, slugify(name)]);
 }
 
+/**
+ * A product's availability from a draw in [0, 1) (owner decision on issue
+ * #151): about 85% in stock, 10% on order and 5% out of stock; the showcase
+ * products always in stock.
+ */
+export function availabilityOf(draw: number, showcase: boolean): Availability {
+  if (showcase || draw < 0.85) return "in-stock";
+  return draw < 0.95 ? "on-order" : "out-of-stock";
+}
+
 export function* productRows(
   seed: number,
   scale: ScaleName,
 ): Generator<ProductRow> {
   const rng = createRng(deriveSeed(seed, "products"));
+  // Availability has its own stream (issue #151), so every other value is the
+  // catalog loaded before it.
+  const stock = createRng(deriveSeed(seed, "availability"));
   const { products, brands } = scales[scale];
   const categoryCount = categoryNames.length;
   const minCents = Math.log(400);
@@ -380,6 +395,7 @@ export function* productRows(
       listed ? listed.categoryId : drawnCategory,
       priceCents,
       listed !== undefined,
+      availabilityOf(stock(), listed !== undefined),
     ];
   }
 }

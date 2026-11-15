@@ -8,7 +8,7 @@
 // Not cached: each query is different, so storing its results would fill the
 // Runtime Cache with entries that are rarely read again.
 import config from "@payload-config";
-import type { PostgresAdapter } from "@payloadcms/db-postgres";
+import { type PostgresAdapter, sql } from "@payloadcms/db-postgres";
 import { headers } from "next/headers";
 import { getPayload } from "payload";
 import type { Locale } from "../cms/locales.ts";
@@ -21,8 +21,9 @@ import {
 } from "./algolia-search.ts";
 import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
+import { dateStrings, priceAt } from "./merchandising.ts";
 import { findModels, MODEL_RESULTS, type ModelMatch } from "./model-search.ts";
-import { formatPrice } from "./product.tsx";
+import { Price, type ShownPrice } from "./product-card.tsx";
 import { MAX_QUERY_LENGTH, searchKey } from "./search-key.ts";
 
 /** Milliseconds since `start`, to a tenth. */
@@ -37,6 +38,42 @@ async function modelSearch(key: string | null) {
   const db = (payload.db as unknown as PostgresAdapter).drizzle;
   const found = await findModels(db, key, MODEL_RESULTS + 1);
   return { found, ms: since(start) };
+}
+
+/**
+ * The price each found part shows now, by reference (issue #151): Algolia's
+ * records hold the regular price, while a sale is in the database, and the
+ * daily rotation adds sales without touching the index. One query for the few
+ * parts the page lists; this page renders on every request anyway.
+ */
+async function currentPrices(
+  references: string[],
+): Promise<Map<string, ShownPrice>> {
+  if (references.length === 0) return new Map();
+  const payload = await getPayload({ config });
+  const db = (payload.db as unknown as PostgresAdapter).drizzle;
+  const { rows } = await db.execute<{
+    reference: string;
+    priceCents: number;
+    salePriceCents: unknown;
+    saleStartsAt: unknown;
+    saleEndsAt: unknown;
+  }>(sql`
+    SELECT reference, price_cents AS "priceCents",
+           sale_price_cents AS "salePriceCents",
+           sale_starts_at AS "saleStartsAt", sale_ends_at AS "saleEndsAt"
+      FROM products WHERE reference IN (${sql.join(
+        references.map((reference) => sql`${reference}`),
+        sql`, `,
+      )})
+  `);
+  const now = Date.now();
+  return new Map(
+    rows.map((row) => [
+      row.reference,
+      priceAt({ priceCents: Number(row.priceCents), ...dateStrings(row) }, now),
+    ]),
+  );
 }
 
 /**
@@ -110,6 +147,7 @@ export async function SearchPage({
   const shownModels = found.slice(0, MODEL_RESULTS);
   const result = parts?.result;
   const shownParts = result?.status === "ok" ? result.parts : [];
+  const prices = await currentPrices(shownParts.map((part) => part.reference));
 
   return (
     <SiteFrame
@@ -175,7 +213,15 @@ export async function SearchPage({
                 {shownParts.map((part) => (
                   <li key={part.reference}>
                     <a href={part.path}>{part.name}</a>{" "}
-                    <span>{formatPrice(part.priceCents, locale)}</span>
+                    <Price
+                      price={
+                        prices.get(part.reference) ?? {
+                          cents: part.priceCents,
+                          formerCents: null,
+                        }
+                      }
+                      locale={locale}
+                    />
                   </li>
                 ))}
               </ul>

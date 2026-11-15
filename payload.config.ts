@@ -7,6 +7,7 @@ import { Categories } from "./cms/collections/categories";
 import { Products } from "./cms/collections/products";
 import { Users } from "./cms/collections/users";
 import { locales } from "./cms/locales";
+import { salesRunEndpoint } from "./cms/sales/endpoint";
 import { searchIndexRunEndpoint } from "./cms/search-index/endpoint";
 import { translationRunEndpoint } from "./cms/translation/endpoint";
 
@@ -26,9 +27,10 @@ export default buildConfig({
     importMap: { baseDir: dirname },
   },
   collections: [Categories, Brands, Products, Users],
-  // The translation sweep (issue #104) and the search index run (issue #115),
-  // each run by a daily cron or a signed-in user.
-  endpoints: [translationRunEndpoint, searchIndexRunEndpoint],
+  // The translation sweep (issue #104), the search index run (issue #115)
+  // and the sale rotation (issue #151), each run by a daily cron or a
+  // signed-in user.
+  endpoints: [translationRunEndpoint, searchIndexRunEndpoint, salesRunEndpoint],
   // The admin uses REST; no GraphQL endpoint is exposed.
   graphQL: { disable: true },
   localization: {

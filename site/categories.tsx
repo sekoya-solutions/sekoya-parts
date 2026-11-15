@@ -14,7 +14,10 @@ import {
   PRODUCTS_PER_CATEGORY_PAGE,
   perLocale,
 } from "./addresses.ts";
+import { dateStrings, priceAt, type Sale } from "./merchandising.ts";
+import { setPriceLifetime } from "./price-cache.ts";
 import { computedAt, type ProductRoute, readProduct } from "./product.tsx";
+import type { ShownPrice } from "./product-card.tsx";
 import {
   CATALOG_TAG,
   CATEGORIES_TAG,
@@ -95,8 +98,8 @@ export async function getCategoryCounts(): Promise<Record<number, number>> {
   );
 }
 
-/** One product on a category page, in every language. */
-export type CategoryRow = { route: ProductRoute; priceCents: number };
+/** One product on a category page, in every language, at its shown price. */
+export type CategoryRow = { route: ProductRoute; price: ShownPrice };
 
 /**
  * The number of products of each brand in a category, by brand id, for the
@@ -143,14 +146,18 @@ export async function getCategoryRows(
   brandId: number | null = null,
 ): Promise<CategoryRows> {
   "use cache: remote";
-  cacheLife("max");
 
   const drizzle = await database();
-  // Ties in price fall back to reference order, so every page has one order.
+  const now = Date.now();
+  const at = new Date(now).toISOString();
+  // The price shown now: the sale's while it runs (issue #151). Ties fall
+  // back to reference order, so every page has one order.
+  const current = sql`CASE WHEN sale_starts_at <= ${at} AND ${at} < sale_ends_at
+    THEN sale_price_cents ELSE price_cents END`;
   const order = {
     reference: sql`reference`,
-    "price-asc": sql`price_cents, reference`,
-    "price-desc": sql`price_cents DESC, reference`,
+    "price-asc": sql`${current}, reference`,
+    "price-desc": sql`${current} DESC, reference`,
   }[sort];
   const brand = brandId === null ? sql`` : sql`AND brand_id = ${brandId}`;
   const { rows } = await drizzle.execute<{ id: number }>(sql`
@@ -162,6 +169,7 @@ export async function getCategoryRows(
   `);
   const cards = await readCards(
     rows.map((row) => row.id),
+    now,
     sort,
   );
   cacheTag(
@@ -171,7 +179,19 @@ export async function getCategoryRows(
       cards.brandIds,
     ),
   );
-  if (sort !== "reference") cacheTag(categoryPricesTag(categoryId));
+  if (sort === "reference") setPriceLifetime(cards.sales, now);
+  else {
+    // A sale starting or ending anywhere in the category can move a product
+    // onto or off a price-sorted page, so its next date counts too.
+    cacheTag(categoryPricesTag(categoryId));
+    const { rows: dates } = await drizzle.execute<Sale>(sql`
+      SELECT sale_starts_at AS "saleStartsAt", sale_ends_at AS "saleEndsAt",
+             sale_price_cents AS "salePriceCents"
+        FROM products
+       WHERE category_id = ${categoryId} AND sale_ends_at > ${at}
+    `);
+    setPriceLifetime(dates.map(dateStrings), now);
+  }
   return { rows: cards.rows, computedAt: computedAt() };
 }
 
@@ -182,11 +202,14 @@ export async function getCategoryRows(
  */
 export async function readCards(
   ids: number[],
+  now: number,
   sort: ListingSort = "reference",
 ): Promise<{
   rows: CategoryRow[];
   brandIds: number[];
   categoryIds: number[];
+  /** Each card's sale, for the entry's lifetime (ADR 0008). */
+  sales: Sale[];
 }> {
   const payload = await getPayload({ config });
   const { docs } =
@@ -212,9 +235,9 @@ export async function readCards(
     const read = readProduct(doc);
     brandIds.push(read.brandId);
     categoryIds.push(read.categoryId);
-    rows.push({ route: read.route, priceCents: doc.priceCents });
+    rows.push({ route: read.route, price: priceAt(doc, now) });
   }
-  return { rows, brandIds, categoryIds };
+  return { rows, brandIds, categoryIds, sales: docs };
 }
 
 /** A category page's address in each language. */

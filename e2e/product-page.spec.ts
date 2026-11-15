@@ -33,8 +33,15 @@ test("product 1 shows its heading, price, description and references", async ({
     showcase.fr.name,
   );
   // The price part: a euro amount in French format, such as "12,34 €".
-  await expect(main.locator("p").first()).toHaveText(/^[\d\s ]+,\d{2}\s€$/u);
-  await expect(main.locator("p").nth(1)).toHaveText(showcase.fr.description);
+  await expect(main.locator("[data-price] p").first()).toHaveText(
+    /^[\d\s ]+,\d{2}\s€$/u,
+  );
+  // The availability part comes under the price (issue #151), then the
+  // description.
+  await expect(main.locator("[data-availability]")).toHaveCount(1);
+  await expect(
+    main.locator("p:not([data-price] p):not([data-availability])").first(),
+  ).toHaveText(showcase.fr.description);
   await expect(main.getByRole("heading", { level: 2 })).toHaveText(
     "Modèles compatibles",
   );

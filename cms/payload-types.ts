@@ -158,6 +158,10 @@ export interface Product {
   brand: number | Brand;
   category: number | Category;
   priceCents: number;
+  availability: 'in-stock' | 'on-order' | 'out-of-stock';
+  salePriceCents?: number | null;
+  saleStartsAt?: string | null;
+  saleEndsAt?: string | null;
   showcase?: boolean | null;
   name?: string | null;
   description?: string | null;
@@ -305,6 +309,10 @@ export interface ProductsSelect<T extends boolean = true> {
   brand?: T;
   category?: T;
   priceCents?: T;
+  availability?: T;
+  salePriceCents?: T;
+  saleStartsAt?: T;
+  saleEndsAt?: T;
   showcase?: T;
   name?: T;
   description?: T;

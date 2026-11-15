@@ -23,6 +23,7 @@ import {
   productRows,
 } from "../catalog/generator.ts";
 import { catalogTables } from "../catalog/tables.ts";
+import { rotateSales } from "../cms/sales/rotation.ts";
 
 type Value = string | number | boolean | null;
 
@@ -177,6 +178,7 @@ async function main(): Promise<void> {
           "category_id",
           "price_cents",
           "showcase",
+          "availability",
         ],
         productRows(seed, scale),
       );
@@ -198,6 +200,17 @@ async function main(): Promise<void> {
         ["product_id", "rank", "model_id"],
         compatibilityRows(seed, scale),
       );
+
+      // The first demo sales, running from now and ending on different days;
+      // the daily rotation keeps about 2% of products on sale from then on
+      // (issue #151).
+      const loadedAt = new Date();
+      const sales = await rotateSales(client, {
+        now: loadedAt,
+        startsAt: loadedAt,
+        spread: true,
+      });
+      console.log(`  ${sales.length} products on sale`);
 
       // Rows were loaded with explicit ids: move each sequence past them, so
       // documents created later in Payload get free ids.

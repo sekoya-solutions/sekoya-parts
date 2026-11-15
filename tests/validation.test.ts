@@ -60,7 +60,13 @@ describe("product references", () => {
       const paths = await rejectedPaths(
         payload.create({
           collection: "products",
-          data: { reference, brand, category, priceCents: 990 },
+          data: {
+            reference,
+            brand,
+            category,
+            priceCents: 990,
+            availability: "in-stock",
+          },
         }),
       );
       expect(paths).toEqual(["reference"]);

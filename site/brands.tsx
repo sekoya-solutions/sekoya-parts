@@ -26,6 +26,7 @@ import { type CategoryRows, database, readCards } from "./categories.tsx";
 import { ProductListing, pageLabel } from "./category-page.tsx";
 import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
+import { setPriceLifetime } from "./price-cache.ts";
 import { computedAt } from "./product.tsx";
 import {
   BRANDS_TAG,
@@ -95,9 +96,9 @@ export async function getBrandRows(
   page: number,
 ): Promise<CategoryRows> {
   "use cache: remote";
-  cacheLife("max");
 
   const drizzle = await database();
+  const now = Date.now();
   const { rows } = await drizzle.execute<{ id: number }>(sql`
     SELECT id FROM products
      WHERE brand_id = ${brandId}
@@ -105,7 +106,11 @@ export async function getBrandRows(
      LIMIT ${PRODUCTS_PER_CATEGORY_PAGE}
     OFFSET ${(page - 1) * PRODUCTS_PER_CATEGORY_PAGE}
   `);
-  const cards = await readCards(rows.map((row) => row.id));
+  const cards = await readCards(
+    rows.map((row) => row.id),
+    now,
+  );
+  setPriceLifetime(cards.sales, now);
   cacheTag(
     ...brandPageTags(
       brandId,

@@ -205,6 +205,21 @@
     background-color: var(--color-action-hover);
   }
 
+  /* Sale prices (issue #151): the former price struck through in slate,
+     then the discount badge, navy on leaf, as a <mark>. */
+  s {
+    color: var(--color-slate);
+  }
+  mark {
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-leaf);
+    color: var(--color-navy);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 700;
+  }
+
   /* Previous and next links on numbered pages. */
   .pager {
     display: flex;
