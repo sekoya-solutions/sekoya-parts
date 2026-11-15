@@ -294,6 +294,21 @@ export function pageArgument(argument: string) {
   return { page: match[1] as string, address: match[2] as string };
 }
 
+/**
+ * The first link in a page's main content whose address starts with the
+ * prefix, or null. Links before <main>, such as the facts bar's and the
+ * header's menus (issue #144), are skipped: the measured page must be the
+ * one the content lists first, such as the home page's first category.
+ */
+export function firstMainLink(html: string, prefix: string): string | null {
+  const main = html.indexOf("<main");
+  if (main < 0) return null;
+  const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return (
+    new RegExp(`href="(${escaped}[^"]*)"`).exec(html.slice(main))?.[1] ?? null
+  );
+}
+
 /** The measuring arguments, each page named once. */
 export function pageArguments(argv: string[]) {
   const pages = argv.map(pageArgument);

@@ -44,6 +44,7 @@ import {
   crawlableMismatch,
   FIGURES_FILE,
   type Figures,
+  firstMainLink,
   gateText,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
@@ -164,8 +165,8 @@ async function request(path: string): Promise<Response> {
 // which the site redirects permanently to the product's address (issue #73):
 // the address measured is then the redirect's target, on the same origin,
 // after one more request, so its words never need to be known here.
-// An address may also be first-link:<page>:<prefix>, the first link on that
-// page whose address starts with the prefix, such as a model page linked from
+// An address may also be first-link:<page>:<prefix>, the first link in that
+// page's <main> whose address starts with the prefix, such as a model page linked from
 // a product page (issue #79): one more request reads the page first.
 async function follow(requested: string) {
   let path = requested;
@@ -196,10 +197,11 @@ async function firstLink(page: string, prefix: string): Promise<string> {
     console.error(`Stopped: ${path} answered ${response.status}.`);
     process.exit(1);
   }
-  const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const href = new RegExp(`href="(${escaped}[^"]*)"`).exec(html)?.[1];
+  const href = firstMainLink(html, prefix);
   if (!href) {
-    console.error(`Stopped: ${path} has no link starting with ${prefix}.`);
+    console.error(
+      `Stopped: ${path} has no link starting with ${prefix} in <main>.`,
+    );
     process.exit(1);
   }
   console.log(`${path} links first to ${href}, which is measured.`);
