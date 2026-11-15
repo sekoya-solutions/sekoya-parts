@@ -1,4 +1,4 @@
-// GET /api/finder?lang=<lang>&brand=<slug>&type=<type>&q=<reference> (issue
+// GET /api/finder?lang=<lang>&make=<slug>&appliance=<type>&q=<reference> (issue
 // #155): where the part finder's reference field sends its form. A Route
 // Handler, as for the header search (app/(site)/api/search/route.ts), so it
 // answers with a real 307 before any page renders.
@@ -9,7 +9,12 @@ import config from "@payload-config";
 import type { PostgresAdapter } from "@payloadcms/db-postgres";
 import type { NextRequest } from "next/server";
 import { getPayload } from "payload";
-import { finderPath, isLocale, modelPath } from "../../../../site/addresses.ts";
+import {
+  FINDER_PARAMS,
+  finderPath,
+  isLocale,
+  modelPath,
+} from "../../../../site/addresses.ts";
 import { readChoice } from "../../../../site/finder.tsx";
 import { findModels } from "../../../../site/model-search.ts";
 import { queryOf, searchKey } from "../../../../site/search-key.ts";
@@ -30,8 +35,8 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!isLocale(lang))
     return new Response("Unknown language.", { status: 404 });
   const choice = {
-    brand: params.get("brand") ?? undefined,
-    type: params.get("type") ?? undefined,
+    brand: params.get(FINDER_PARAMS.brand) ?? undefined,
+    type: params.get(FINDER_PARAMS.type) ?? undefined,
     q: queryOf(params.get("q") ?? undefined) || undefined,
   };
   const { brand, type } = await readChoice(choice);

@@ -231,6 +231,18 @@ export const POPULAR_MODELS = 24;
 export const isApplianceType = (value: string): value is ApplianceType =>
   (applianceTypes as readonly string[]).includes(value);
 
+/**
+ * The finder's query parameters. Not brand or sort: the query rewrites of
+ * category pages (site/listing-rewrites.ts) serve any section's ?brand= or
+ * ?sort= as a filtered category view, which would take the finder's page
+ * away; they never rewrite a query with q.
+ */
+export const FINDER_PARAMS = {
+  brand: "make",
+  type: "appliance",
+  q: "q",
+} as const;
+
 /** What the finder has been told so far. */
 export type FinderChoice = { brand?: string; type?: string; q?: string };
 
@@ -239,7 +251,7 @@ export function finderPath(locale: Locale, choice: FinderChoice = {}): string {
   const params = new URLSearchParams();
   for (const key of ["brand", "type", "q"] as const) {
     const value = choice[key];
-    if (value) params.set(key, value);
+    if (value) params.set(FINDER_PARAMS[key], value);
   }
   const query = params.toString();
   return `/${locale}/${FINDER_WORDS[locale]}${query ? `?${query}` : ""}`;

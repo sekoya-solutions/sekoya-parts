@@ -1,5 +1,5 @@
 // The part finder (issue #155, owner decision 2026-11-15): three steps on one
-// page, /<lang>/<finder word>, chosen through its query, with no browser code:
+// page, /<lang>/<finder word>?make=…&appliance=…, with no browser code:
 // 1. the brand, from a form on the home page and on this page;
 // 2. the appliance type, as links, each with its number of models;
 // 3. the model: the pair's 24 most popular models, those with the most
@@ -14,6 +14,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import type { ApplianceType } from "../catalog/generator.ts";
 import type { Locale } from "../cms/locales.ts";
 import {
+  FINDER_PARAMS,
   type FinderChoice,
   finderPath,
   homePath,
@@ -123,7 +124,11 @@ export function BrandStep({
     >
       <label>
         <span>{dictionary.finderBrand}</span>
-        <select name="brand" defaultValue={selected ?? ""} required>
+        <select
+          name={FINDER_PARAMS.brand}
+          defaultValue={selected ?? ""}
+          required
+        >
           <option value="" disabled>
             {dictionary.finderChooseBrand}
           </option>
@@ -246,8 +251,12 @@ export async function FinderPage({
             className="listing-controls mt-3"
           >
             <input type="hidden" name="lang" value={locale} />
-            <input type="hidden" name="brand" value={brand.slug} />
-            <input type="hidden" name="type" value={type} />
+            <input
+              type="hidden"
+              name={FINDER_PARAMS.brand}
+              value={brand.slug}
+            />
+            <input type="hidden" name={FINDER_PARAMS.type} value={type} />
             <label>
               <span>{dictionary.finderReference}</span>
               <input

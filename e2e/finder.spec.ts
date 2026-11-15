@@ -31,7 +31,7 @@ async function toStepThree(page: import("@playwright/test").Page) {
   const href = (await typeLink.getAttribute("href")) as string;
   await typeLink.click();
   const type = new URL(href, "http://site.test").searchParams.get(
-    "type",
+    "appliance",
   ) as string;
   return { brand, type };
 }
@@ -50,7 +50,7 @@ test("the home page's form leads to the brand's appliance types, each with its m
   await form.locator("select").selectOption(brand);
   await form.getByRole("button").click();
   expect(new URL(page.url()).pathname).toBe(FINDER);
-  expect(new URL(page.url()).searchParams.get("brand")).toBe(brand);
+  expect(new URL(page.url()).searchParams.get("make")).toBe(brand);
   const types = page.locator('[data-finder-step="type"] li');
   await expect(types).toHaveCount(8);
   for (const text of await types.locator("span").allTextContents())
@@ -105,8 +105,8 @@ test("a partial reference lists the matching models of the pair only", async ({
     .click();
   const url = new URL(page.url());
   expect(url.pathname).toBe(FINDER);
-  expect(url.searchParams.get("brand")).toBe(brand);
-  expect(url.searchParams.get("type")).toBe(type);
+  expect(url.searchParams.get("make")).toBe(brand);
+  expect(url.searchParams.get("appliance")).toBe(type);
   const matches = page.locator("[data-finder-matches] a");
   expect(await matches.count()).toBeGreaterThan(0);
   for (const href of await matches.evaluateAll((links) =>
@@ -123,7 +123,7 @@ test("the field's route answers an exact reference with a 307, anything else wit
   const first = page.locator('[data-list="popular-models"] a').first();
   const reference = (await first.textContent()) as string;
   const exact = await request.get(
-    `/api/finder?lang=fr&brand=${brand}&type=${type}&q=${encodeURIComponent(reference)}`,
+    `/api/finder?lang=fr&make=${brand}&appliance=${type}&q=${encodeURIComponent(reference)}`,
     { maxRedirects: 0 },
   );
   expect(exact.status()).toBe(307);
@@ -131,19 +131,19 @@ test("the field's route answers an exact reference with a 307, anything else wit
     (await first.getAttribute("href")) as string,
   );
   const other = await request.get(
-    `/api/finder?lang=fr&brand=${brand}&type=${type}&q=zzzz`,
+    `/api/finder?lang=fr&make=${brand}&appliance=${type}&q=zzzz`,
     { maxRedirects: 0 },
   );
   expect(other.status()).toBe(307);
   expect(locationAddress(other)).toBe(
-    `${FINDER}?brand=${brand}&type=${type}&q=zzzz`,
+    `${FINDER}?make=${brand}&appliance=${type}&q=zzzz`,
   );
 });
 
 test("an unknown brand or type falls back to the step before", async ({
   page,
 }) => {
-  await page.goto(`${FINDER}?brand=nosuchbrand&type=oven`);
+  await page.goto(`${FINDER}?make=nosuchbrand&appliance=oven`);
   await expect(page.locator("[data-finder-progress]")).toHaveAttribute(
     "data-finder-progress",
     "1",
@@ -153,7 +153,7 @@ test("an unknown brand or type falls back to the step before", async ({
     .locator('form[data-finder-step="brand"] select option:not([disabled])')
     .first()
     .getAttribute("value")) as string;
-  await page.goto(`${FINDER}?brand=${brand}&type=toaster`);
+  await page.goto(`${FINDER}?make=${brand}&appliance=toaster`);
   await expect(page.locator("[data-finder-progress]")).toHaveAttribute(
     "data-finder-progress",
     "2",

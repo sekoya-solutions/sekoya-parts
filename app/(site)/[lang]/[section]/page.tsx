@@ -7,12 +7,14 @@
 //   (docs/adr/0010-search.md, issue #113);
 // - the information pages, at /<lang>/<page slug> (issue #143);
 // - the brand index, at /<lang>/<brand word> (issue #147);
-// - the part finder, at /<lang>/<finder word>?brand=…&type=…&q=… (issue #155).
+// - the part finder, at /<lang>/<finder word>?make=…&appliance=…&q=… (issue
+//   #155).
 // Payload refuses a category slug equal to a search word, a brand word or a
 // page slug, in any language.
 import type { Metadata } from "next";
 import {
   BRAND_WORDS,
+  FINDER_PARAMS,
   INFO_PAGES,
   INFO_SLUGS,
   infoPageOf,
@@ -106,8 +108,8 @@ export default async function SectionPage({ params, searchParams }: Props) {
       <FinderPage
         locale={locale}
         choice={{
-          brand: one(query.brand),
-          type: one(query.type),
+          brand: one(query[FINDER_PARAMS.brand]),
+          type: one(query[FINDER_PARAMS.type]),
           q: one(query.q),
         }}
       />

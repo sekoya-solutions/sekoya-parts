@@ -47,11 +47,11 @@ describe("finderPath", () => {
   it("carries the choices made so far, in order, and nothing else", () => {
     expect(finderPath("fr")).toBe("/fr/trouver-une-piece");
     expect(finderPath("en", { brand: "bedoren" })).toBe(
-      "/en/find-a-part?brand=bedoren",
+      "/en/find-a-part?make=bedoren",
     );
     expect(
       finderPath("de", { brand: "bedoren", type: "oven", q: "ab 12" }),
-    ).toBe("/de/teil-finden?brand=bedoren&type=oven&q=ab+12");
+    ).toBe("/de/teil-finden?make=bedoren&appliance=oven&q=ab+12");
     expect(finderPath("fr", { brand: "", type: undefined })).toBe(
       "/fr/trouver-une-piece",
     );
@@ -66,5 +66,22 @@ describe("the finder's choices", () => {
 
   it("list 24 popular models (owner decision)", () => {
     expect(POPULAR_MODELS).toBe(24);
+  });
+});
+
+describe("the finder's query parameters", () => {
+  it("are none the category pages' rewrites react to, except q, which they never rewrite", async () => {
+    const { FINDER_PARAMS } = await import("../site/addresses.ts");
+    const { listingRewrites } = await import("../site/listing-rewrites.ts");
+    const rewritten = new Set(
+      listingRewrites().flatMap((rule) => rule.has.map((has) => has.key)),
+    );
+    for (const name of Object.values(FINDER_PARAMS))
+      expect(rewritten.has(name), name).toBe(false);
+    for (const rule of listingRewrites())
+      expect(rule.missing).toContainEqual({
+        type: "query",
+        key: FINDER_PARAMS.q,
+      });
   });
 });
