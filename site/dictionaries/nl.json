@@ -55,6 +55,8 @@
   "finderReference": "Modelnummer",
   "finderNoMatch": "Geen model van dit merk en type komt overeen met ‘{query}’.",
   "finderPopular": "Meest voorkomende modellen",
+  "promotions": "Acties",
+  "slideOf": "Actie {slide} van {slides}",
   "previousPage": "Vorige pagina",
   "nextPage": "Volgende pagina",
   "backToProduct": "Terug naar het onderdeel",

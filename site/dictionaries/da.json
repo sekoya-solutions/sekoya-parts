@@ -55,6 +55,8 @@
   "finderReference": "Modelnummer",
   "finderNoMatch": "Ingen model af dette mærke og denne type matcher »{query}«.",
   "finderPopular": "Mest almindelige modeller",
+  "promotions": "Kampagner",
+  "slideOf": "Kampagne {slide} af {slides}",
   "previousPage": "Forrige side",
   "nextPage": "Næste side",
   "backToProduct": "Tilbage til reservedelen",

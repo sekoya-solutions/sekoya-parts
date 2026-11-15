@@ -55,6 +55,8 @@
   "finderReference": "Model reference",
   "finderNoMatch": "No model of this brand and type matches “{query}”.",
   "finderPopular": "Most common models",
+  "promotions": "Promotions",
+  "slideOf": "Promotion {slide} of {slides}",
   "previousPage": "Previous page",
   "nextPage": "Next page",
   "backToProduct": "Back to the part",

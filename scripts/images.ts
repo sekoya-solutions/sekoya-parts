@@ -30,10 +30,8 @@ import sharp from "sharp";
 import {
   allImages,
   IMAGE_FORMATS,
-  IMAGE_SIZE,
-  IMAGE_WIDTHS,
-  IMAGES_PER_CATEGORY,
   type ImageKey,
+  imageSet,
   ORIGINALS_DIR,
   OUTPUT_DIR,
   originalHash,
@@ -56,7 +54,7 @@ function scanOriginals(): Record<string, string[]> {
     if (!statSync(join(ORIGINALS_DIR, folder)).isDirectory()) continue;
     const files = readdirSync(join(ORIGINALS_DIR, folder)).sort();
     const expected = Array.from(
-      { length: IMAGES_PER_CATEGORY },
+      { length: imageSet(folder).count },
       (_, i) => `${i + 1}.jpg`,
     );
     if (files.join() !== expected.join())
@@ -98,20 +96,22 @@ for (const key of allImages()) {
     throw new Error(`${originalPath(key)} does not match its manifest hash.`);
   const original = readFileSync(originalPath(key));
   const { width, height } = await sharp(original).metadata();
-  if (width !== IMAGE_SIZE || height !== IMAGE_SIZE)
+  const set = imageSet(key.folder);
+  if (width !== set.width || height !== set.height)
     throw new Error(
-      `${originalPath(key)} is ${width} x ${height}; it must be ${IMAGE_SIZE} x ${IMAGE_SIZE}.`,
+      `${originalPath(key)} is ${width} x ${height}; it must be ${set.width} x ${set.height}.`,
     );
   await Promise.all(
     IMAGE_FORMATS.flatMap(({ ext, options }) =>
-      IMAGE_WIDTHS.map(async (w) => {
+      set.widths.map(async (w) => {
         const name = outputName(key, w, ext);
         const cached = join(CACHE_DIR, name);
         if (existsSync(cached)) {
           reused++;
         } else {
           await sharp(original)
-            .resize(w, w)
+            // The original's proportions, at this width.
+            .resize(w)
             .toFormat(ext === "jpg" ? "jpeg" : ext, options)
             .toFile(cached);
           encoded++;

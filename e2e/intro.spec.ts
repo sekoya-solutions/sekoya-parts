@@ -53,7 +53,14 @@ const cardWidths = (page: Page) =>
     .locator("picture > img")
     .evaluateAll((imgs) =>
       (imgs as HTMLImageElement[])
-        .filter((img) => img.complete && img.currentSrc)
+        // Card images only: the home page's promotions (issue #155) have
+        // their own, wider files.
+        .filter(
+          (img) =>
+            img.complete &&
+            img.currentSrc &&
+            !img.currentSrc.includes("/images/promotion-"),
+        )
         .map((img) => ({
           width: Number(/-(\d+)-[0-9a-f]+\.\w+$/.exec(img.currentSrc)?.[1]),
           detail: `${img.currentSrc.split("/").pop()} shown ${img.clientWidth}px, window ${window.innerWidth}px, document ${document.documentElement.clientWidth}px, ${window.devicePixelRatio}x`,
@@ -148,7 +155,10 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
       const requested: string[] = [];
       page.on("request", (request) => {
         const { pathname } = new URL(request.url());
-        if (pathname.startsWith("/images/"))
+        if (
+          pathname.startsWith("/images/") &&
+          !pathname.startsWith("/images/promotion-")
+        )
           requested.push(pathname.split("/").pop() as string);
       });
       await page.goto(path);

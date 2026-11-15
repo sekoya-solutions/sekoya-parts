@@ -83,6 +83,9 @@ export function categoryPageTags(
   return tags;
 }
 
+/** The home page's promotions (issue #155): any promotion's save refreshes it. */
+export const PROMOTIONS_TAG = "promotions";
+
 /** Everything that shows a brand's name or slug. */
 export const brandTag = (id: number) => `brand:${id}`;
 

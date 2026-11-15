@@ -55,6 +55,8 @@
   "finderReference": "Modellnummer",
   "finderNoMatch": "Ingen modell av detta varumärke och denna typ matchar ”{query}”.",
   "finderPopular": "Vanligaste modellerna",
+  "promotions": "Kampanjer",
+  "slideOf": "Kampanj {slide} av {slides}",
   "previousPage": "Föregående sida",
   "nextPage": "Nästa sida",
   "backToProduct": "Tillbaka till reservdelen",

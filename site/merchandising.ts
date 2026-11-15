@@ -125,11 +125,21 @@ export const REVALIDATE_MARGIN_SECONDS = 60;
  * than revalidate and serves the cached version during a revalidation. The
  * "max" profile when no date is coming.
  */
-export function priceLifetime(
+export const priceLifetime = (
   products: Iterable<Sale>,
   now: number,
+): "max" | { revalidate: number; expire: number } =>
+  lifetimeUntil(nextSaleChange(products, now), now);
+
+/**
+ * A cached part's lifetime up to a moment it must change at, such as a sale
+ * or a promotion starting: expire then, revalidate a margin earlier (ADR
+ * 0008); the "max" profile when nothing is coming.
+ */
+export function lifetimeUntil(
+  next: number | null,
+  now: number,
 ): "max" | { revalidate: number; expire: number } {
-  const next = nextSaleChange(products, now);
   if (next === null) return "max";
   const expire = Math.max(2, Math.ceil((next - now) / 1000));
   const revalidate = Math.max(1, expire - REVALIDATE_MARGIN_SECONDS);

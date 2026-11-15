@@ -220,6 +220,111 @@
     font-weight: 700;
   }
 
+  /* The home page's promotions (issue #155). The slider is a scroll-snap
+     strip, one slide per view, moved by swiping, its scroll bar or its
+     numbered links, never by itself. On phones the text sits below the
+     image; from 48rem it sits over the image's calm left half, on a sand
+     panel, so navy text keeps its contrast whatever the photograph. */
+  .slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    border-radius: var(--radius-md);
+  }
+  .slider li {
+    position: relative;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+  .slider a {
+    display: block;
+    color: var(--color-navy);
+    text-decoration-line: none;
+  }
+  .slider img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 8 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+  .slide-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 0.25rem 0;
+  }
+  .slide-text strong {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+  @media (min-width: 48rem) {
+    .slide-text {
+      position: absolute;
+      top: 50%;
+      left: 2rem;
+      max-width: 22rem;
+      padding: 1rem 1.25rem;
+      transform: translateY(-50%);
+      border-radius: var(--radius-md);
+      background-color: var(--color-sand);
+    }
+    .slide-text strong {
+      font-size: var(--text-2xl);
+      line-height: var(--text-2xl--line-height);
+    }
+  }
+  .slider-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .slider-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-line);
+    font-weight: 600;
+    text-decoration-line: none;
+  }
+  .promotion-tiles {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .promotion-tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .promotion-tiles a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: var(--color-navy);
+    text-decoration-line: none;
+  }
+  .promotion-tiles img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+  }
+  .promotion-tiles strong {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+  }
+  .promotion-tiles a:hover strong,
+  .slider a:hover strong {
+    color: var(--color-action-hover);
+    text-decoration-line: underline;
+  }
+
   /* Previous and next links on numbered pages. */
   .pager {
     display: flex;

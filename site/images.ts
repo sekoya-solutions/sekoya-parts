@@ -1,6 +1,7 @@
 // The catalog's images (issue #85, docs/adr/0012-front-end-assets.md,
 // docs/specs/design-system.md): four originals per category in
-// assets/images/<category>/<n>.jpg, resized at build time by
+// assets/images/<category>/<n>.jpg, and the home page's promotion images
+// (issue #155) in their own folders, each set with its own size (IMAGE_SETS), resized at build time by
 // scripts/images.ts into public/images, and the addresses the pages use.
 //
 // Each output's file name carries a hash of its original and of the encoding
@@ -18,8 +19,48 @@ export const IMAGES_PER_CATEGORY = 4;
 /** The widths written for each image, in pixels; the originals are 1,600. */
 export const IMAGE_WIDTHS = [320, 480, 640, 960] as const;
 
-/** Every image is square. */
+/** Every catalog image is square. */
 export const IMAGE_SIZE = 1600;
+
+/** A folder of originals: their size, how many, and the widths written. */
+export type ImageSet = {
+  width: number;
+  height: number;
+  count: number;
+  widths: readonly number[];
+};
+
+/** A category's four square images. */
+export const CATEGORY_IMAGES: ImageSet = {
+  width: IMAGE_SIZE,
+  height: IMAGE_SIZE,
+  count: IMAGES_PER_CATEGORY,
+  widths: IMAGE_WIDTHS,
+};
+
+/**
+ * The home page's promotion images (issue #155), made by the owner: three
+ * wide slides and three tiles, with no text, so the headline in each language
+ * is set over them. Slides fill the page's width, so they get wider files.
+ */
+export const IMAGE_SETS: Readonly<Record<string, ImageSet>> = {
+  "promotion-slides": {
+    width: 2400,
+    height: 900,
+    count: 3,
+    widths: [640, 960, 1280, 1920],
+  },
+  "promotion-tiles": {
+    width: 1200,
+    height: 900,
+    count: 3,
+    widths: [320, 480, 640, 960],
+  },
+};
+
+/** The set a folder's originals belong to: a promotion set, or a category's. */
+export const imageSet = (folder: string): ImageSet =>
+  IMAGE_SETS[folder] ?? CATEGORY_IMAGES;
 
 /** The output formats, best first, as <picture> lists them. */
 export const IMAGE_FORMATS = [
@@ -105,7 +146,9 @@ export const imagePath = (
 
 /** A srcset listing every width of one format. */
 export const srcSet = (key: ImageKey, format: ImageFormat): string =>
-  IMAGE_WIDTHS.map((w) => `${imagePath(key, w, format)} ${w}w`).join(", ");
+  imageSet(key.folder)
+    .widths.map((w) => `${imagePath(key, w, format)} ${w}w`)
+    .join(", ");
 
 /** Every original, in manifest order. */
 export const allImages = (): ImageKey[] =>

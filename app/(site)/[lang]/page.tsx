@@ -15,6 +15,7 @@ import { homeAlternates } from "../../../site/home.ts";
 import { categoryImage } from "../../../site/images.ts";
 import { CARD_SIZES, cardLoading, Picture } from "../../../site/picture.tsx";
 import { ProductCard } from "../../../site/product-card.tsx";
+import { HomePromotions } from "../../../site/promotions.tsx";
 import { localeOf } from "../../../site/resolve.ts";
 import { getShowcaseRows } from "../../../site/showcase.tsx";
 
@@ -62,6 +63,8 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           categories: format.format(categories.length),
         })}
       </p>
+      {/* Promotions (issue #155): a slider and tiles, no script. */}
+      <HomePromotions locale={locale} />
       {/* The part finder's first step (issue #155): a GET form, no script. */}
       <section className="mt-8" aria-labelledby="finder">
         <h2 id="finder" className="text-2xl font-bold">

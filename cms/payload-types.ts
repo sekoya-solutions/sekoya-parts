@@ -70,6 +70,7 @@ export interface Config {
     categories: Category;
     brands: Brand;
     products: Product;
+    promotions: Promotion;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -81,6 +82,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     brands: BrandsSelect<false> | BrandsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
+    promotions: PromotionsSelect<false> | PromotionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -170,6 +172,39 @@ export interface Product {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotions".
+ */
+export interface Promotion {
+  id: number;
+  kind: 'slide' | 'tile';
+  image: number;
+  headline: string;
+  text?: string | null;
+  linkTo: 'category' | 'brands' | 'finder';
+  category?:
+    | (
+        | 'belt'
+        | 'door-seal'
+        | 'drain-pump'
+        | 'heating-element'
+        | 'filter'
+        | 'thermostat'
+        | 'motor'
+        | 'control-board'
+        | 'hinge'
+        | 'knob'
+        | 'lamp'
+        | 'basket'
+      )
+    | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -233,6 +268,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'products';
         value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'promotions';
+        value: number | Promotion;
       } | null)
     | ({
         relationTo: 'users';
@@ -316,6 +355,23 @@ export interface ProductsSelect<T extends boolean = true> {
   showcase?: T;
   name?: T;
   description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotions_select".
+ */
+export interface PromotionsSelect<T extends boolean = true> {
+  kind?: T;
+  image?: T;
+  headline?: T;
+  text?: T;
+  linkTo?: T;
+  category?: T;
+  startsAt?: T;
+  endsAt?: T;
+  order?: T;
   updatedAt?: T;
   createdAt?: T;
 }
