@@ -1,20 +1,27 @@
-// Three templates share the address shape /<lang>/<section>
+// Four templates share the address shape /<lang>/<section>
 // (docs/adr/0011-languages-and-seo.md):
 // - a category's first page, at /<lang>/<category slug> (issue #81). Its
 //   other pages are at /<lang>/<category slug>/<n>, which the entry route
 //   hands to the same template;
 // - the search results page, at /<lang>/<search word>?q=<query>
 //   (docs/adr/0010-search.md, issue #113);
-// - the information pages, at /<lang>/<page slug> (issue #143).
-// Payload refuses a category slug equal to a search word or a page slug, in
-// any language.
+// - the information pages, at /<lang>/<page slug> (issue #143);
+// - the brand index, at /<lang>/<brand word> (issue #147).
+// Payload refuses a category slug equal to a search word, a brand word or a
+// page slug, in any language.
 import type { Metadata } from "next";
 import {
+  BRAND_WORDS,
   INFO_PAGES,
   INFO_SLUGS,
   infoPageOf,
+  isBrandWord,
   isSearchWord,
 } from "../../../../site/addresses.ts";
+import {
+  BrandIndexPage,
+  brandIndexMetadata,
+} from "../../../../site/brands.tsx";
 import { getCategories } from "../../../../site/categories.tsx";
 import {
   CategoryPage,
@@ -27,8 +34,8 @@ import { localeOf } from "../../../../site/resolve.ts";
 import { SearchPage } from "../../../../site/search.tsx";
 import { queryOf } from "../../../../site/search-key.ts";
 
-// Built in advance: each category's first page and each information page in
-// each language. The other category pages render on their first visit
+// Built in advance: each category's first page, each information page and the
+// brand index in each language. The other category pages render on their first visit
 // (docs/adr/0008-caching-and-partial-refresh.md), and the search page on every
 // request.
 export async function generateStaticParams({
@@ -43,6 +50,7 @@ export async function generateStaticParams({
   return [
     ...categories.map((category) => ({ section: category.slugs[locale] })),
     ...INFO_PAGES.map((page) => ({ section: INFO_SLUGS[page][locale] })),
+    { section: BRAND_WORDS[locale] },
   ];
 }
 
@@ -65,6 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       robots: { index: false },
     };
   if (infoPageOf(section)) return infoMetadata(locale, section);
+  if (isBrandWord(section)) return brandIndexMetadata(locale, section);
   return categoryMetadata(locale, section, 1, requestedPath(lang, section));
 }
 
@@ -82,6 +91,8 @@ export default async function SectionPage({ params, searchParams }: Props) {
   }
   if (infoPageOf(section))
     return <InfoPageView locale={locale} section={section} />;
+  if (isBrandWord(section))
+    return <BrandIndexPage locale={locale} section={section} />;
   return (
     <CategoryPage
       locale={locale}

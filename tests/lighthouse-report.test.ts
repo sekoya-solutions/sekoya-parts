@@ -19,6 +19,7 @@ import {
   commitMismatch,
   crawlableMismatch,
   type Figures,
+  firstMainLink,
   gateText,
   MIN_SCORES,
   median,
@@ -588,5 +589,24 @@ describe("is-crawlable against robots.txt on production", () => {
       ` (${BLOCKED_LABEL})`,
     );
     expect(checkTitle(figures[0] as Figures)).not.toContain(BLOCKED_LABEL);
+  });
+});
+
+describe("firstMainLink", () => {
+  // The facts bar's terms link came first on the home page (issue #144), so
+  // the "category" check measured /fr/conditions-de-vente (PR #149's run).
+  const html = `<div data-facts-bar><a href="/fr/conditions-de-vente">x</a></div>
+<header><a href="/fr/marques">Marques</a></header>
+<main><nav class="breadcrumbs"><a href="/fr">Accueil</a></nav>
+<ul><li><a href="/fr/courroie">Courroie</a></li></ul></main>`;
+
+  it("skips the links before <main>", () => {
+    expect(firstMainLink(html, "/fr/")).toBe("/fr/courroie");
+  });
+
+  it("matches the prefix literally and gives null when none is found", () => {
+    expect(firstMainLink(html, "/fr/marques/")).toBeNull();
+    expect(firstMainLink(html, "/fr/c.u")).toBeNull();
+    expect(firstMainLink('<a href="/fr/x">', "/fr/")).toBeNull();
   });
 });

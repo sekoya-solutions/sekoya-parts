@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 import {
+  brandIndexPath,
   categoryPath,
   homePath,
   type InfoPage,
@@ -189,6 +190,12 @@ export function SiteHeader({
         <SearchBox locale={locale} query={query} />
         <div className="flex items-center gap-2">
           <CategoryMenu locale={locale} />
+          <a
+            href={brandIndexPath(locale)}
+            className="rounded-md px-2 py-1 text-sm"
+          >
+            {getDictionary(locale).brands}
+          </a>
           {paths && <LanguageSwitch locale={locale} paths={paths} />}
         </div>
       </div>

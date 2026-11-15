@@ -9,6 +9,7 @@ import type { Locale } from "../cms/locales.ts";
 import { categoryPath, languageAlternates } from "./addresses.ts";
 import { Breadcrumbs } from "./breadcrumbs.tsx";
 import {
+  type CategoryRow,
   categoryPaths,
   getCategoryCounts,
   getCategoryRows,
@@ -109,6 +110,40 @@ export async function CategoryPage({
           count: new Intl.NumberFormat(locale).format(counts[category.id] ?? 0),
         })}
       </p>
+      <ProductListing
+        locale={locale}
+        rows={rows}
+        computedAt={computedAt}
+        page={page}
+        pages={pages}
+        pathOf={(n) => categoryPath(locale, slug, n)}
+      />
+    </SiteFrame>
+  );
+}
+
+/**
+ * A listing page's product cards and its previous and next links, shared by
+ * the category and brand pages (issue #147). `pathOf` gives page n's address.
+ */
+export function ProductListing({
+  locale,
+  rows,
+  computedAt,
+  page,
+  pages,
+  pathOf,
+}: {
+  locale: Locale;
+  rows: CategoryRow[];
+  computedAt: string;
+  page: number;
+  pages: number;
+  pathOf: (page: number) => string;
+}) {
+  const dictionary = getDictionary(locale);
+  return (
+    <>
       <ul data-computed-at={computedAt} className="product-list mt-6">
         {rows.map(({ route, priceCents }, index) => (
           <li key={route.id}>
@@ -121,17 +156,17 @@ export async function CategoryPage({
       {pages > 1 && (
         <nav className="pager">
           {page > 1 && (
-            <a href={categoryPath(locale, slug, page - 1)} rel="prev">
+            <a href={pathOf(page - 1)} rel="prev">
               {dictionary.previousPage}
             </a>
           )}{" "}
           {page < pages && (
-            <a href={categoryPath(locale, slug, page + 1)} rel="next">
+            <a href={pathOf(page + 1)} rel="next">
               {dictionary.nextPage}
             </a>
           )}
         </nav>
       )}
-    </SiteFrame>
+    </>
   );
 }

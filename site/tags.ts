@@ -78,6 +78,45 @@ export function categoryPageTags(
 export const brandTag = (id: number) => `brand:${id}`;
 
 /**
+ * The list of brands itself (issue #147), which a new brand joins, a deleted
+ * one leaves and a renamed one moves in, since the index is sorted by name.
+ */
+export const BRANDS_TAG = "brands";
+
+/**
+ * Which products a brand holds and in what order: its listing's rows and its
+ * number of products (issue #147), like a category's listing.
+ */
+export const brandListingTag = (id: number) => `brand:${id}:listing`;
+
+/**
+ * A brand listing page's tags: its listing, its brand's name and slug, the
+ * catalog, the price of each product it shows and the category of each, whose
+ * name and slug every ordinary product's name and address use. A list over
+ * the limit is an error, never an entry that misses refreshes.
+ */
+export function brandPageTags(
+  brandId: number,
+  productIds: Iterable<number>,
+  categoryIds: Iterable<number>,
+): string[] {
+  const sorted = (ids: Iterable<number>) =>
+    [...new Set(ids)].sort((a, b) => a - b);
+  const tags = [
+    brandListingTag(brandId),
+    brandTag(brandId),
+    CATALOG_TAG,
+    ...sorted(productIds).map((id) => productTags(id).price),
+    ...sorted(categoryIds).map(categoryTag),
+  ];
+  if (tags.length > MAX_CACHE_TAGS)
+    throw new Error(
+      `Brand ${brandId}: ${tags.length} cache tags, over the limit of ${MAX_CACHE_TAGS}.`,
+    );
+  return tags;
+}
+
+/**
  * Which products the home page's showcase section lists (issue #111): a
  * product that gains or loses the showcase flag refreshes it, and so does a
  * showcase product's new reference, which the section is ordered by.
@@ -129,8 +168,8 @@ export const brandSlugTag = (slug: string) => `brand-slug:${slug}`;
 export const modelTag = (id: number) => `model:${id}`;
 
 /**
- * The tags to refresh after a brand is saved or deleted: its own, and the
- * model lookups of its slug, before and after the save.
+ * The tags to refresh after a brand is saved or deleted: its own, the list of
+ * brands, and the model lookups of its slug, before and after the save.
  */
 export function tagsForBrandChange(
   id: number,
@@ -142,7 +181,7 @@ export function tagsForBrandChange(
       (slug): slug is string => typeof slug === "string",
     ),
   );
-  return [brandTag(id), ...[...slugs].map(brandSlugTag)];
+  return [brandTag(id), BRANDS_TAG, ...[...slugs].map(brandSlugTag)];
 }
 
 /**
@@ -184,10 +223,11 @@ const comparable = (value: unknown): unknown =>
     : value;
 
 /**
- * The product fields a category page's row shows or is sorted by, apart from
- * the price, which has its own tag: its name, which an ordinary product
- * builds from its brand and reference, its reference, which sets its place,
- * and its category, which sets its listing (issue #81).
+ * The product fields a category or brand page's row shows or is sorted by,
+ * apart from the price, which has its own tag: its name, which an ordinary
+ * product builds from its category, brand and reference, its reference,
+ * which sets its place, and its category and brand, which set its listings
+ * (issues #81 and #147).
  */
 const LISTING_FIELDS = [
   "name",
@@ -202,20 +242,25 @@ const referenceOf = (doc: ProductFields): string[] =>
 
 const isShowcase = (doc: ProductFields | undefined) => doc?.showcase === true;
 
+/** The listings a product appears in: its category's and its brand's. */
 const listingOf = (doc: ProductFields): string[] => {
   const category = comparable(doc.category);
-  return typeof category === "number" ? [categoryListingTag(category)] : [];
+  const brand = comparable(doc.brand);
+  return [
+    ...(typeof category === "number" ? [categoryListingTag(category)] : []),
+    ...(typeof brand === "number" ? [brandListingTag(brand)] : []),
+  ];
 };
 
 /**
  * The tags to refresh after a product is saved: only the parts whose fields
  * changed. A new product gets all its tags and its reference's, since a visit
- * before it existed may have cached its absence, and its category's listing,
- * which it joins. A changed reference refreshes the old one's lookup, which
- * then finds nothing, and the new one's. A change to what a category page
- * shows of it refreshes the listings of its category before and after the
- * save. The reference list does not depend on product fields, so a save never
- * refreshes it.
+ * before it existed may have cached its absence, and the listings of its
+ * category and brand, which it joins. A changed reference refreshes the old
+ * one's lookup, which then finds nothing, and the new one's. A change to
+ * what a category or brand page shows of it refreshes the listings of its
+ * category and brand before and after the save. The reference list does not
+ * depend on product fields, so a save never refreshes it.
  */
 export function tagsForProductChange(
   id: number,
@@ -248,7 +293,7 @@ export function tagsForProductChange(
   return result;
 }
 
-/** The tags to refresh after a product is deleted, its category's listing included. */
+/** The tags to refresh after a product is deleted, its category's and brand's listings included. */
 export function tagsForProductDelete(id: number, doc: ProductFields): string[] {
   return [
     ...Object.values(productTags(id)),
