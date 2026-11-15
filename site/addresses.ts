@@ -196,11 +196,128 @@ export function searchPath(locale: Locale, query?: string): string {
 }
 
 /**
+ * The information pages (issue #143), in the footer's order: help first, then
+ * the legal information.
+ */
+export const INFO_PAGES = [
+  "help",
+  "delivery",
+  "legal",
+  "terms",
+  "privacy",
+  "accessibility",
+] as const;
+
+export type InfoPage = (typeof INFO_PAGES)[number];
+
+/**
+ * Each information page's slug in each language: /<lang>/<page slug>. Two
+ * languages may share a slug for the same page (`privacy`), never for two
+ * pages. Like the model and search words, each is a valid category slug's
+ * form, and Payload refuses a category slug equal to any of them.
+ */
+export const INFO_SLUGS: Record<InfoPage, Record<Locale, string>> = {
+  help: {
+    fr: "aide",
+    en: "help",
+    de: "hilfe",
+    es: "ayuda",
+    it: "aiuto",
+    nl: "hulp",
+    pt: "ajuda",
+    pl: "pomoc",
+    sv: "hjalp",
+    da: "hjaelp",
+  },
+  delivery: {
+    fr: "livraison-et-retours",
+    en: "delivery-and-returns",
+    de: "versand-und-ruecksendung",
+    es: "envios-y-devoluciones",
+    it: "spedizioni-e-resi",
+    nl: "verzending-en-retour",
+    pt: "entregas-e-devolucoes",
+    pl: "dostawa-i-zwroty",
+    sv: "leverans-och-retur",
+    da: "levering-og-returnering",
+  },
+  legal: {
+    fr: "mentions-legales",
+    en: "legal-notice",
+    de: "impressum",
+    es: "aviso-legal",
+    it: "note-legali",
+    nl: "juridische-informatie",
+    pt: "informacao-legal",
+    pl: "nota-prawna",
+    sv: "juridisk-information",
+    da: "juridiske-oplysninger",
+  },
+  terms: {
+    fr: "conditions-de-vente",
+    en: "terms-of-sale",
+    de: "verkaufsbedingungen",
+    es: "condiciones-de-venta",
+    it: "condizioni-di-vendita",
+    nl: "verkoopvoorwaarden",
+    pt: "condicoes-de-venda",
+    pl: "warunki-sprzedazy",
+    sv: "kopvillkor",
+    da: "salgsbetingelser",
+  },
+  privacy: {
+    fr: "confidentialite",
+    en: "privacy",
+    de: "datenschutz",
+    es: "privacidad",
+    it: "privacy",
+    nl: "privacy",
+    pt: "privacidade",
+    pl: "prywatnosc",
+    sv: "integritet",
+    da: "privatliv",
+  },
+  accessibility: {
+    fr: "accessibilite",
+    en: "accessibility",
+    de: "barrierefreiheit",
+    es: "accesibilidad",
+    it: "accessibilita",
+    nl: "toegankelijkheid",
+    pt: "acessibilidade",
+    pl: "dostepnosc",
+    sv: "tillganglighet",
+    da: "tilgaengelighed",
+  },
+};
+
+const infoPageBySlug = new Map<string, InfoPage>(
+  INFO_PAGES.flatMap((page) =>
+    Object.values(INFO_SLUGS[page]).map((slug) => [slug, page] as const),
+  ),
+);
+
+/**
+ * The information page a section names, in any language and letter case, or
+ * null.
+ */
+export const infoPageOf = (section: string): InfoPage | null =>
+  infoPageBySlug.get(section.toLowerCase()) ?? null;
+
+/** An information page's address in one language. */
+export const infoPagePath = (locale: Locale, page: InfoPage): string =>
+  `/${locale}/${INFO_SLUGS[page][locale]}`;
+
+/** An information page's address in every language. */
+export const infoPagePaths = (page: InfoPage): Record<Locale, string> =>
+  perLocale((locale) => infoPagePath(locale, page));
+
+/**
  * Whether a word is reserved for a section of addresses, so no category may
  * take it as its slug.
  */
 export const isReservedWord = (section: string): boolean =>
-  isModelWord(section) || isSearchWord(section);
+  isModelWord(section) || isSearchWord(section) || infoPageOf(section) !== null;
 
 /**
  * The rule for brand slugs: lowercase letters and digits, with no hyphen, so

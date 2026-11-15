@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Hulp en veelgestelde vragen",
+    "title": "Hulp en veelgestelde vragen",
+    "description": "Het onderdeel voor uw apparaat vinden, controleren of het past en deze demonstratiesite begrijpen.",
+    "sections": [
+      {
+        "heading": "Hoe vind ik het onderdeel voor mijn apparaat?",
+        "paragraphs": [
+          "Typ het typenummer van uw apparaat in het zoekveld bovenaan elke pagina. Komt het precies overeen met een model, dan komt u op de pagina van dat model, met de passende onderdelen; anders toont de zoekopdracht de modellen en onderdelen die er het dichtst bij komen."
+        ]
+      },
+      {
+        "heading": "Waar staat het typenummer van mijn apparaat?",
+        "paragraphs": [
+          "Op het typeplaatje, een sticker die vaak in de deuropening, aan de achterkant of onder het apparaat zit."
+        ]
+      },
+      {
+        "heading": "Hoe weet ik of een onderdeel past?",
+        "paragraphs": [
+          "Elke productpagina toont de passende modellen, tot een miljoen voor één onderdeel. De eerste duizend staan op de pagina, de rest op genummerde pagina’s."
+        ]
+      },
+      {
+        "heading": "Zijn de producten en prijzen echt?",
+        "paragraphs": [
+          "Nee. De producten, merken, referenties en prijzen zijn fictief: Sekoya Parts is een demonstratiesite."
+        ]
+      },
+      {
+        "heading": "Kan ik bestellen?",
+        "paragraphs": [
+          "Nee. Er kan geen echte bestelling worden geplaatst: er wordt niets betaald of geleverd."
+        ]
+      },
+      {
+        "heading": "In welke talen bestaat de site?",
+        "paragraphs": [
+          "In tien talen: Frans, Engels, Duits, Spaans, Italiaans, Nederlands, Portugees, Pools, Zweeds en Deens. De taalkeuze bovenaan de pagina’s leidt naar dezelfde pagina in een andere taal."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Verzending en retour",
+    "title": "Verzending en retour",
+    "description": "Sekoya Parts is een demonstratiewinkel: er wordt geen bestelling verzonden.",
+    "sections": [
+      {
+        "heading": "Geen verzending",
+        "paragraphs": [
+          "Sekoya Parts is een demonstratiewinkel: er wordt geen bestelling verzonden en retourneren is niet mogelijk, omdat er niets wordt verkocht."
+        ]
+      },
+      {
+        "heading": "Getoonde levertijden en kosten",
+        "paragraphs": [
+          "De levertijden, verzendkosten en drempels voor gratis verzending die de site toont, zijn fictieve voorbeelden die de demonstratie realistisch maken."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Juridische informatie",
+    "title": "Juridische informatie",
+    "description": "De uitgever en de hostingprovider van de demonstratiesite Sekoya Parts.",
+    "sections": [
+      {
+        "heading": "Uitgever",
+        "paragraphs": [
+          "De site Sekoya Parts wordt uitgegeven door {publisherName}, {publisherAddress}.",
+          "Verantwoordelijk uitgever: {publicationDirector}.",
+          "Contact: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Hosting",
+        "paragraphs": [
+          "De site wordt gehost door {hostName}, {hostAddress}. De code draait in Frankfurt (Duitsland)."
+        ]
+      },
+      {
+        "heading": "Een demonstratiesite",
+        "paragraphs": [
+          "Sekoya Parts is een portfolioproject: het laat zien dat een zeer grote catalogus van onderdelen, met een winkel eromheen, snel kan blijven. De producten, merken, referenties en prijzen zijn fictief, en op deze site wordt niets verkocht."
+        ]
+      },
+      {
+        "heading": "Intellectueel eigendom",
+        "paragraphs": [
+          "De naam, het logo, de teksten en de afbeeldingen van de site zijn voor dit project gemaakt. De broncode is op GitHub te lezen, maar de licentie geeft geen recht om die te hergebruiken."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Verkoopvoorwaarden",
+    "title": "Algemene verkoopvoorwaarden (demonstratie)",
+    "description": "De voorwaarden van de demonstratiewinkel Sekoya Parts, waar niets wordt verkocht.",
+    "sections": [
+      {
+        "heading": "Onderwerp",
+        "paragraphs": [
+          "Deze voorwaarden beschrijven de demonstratiewinkel Sekoya Parts. Ze hebben geen contractuele waarde: op deze site wordt niets verkocht."
+        ]
+      },
+      {
+        "heading": "Producten en prijzen",
+        "paragraphs": [
+          "De producten, hun referenties en hun prijzen, in euro, zijn fictief. Ze laten zien hoe een zeer grote catalogus zich gedraagt."
+        ]
+      },
+      {
+        "heading": "Bestellingen en betaling",
+        "paragraphs": [
+          "De site neemt geen echte bestellingen aan: er wordt geen betaling gevraagd of afgeschreven, er worden geen kaartgegevens gevraagd en er wordt niets geleverd."
+        ]
+      },
+      {
+        "heading": "Contact",
+        "paragraphs": [
+          "Voor vragen over dit project kunt u de uitgever schrijven, wiens gegevens in de juridische informatie staan."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Privacy",
+    "title": "Privacybeleid",
+    "description": "Welke gegevens de site Sekoya Parts ontvangt, wat ze ermee doet en aan wie ze die doorgeeft.",
+    "sections": [
+      {
+        "heading": "In het kort",
+        "paragraphs": [
+          "De site gebruikt geen bezoekersmeting, geen advertenties en geen scripts van derden, en vraagt geen persoonsgegevens om de catalogus te bekijken."
+        ]
+      },
+      {
+        "heading": "Hosting en beveiliging",
+        "paragraphs": [
+          "Zoals elke website ontvangt Sekoya Parts het IP-adres en de headers die uw browser verstuurt. De hostingprovider, Vercel, verwerkt ze om de pagina’s te leveren en de site te beschermen, en kan ze in zijn technische logboeken bewaren, volgens zijn eigen privacybeleid.",
+          "De firewall van Vercel kan controleren of uw browser geen robot is, en dan een technische cookie plaatsen die deze controle onthoudt."
+        ]
+      },
+      {
+        "heading": "Zoeken",
+        "paragraphs": [
+          "Als u een onderdeel zoekt, geeft de server van de site uw zoekopdracht door aan Algolia, de zoekmachine van de site, gehost in Europa. Algolia ontvangt uw IP-adres niet, alleen een kenmerk dat de site er met een geheime sleutel van afleidt en dat het aantal zoekopdrachten per bezoeker beperkt. De statistieken en de personalisatie van Algolia staan uit."
+        ]
+      },
+      {
+        "heading": "Cookies",
+        "paragraphs": [
+          "De site zelf plaatst geen cookie om de catalogus te bekijken: daarom toont ze geen toestemmingsbanner."
+        ]
+      },
+      {
+        "heading": "Uw rechten",
+        "paragraphs": [
+          "U kunt uw recht op inzage, rectificatie en wissing uitoefenen bij de uitgever, wiens gegevens in de juridische informatie staan, en een klacht indienen bij de CNIL, de Franse toezichthouder voor gegevensbescherming."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Toegankelijkheid",
+    "title": "Toegankelijkheidsverklaring",
+    "description": "Het toegankelijkheidsniveau dat Sekoya Parts nastreeft, wat wordt gecontroleerd en de bekende beperkingen.",
+    "sections": [
+      {
+        "heading": "Doel",
+        "paragraphs": [
+          "Sekoya Parts streeft naar niveau AA van de Web Content Accessibility Guidelines (WCAG)."
+        ]
+      },
+      {
+        "heading": "Wat wordt gecontroleerd",
+        "paragraphs": [
+          "Bij elke codewijziging meet Lighthouse de toegankelijkheid van de belangrijkste pagina’s op mobiel, en een wijziging die die onder 95 van de 100 zou brengen, wordt niet gepubliceerd. Een test controleert ook het contrast van elk kleurenpaar van de site."
+        ]
+      },
+      {
+        "heading": "Wat helpt",
+        "paragraphs": [
+          "De cataloguspagina’s werken zonder JavaScript. Een skiplink leidt naar de hoofdinhoud, en zowel de taalkeuze als de zoekfunctie zijn standaard HTML-elementen, te bedienen met het toetsenbord."
+        ]
+      },
+      {
+        "heading": "Bekende beperkingen",
+        "paragraphs": [
+          "Er is geen volledige audit uitgevoerd. De pagina ‘niet gevonden’ blijft leeg tot de scripts van de pagina geladen zijn, of als JavaScript uitstaat, en verschijnt in het Engels bij een onbekende taal."
+        ]
+      },
+      {
+        "heading": "Een probleem melden",
+        "paragraphs": [
+          "Is bepaalde inhoud voor u niet toegankelijk, schrijf dan de uitgever, wiens gegevens in de juridische informatie staan."
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Pomoc i najczęstsze pytania",
+    "title": "Pomoc i najczęstsze pytania",
+    "description": "Jak znaleźć część do swojego urządzenia, sprawdzić jej zgodność i zrozumieć tę stronę demonstracyjną.",
+    "sections": [
+      {
+        "heading": "Jak znaleźć część do mojego urządzenia?",
+        "paragraphs": [
+          "Wpisz numer modelu swojego urządzenia w polu wyszukiwania u góry każdej strony. Jeśli dokładnie odpowiada jednemu modelowi, trafisz na jego stronę z listą pasujących części; w przeciwnym razie wyszukiwarka pokaże najbliższe modele i części."
+        ]
+      },
+      {
+        "heading": "Gdzie znajduje się numer modelu mojego urządzenia?",
+        "paragraphs": [
+          "Na tabliczce znamionowej, naklejce umieszczonej często w ramie drzwi, z tyłu lub pod urządzeniem."
+        ]
+      },
+      {
+        "heading": "Skąd wiem, czy część pasuje?",
+        "paragraphs": [
+          "Każda strona produktu podaje zgodne modele, do miliona dla jednej części. Pierwszy tysiąc widać na stronie produktu, pozostałe na ponumerowanych stronach."
+        ]
+      },
+      {
+        "heading": "Czy produkty i ceny są prawdziwe?",
+        "paragraphs": [
+          "Nie. Produkty, marki, numery katalogowe i ceny są fikcyjne: Sekoya Parts to strona demonstracyjna."
+        ]
+      },
+      {
+        "heading": "Czy mogę złożyć zamówienie?",
+        "paragraphs": [
+          "Nie. Nie można złożyć żadnego prawdziwego zamówienia: nic nie jest opłacane ani dostarczane."
+        ]
+      },
+      {
+        "heading": "W jakich językach jest dostępna strona?",
+        "paragraphs": [
+          "W dziesięciu: francuskim, angielskim, niemieckim, hiszpańskim, włoskim, niderlandzkim, portugalskim, polskim, szwedzkim i duńskim. Przełącznik języka u góry stron prowadzi do tej samej strony w innym języku."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Dostawa i zwroty",
+    "title": "Dostawa i zwroty",
+    "description": "Sekoya Parts to sklep demonstracyjny: żadne zamówienie nie jest wysyłane.",
+    "sections": [
+      {
+        "heading": "Brak dostaw",
+        "paragraphs": [
+          "Sekoya Parts to sklep demonstracyjny: żadne zamówienie nie jest wysyłane i żaden zwrot nie jest możliwy, ponieważ nic nie jest sprzedawane."
+        ]
+      },
+      {
+        "heading": "Podawane terminy i koszty",
+        "paragraphs": [
+          "Terminy dostawy, koszty wysyłki i progi darmowej dostawy, które pokazuje strona, to fikcyjne przykłady, które czynią demonstrację realistyczną."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Nota prawna",
+    "title": "Nota prawna",
+    "description": "Wydawca i dostawca hostingu strony demonstracyjnej Sekoya Parts.",
+    "sections": [
+      {
+        "heading": "Wydawca",
+        "paragraphs": [
+          "Stronę Sekoya Parts wydaje {publisherName}, {publisherAddress}.",
+          "Dyrektor publikacji: {publicationDirector}.",
+          "Kontakt: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Hosting",
+        "paragraphs": [
+          "Stronę hostuje {hostName}, {hostAddress}. Jej kod działa we Frankfurcie (Niemcy)."
+        ]
+      },
+      {
+        "heading": "Strona demonstracyjna",
+        "paragraphs": [
+          "Sekoya Parts to projekt do portfolio: pokazuje, że bardzo duży katalog części zamiennych, a wokół niego sklep, mogą pozostać szybkie. Produkty, marki, numery katalogowe i ceny są fikcyjne, a na tej stronie nie dochodzi do żadnej sprzedaży."
+        ]
+      },
+      {
+        "heading": "Własność intelektualna",
+        "paragraphs": [
+          "Nazwa, logo, teksty i obrazy strony zostały stworzone na potrzeby tego projektu. Jej kod źródłowy można przeglądać na GitHubie, ale jego licencja nie daje prawa do ponownego wykorzystania."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Warunki sprzedaży",
+    "title": "Ogólne warunki sprzedaży (demonstracja)",
+    "description": "Warunki sklepu demonstracyjnego Sekoya Parts, w którym nic nie jest sprzedawane.",
+    "sections": [
+      {
+        "heading": "Przedmiot",
+        "paragraphs": [
+          "Te warunki opisują sklep demonstracyjny Sekoya Parts. Nie mają żadnej mocy umownej: na tej stronie nie dochodzi do żadnej sprzedaży."
+        ]
+      },
+      {
+        "heading": "Produkty i ceny",
+        "paragraphs": [
+          "Produkty, ich numery katalogowe i ceny, podane w euro, są fikcyjne. Pokazują, jak zachowuje się bardzo duży katalog."
+        ]
+      },
+      {
+        "heading": "Zamówienia i płatność",
+        "paragraphs": [
+          "Strona nie przyjmuje żadnych prawdziwych zamówień: żadna płatność nie jest wymagana ani pobierana, nie są wymagane dane karty i nic nie jest dostarczane."
+        ]
+      },
+      {
+        "heading": "Kontakt",
+        "paragraphs": [
+          "W sprawie pytań dotyczących tego projektu napisz do wydawcy, którego dane podano w nocie prawnej."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Prywatność",
+    "title": "Polityka prywatności",
+    "description": "Jakie dane otrzymuje strona Sekoya Parts, co z nimi robi i komu je przekazuje.",
+    "sections": [
+      {
+        "heading": "W skrócie",
+        "paragraphs": [
+          "Strona nie używa pomiaru oglądalności, reklam ani skryptów stron trzecich i nie prosi o żadne dane osobowe, aby przeglądać katalog."
+        ]
+      },
+      {
+        "heading": "Hosting i bezpieczeństwo",
+        "paragraphs": [
+          "Jak każda strona internetowa, Sekoya Parts otrzymuje adres IP i nagłówki wysyłane przez Twoją przeglądarkę. Dostawca hostingu, Vercel, przetwarza je, aby wyświetlać strony i chronić serwis, i może przechowywać je w swoich dziennikach technicznych zgodnie z własną polityką prywatności.",
+          "Zapora Vercel może sprawdzić, czy Twoja przeglądarka nie jest botem, i wtedy zapisać techniczny plik cookie, który zapamiętuje to sprawdzenie."
+        ]
+      },
+      {
+        "heading": "Wyszukiwanie",
+        "paragraphs": [
+          "Gdy szukasz części, serwer strony przekazuje Twoje wyszukiwanie do Algolii, swojej wyszukiwarki, hostowanej w Europie. Algolia nie otrzymuje Twojego adresu IP, a jedynie identyfikator, który strona tworzy z niego za pomocą tajnego klucza i który służy do ograniczania liczby wyszukiwań na odwiedzającego. Statystyki i personalizacja Algolii są wyłączone."
+        ]
+      },
+      {
+        "heading": "Pliki cookie",
+        "paragraphs": [
+          "Sama strona nie zapisuje żadnego pliku cookie, aby przeglądać katalog: dlatego nie wyświetla baneru zgody."
+        ]
+      },
+      {
+        "heading": "Twoje prawa",
+        "paragraphs": [
+          "Możesz skorzystać z prawa dostępu, sprostowania i usunięcia danych u wydawcy, którego dane podano w nocie prawnej, oraz złożyć skargę do CNIL, francuskiego organu ochrony danych."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Dostępność",
+    "title": "Deklaracja dostępności",
+    "description": "Poziom dostępności, do którego dąży Sekoya Parts, co jest sprawdzane i znane ograniczenia.",
+    "sections": [
+      {
+        "heading": "Cel",
+        "paragraphs": [
+          "Sekoya Parts dąży do poziomu AA Wytycznych dotyczących dostępności treści internetowych (WCAG)."
+        ]
+      },
+      {
+        "heading": "Co jest sprawdzane",
+        "paragraphs": [
+          "Przy każdej zmianie kodu Lighthouse mierzy dostępność głównych stron na urządzeniach mobilnych, a zmiana, która obniżyłaby ją poniżej 95 na 100, nie zostaje opublikowana. Test sprawdza też kontrast każdej pary kolorów na stronie."
+        ]
+      },
+      {
+        "heading": "Co pomaga",
+        "paragraphs": [
+          "Strony katalogu działają bez JavaScriptu. Link pomijania prowadzi do głównej treści, a przełącznik języka i wyszukiwarka to standardowe elementy HTML, obsługiwane z klawiatury."
+        ]
+      },
+      {
+        "heading": "Znane ograniczenia",
+        "paragraphs": [
+          "Nie przeprowadzono pełnego audytu. Strona „nie znaleziono” pozostaje pusta, dopóki skrypty strony się nie załadują lub gdy JavaScript jest wyłączony, a dla nieznanego języka wyświetla się po angielsku."
+        ]
+      },
+      {
+        "heading": "Zgłoś problem",
+        "paragraphs": [
+          "Jeśli jakaś treść jest dla Ciebie niedostępna, napisz do wydawcy, którego dane podano w nocie prawnej."
+        ]
+      }
+    ]
+  }
+}

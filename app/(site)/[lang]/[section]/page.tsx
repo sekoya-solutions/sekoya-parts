@@ -1,13 +1,20 @@
-// Two templates share the address shape /<lang>/<section>
+// Three templates share the address shape /<lang>/<section>
 // (docs/adr/0011-languages-and-seo.md):
 // - a category's first page, at /<lang>/<category slug> (issue #81). Its
 //   other pages are at /<lang>/<category slug>/<n>, which the entry route
 //   hands to the same template;
 // - the search results page, at /<lang>/<search word>?q=<query>
-//   (docs/adr/0010-search.md, issue #113). Payload refuses a category slug
-//   equal to a search word, in any language.
+//   (docs/adr/0010-search.md, issue #113);
+// - the information pages, at /<lang>/<page slug> (issue #143).
+// Payload refuses a category slug equal to a search word or a page slug, in
+// any language.
 import type { Metadata } from "next";
-import { isSearchWord } from "../../../../site/addresses.ts";
+import {
+  INFO_PAGES,
+  INFO_SLUGS,
+  infoPageOf,
+  isSearchWord,
+} from "../../../../site/addresses.ts";
 import { getCategories } from "../../../../site/categories.tsx";
 import {
   CategoryPage,
@@ -15,13 +22,15 @@ import {
   requestedPath,
 } from "../../../../site/category-page.tsx";
 import { getDictionary } from "../../../../site/dictionary.ts";
+import { InfoPageView, infoMetadata } from "../../../../site/info-page.tsx";
 import { localeOf } from "../../../../site/resolve.ts";
 import { SearchPage } from "../../../../site/search.tsx";
 import { queryOf } from "../../../../site/search-key.ts";
 
-// Built in advance: each category's first page in each language. The other
-// pages render on their first visit (docs/adr/0008-caching-and-partial-refresh.md),
-// and the search page on every request.
+// Built in advance: each category's first page and each information page in
+// each language. The other category pages render on their first visit
+// (docs/adr/0008-caching-and-partial-refresh.md), and the search page on every
+// request.
 export async function generateStaticParams({
   params,
 }: {
@@ -31,7 +40,10 @@ export async function generateStaticParams({
   const categories = await getCategories();
   if (categories.length === 0)
     throw new Error("No category: load the catalog before building.");
-  return categories.map((category) => ({ section: category.slugs[locale] }));
+  return [
+    ...categories.map((category) => ({ section: category.slugs[locale] })),
+    ...INFO_PAGES.map((page) => ({ section: INFO_SLUGS[page][locale] })),
+  ];
 }
 
 // The search page reads the request's query outside any Suspense boundary,
@@ -52,6 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${getDictionary(locale).searchTitle} | Sekoya Parts`,
       robots: { index: false },
     };
+  if (infoPageOf(section)) return infoMetadata(locale, section);
   return categoryMetadata(locale, section, 1, requestedPath(lang, section));
 }
 
@@ -67,6 +80,8 @@ export default async function SectionPage({ params, searchParams }: Props) {
     const query = queryOf((await searchParams).q);
     return <SearchPage locale={locale} query={query} />;
   }
+  if (infoPageOf(section))
+    return <InfoPageView locale={locale} section={section} />;
   return (
     <CategoryPage
       locale={locale}

@@ -40,6 +40,9 @@
   "skipToContent": "Skip to content",
   "languageMenu": "Language",
   "footerNote": "Demonstration catalog: products, prices and references are fictitious.",
+  "footerHelp": "Help",
+  "footerLegal": "Legal information",
+  "publisherPending": "The publisher’s details will be published soon.",
   "notFoundTitle": "Page not found",
   "notFoundText": "This address matches no page in the catalog.",
   "notFoundHome": "Back to the home page"

@@ -173,4 +173,22 @@
   .pager a[rel="next"] {
     margin-inline-start: auto;
   }
+
+  /* The information pages' text (issue #143). */
+  .info-page h2 {
+    margin-top: 2rem;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+    font-weight: 700;
+  }
+  .info-page p {
+    margin-top: 0.75rem;
+  }
+
+  /* The footer's link columns (issue #143): one link per line, tall enough
+     to tap on a phone. */
+  .footer-links a {
+    display: inline-block;
+    padding-block: 0.25rem;
+  }
 }

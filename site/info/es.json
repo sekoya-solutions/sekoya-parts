@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Ayuda y preguntas frecuentes",
+    "title": "Ayuda y preguntas frecuentes",
+    "description": "Encontrar el recambio de su aparato, comprobar su compatibilidad y entender este sitio de demostración.",
+    "sections": [
+      {
+        "heading": "¿Cómo encuentro el recambio de mi aparato?",
+        "paragraphs": [
+          "Escriba la referencia de su aparato en el campo de búsqueda, en la parte superior de cada página. Si coincide exactamente con un modelo, llegará a su página, que muestra los recambios compatibles; si no, la búsqueda muestra los modelos y recambios más parecidos."
+        ]
+      },
+      {
+        "heading": "¿Dónde está la referencia de mi aparato?",
+        "paragraphs": [
+          "En su placa de características, una etiqueta que suele estar en el marco de la puerta, en la parte trasera o debajo del aparato."
+        ]
+      },
+      {
+        "heading": "¿Cómo sé si un recambio es compatible?",
+        "paragraphs": [
+          "Cada ficha de producto muestra los modelos compatibles, hasta un millón para un solo recambio. Los mil primeros aparecen en la ficha, el resto en páginas numeradas."
+        ]
+      },
+      {
+        "heading": "¿Los productos y los precios son reales?",
+        "paragraphs": [
+          "No. Los productos, las marcas, las referencias y los precios son ficticios: Sekoya Parts es un sitio de demostración."
+        ]
+      },
+      {
+        "heading": "¿Puedo hacer un pedido?",
+        "paragraphs": [
+          "No. No se puede hacer ningún pedido real: no se paga ni se entrega nada."
+        ]
+      },
+      {
+        "heading": "¿En qué idiomas está el sitio?",
+        "paragraphs": [
+          "En diez idiomas: francés, inglés, alemán, español, italiano, neerlandés, portugués, polaco, sueco y danés. El selector de idioma, en la parte superior de las páginas, lleva a la misma página en otro idioma."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Envíos y devoluciones",
+    "title": "Envíos y devoluciones",
+    "description": "Sekoya Parts es una tienda de demostración: no se envía ningún pedido.",
+    "sections": [
+      {
+        "heading": "Sin envíos",
+        "paragraphs": [
+          "Sekoya Parts es una tienda de demostración: no se envía ningún pedido y no se puede hacer ninguna devolución, ya que no se vende nada."
+        ]
+      },
+      {
+        "heading": "Plazos y gastos mostrados",
+        "paragraphs": [
+          "Los plazos de entrega, los gastos de envío y los umbrales de envío gratuito que muestra el sitio son ejemplos ficticios que hacen realista la demostración."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Aviso legal",
+    "title": "Aviso legal",
+    "description": "El editor y el proveedor de alojamiento del sitio de demostración Sekoya Parts.",
+    "sections": [
+      {
+        "heading": "Editor",
+        "paragraphs": [
+          "El sitio Sekoya Parts lo edita {publisherName}, {publisherAddress}.",
+          "Director de la publicación: {publicationDirector}.",
+          "Contacto: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Alojamiento",
+        "paragraphs": [
+          "El sitio está alojado por {hostName}, {hostAddress}. Su código se ejecuta en Fráncfort (Alemania)."
+        ]
+      },
+      {
+        "heading": "Un sitio de demostración",
+        "paragraphs": [
+          "Sekoya Parts es un proyecto de portfolio: muestra que un catálogo muy grande de recambios, y una tienda a su alrededor, pueden seguir siendo rápidos. Los productos, las marcas, las referencias y los precios son ficticios, y en este sitio no se realiza ninguna venta."
+        ]
+      },
+      {
+        "heading": "Propiedad intelectual",
+        "paragraphs": [
+          "El nombre, el logotipo, los textos y las imágenes del sitio se crearon para este proyecto. Su código fuente puede consultarse en GitHub, pero su licencia no concede ningún derecho a reutilizarlo."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Condiciones de venta",
+    "title": "Condiciones generales de venta (demostración)",
+    "description": "Las condiciones de la tienda de demostración Sekoya Parts, donde no se vende nada.",
+    "sections": [
+      {
+        "heading": "Objeto",
+        "paragraphs": [
+          "Estas condiciones describen la tienda de demostración Sekoya Parts. No tienen ningún valor contractual: en este sitio no se realiza ninguna venta."
+        ]
+      },
+      {
+        "heading": "Productos y precios",
+        "paragraphs": [
+          "Los productos, sus referencias y sus precios, mostrados en euros, son ficticios. Muestran cómo se comporta un catálogo de gran tamaño."
+        ]
+      },
+      {
+        "heading": "Pedidos y pago",
+        "paragraphs": [
+          "El sitio no acepta ningún pedido real: no se solicita ni se cobra ningún pago, no se piden datos de tarjeta y no se entrega nada."
+        ]
+      },
+      {
+        "heading": "Contacto",
+        "paragraphs": [
+          "Para cualquier pregunta sobre este proyecto, escriba al editor, cuyos datos figuran en el aviso legal."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Privacidad",
+    "title": "Política de privacidad",
+    "description": "Los datos que recibe el sitio Sekoya Parts, qué hace con ellos y a quién los transmite.",
+    "sections": [
+      {
+        "heading": "En resumen",
+        "paragraphs": [
+          "El sitio no usa medición de audiencia, ni publicidad, ni scripts de terceros, y no pide ningún dato personal para consultar el catálogo."
+        ]
+      },
+      {
+        "heading": "Alojamiento y seguridad",
+        "paragraphs": [
+          "Como cualquier sitio web, Sekoya Parts recibe la dirección IP y las cabeceras que envía su navegador. Su proveedor de alojamiento, Vercel, las trata para servir las páginas y proteger el sitio, y puede conservarlas en sus registros técnicos, según su propia política de privacidad.",
+          "El cortafuegos de Vercel puede comprobar que su navegador no es un robot y, en ese caso, guardar una cookie técnica que recuerda esa comprobación."
+        ]
+      },
+      {
+        "heading": "Búsqueda",
+        "paragraphs": [
+          "Cuando busca un recambio, el servidor del sitio transmite su búsqueda a Algolia, su motor de búsqueda, alojado en Europa. Algolia no recibe su dirección IP: solo un identificador que el sitio deriva de ella con una clave secreta y que sirve para limitar el número de búsquedas por visitante. Las estadísticas y la personalización de Algolia están desactivadas."
+        ]
+      },
+      {
+        "heading": "Cookies",
+        "paragraphs": [
+          "El propio sitio no guarda ninguna cookie para consultar el catálogo: por eso no muestra ningún aviso de consentimiento."
+        ]
+      },
+      {
+        "heading": "Sus derechos",
+        "paragraphs": [
+          "Puede ejercer sus derechos de acceso, rectificación y supresión ante el editor, cuyos datos figuran en el aviso legal, y presentar una reclamación ante la CNIL, la autoridad francesa de protección de datos."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Accesibilidad",
+    "title": "Declaración de accesibilidad",
+    "description": "El nivel de accesibilidad al que aspira Sekoya Parts, lo que se comprueba y los límites conocidos.",
+    "sections": [
+      {
+        "heading": "Objetivo",
+        "paragraphs": [
+          "Sekoya Parts aspira al nivel AA de las Pautas de Accesibilidad para el Contenido Web (WCAG)."
+        ]
+      },
+      {
+        "heading": "Lo que se comprueba",
+        "paragraphs": [
+          "En cada cambio del código, Lighthouse mide la accesibilidad de las páginas principales en móvil, y un cambio que la bajaría de 95 sobre 100 no se publica. Una prueba comprueba además el contraste de cada par de colores del sitio."
+        ]
+      },
+      {
+        "heading": "Lo que ayuda",
+        "paragraphs": [
+          "Las páginas del catálogo funcionan sin JavaScript. Un enlace de salto lleva al contenido principal, y tanto el selector de idioma como la búsqueda son elementos HTML estándar, utilizables con el teclado."
+        ]
+      },
+      {
+        "heading": "Límites conocidos",
+        "paragraphs": [
+          "No se ha realizado ninguna auditoría completa. La página «no encontrada» queda en blanco hasta que se cargan los scripts de la página, o si JavaScript está desactivado, y aparece en inglés para un idioma desconocido."
+        ]
+      },
+      {
+        "heading": "Comunicar un problema",
+        "paragraphs": [
+          "Si algún contenido no le resulta accesible, escriba al editor, cuyos datos figuran en el aviso legal."
+        ]
+      }
+    ]
+  }
+}

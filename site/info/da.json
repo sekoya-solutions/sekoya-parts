@@ -1,0 +1,203 @@
+{
+  "help": {
+    "link": "Hjælp og ofte stillede spørgsmål",
+    "title": "Hjælp og ofte stillede spørgsmål",
+    "description": "Find reservedelen til dit apparat, tjek at den passer, og forstå dette demonstrationswebsted.",
+    "sections": [
+      {
+        "heading": "Hvordan finder jeg reservedelen til mit apparat?",
+        "paragraphs": [
+          "Skriv apparatets modelnummer i søgefeltet øverst på hver side. Passer det præcist til en model, kommer du til modellens side, som viser de reservedele, der passer; ellers viser søgningen de nærmeste modeller og reservedele."
+        ]
+      },
+      {
+        "heading": "Hvor står mit apparats modelnummer?",
+        "paragraphs": [
+          "På typeskiltet, en mærkat der ofte sidder i dørkarmen, på bagsiden eller under apparatet."
+        ]
+      },
+      {
+        "heading": "Hvordan ved jeg, om en reservedel passer?",
+        "paragraphs": [
+          "Hver produktside viser de kompatible modeller, op til en million for en enkelt reservedel. De første tusind vises på siden, resten på nummererede sider."
+        ]
+      },
+      {
+        "heading": "Er produkterne og priserne ægte?",
+        "paragraphs": [
+          "Nej. Produkterne, mærkerne, varenumrene og priserne er fiktive: Sekoya Parts er et demonstrationswebsted."
+        ]
+      },
+      {
+        "heading": "Kan jeg bestille?",
+        "paragraphs": [
+          "Nej. Der kan ikke afgives nogen rigtig bestilling: intet betales eller leveres."
+        ]
+      },
+      {
+        "heading": "Hvilke sprog findes webstedet på?",
+        "paragraphs": [
+          "På ti sprog: fransk, engelsk, tysk, spansk, italiensk, nederlandsk, portugisisk, polsk, svensk og dansk. Sprogvælgeren øverst på siderne fører til den samme side på et andet sprog."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "link": "Levering og returnering",
+    "title": "Levering og returnering",
+    "description": "Sekoya Parts er en demonstrationsbutik: ingen bestilling bliver sendt.",
+    "sections": [
+      {
+        "heading": "Ingen levering",
+        "paragraphs": [
+          "Sekoya Parts er en demonstrationsbutik: ingen bestilling bliver sendt, og ingen returnering er mulig, da intet bliver solgt."
+        ]
+      },
+      {
+        "heading": "Viste leveringstider og omkostninger",
+        "paragraphs": [
+          "De leveringstider, fragtomkostninger og grænser for gratis levering, som webstedet viser, er fiktive eksempler, der gør demonstrationen realistisk."
+        ]
+      }
+    ]
+  },
+  "legal": {
+    "link": "Juridiske oplysninger",
+    "title": "Juridiske oplysninger",
+    "description": "Udgiveren og hostingudbyderen af demonstrationswebstedet Sekoya Parts.",
+    "sections": [
+      {
+        "heading": "Udgiver",
+        "paragraphs": [
+          "Webstedet Sekoya Parts udgives af {publisherName}, {publisherAddress}.",
+          "Ansvarshavende redaktør: {publicationDirector}.",
+          "Kontakt: {publisherContact}."
+        ]
+      },
+      {
+        "heading": "Hosting",
+        "paragraphs": [
+          "Webstedet hostes af {hostName}, {hostAddress}. Dets kode kører i Frankfurt (Tyskland)."
+        ]
+      },
+      {
+        "heading": "Et demonstrationswebsted",
+        "paragraphs": [
+          "Sekoya Parts er et porteføljeprojekt: det viser, at et meget stort reservedelskatalog, og en butik omkring det, kan forblive hurtige. Produkterne, mærkerne, varenumrene og priserne er fiktive, og der sker intet salg på dette websted."
+        ]
+      },
+      {
+        "heading": "Immaterielle rettigheder",
+        "paragraphs": [
+          "Webstedets navn, logo, tekster og billeder er skabt til dette projekt. Kildekoden kan læses på GitHub, men licensen giver ingen ret til at genbruge den."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "link": "Salgsbetingelser",
+    "title": "Generelle salgsbetingelser (demonstration)",
+    "description": "Betingelserne for demonstrationsbutikken Sekoya Parts, hvor intet bliver solgt.",
+    "sections": [
+      {
+        "heading": "Formål",
+        "paragraphs": [
+          "Disse betingelser beskriver demonstrationsbutikken Sekoya Parts. De har ingen aftalemæssig værdi: der sker intet salg på dette websted."
+        ]
+      },
+      {
+        "heading": "Produkter og priser",
+        "paragraphs": [
+          "Produkterne, deres varenumre og deres priser i euro er fiktive. De viser, hvordan et meget stort katalog opfører sig."
+        ]
+      },
+      {
+        "heading": "Bestilling og betaling",
+        "paragraphs": [
+          "Webstedet modtager ingen rigtige bestillinger: ingen betaling kræves eller trækkes, der bedes ikke om kortoplysninger, og intet leveres."
+        ]
+      },
+      {
+        "heading": "Kontakt",
+        "paragraphs": [
+          "Har du spørgsmål om projektet, kan du skrive til udgiveren, hvis oplysninger står i de juridiske oplysninger."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "link": "Privatliv",
+    "title": "Privatlivspolitik",
+    "description": "Hvilke data webstedet Sekoya Parts modtager, hvad det gør med dem, og hvem det giver dem videre til.",
+    "sections": [
+      {
+        "heading": "Kort fortalt",
+        "paragraphs": [
+          "Webstedet bruger hverken besøgsmåling, reklamer eller scripts fra tredjeparter og beder ikke om nogen personoplysninger for at se kataloget."
+        ]
+      },
+      {
+        "heading": "Hosting og sikkerhed",
+        "paragraphs": [
+          "Som ethvert websted modtager Sekoya Parts den IP-adresse og de headere, din browser sender. Hostingudbyderen Vercel behandler dem for at levere siderne og beskytte webstedet og kan gemme dem i sine tekniske logfiler efter sin egen privatlivspolitik.",
+          "Vercels firewall kan tjekke, at din browser ikke er en robot, og så gemme en teknisk cookie, der husker tjekket."
+        ]
+      },
+      {
+        "heading": "Søgning",
+        "paragraphs": [
+          "Når du søger efter en reservedel, sender webstedets server din søgning videre til Algolia, webstedets søgemaskine, som hostes i Europa. Algolia modtager ikke din IP-adresse, kun en identifikator, som webstedet udleder af den med en hemmelig nøgle, og som begrænser antallet af søgninger pr. besøgende. Algolias statistik og personalisering er slået fra."
+        ]
+      },
+      {
+        "heading": "Cookies",
+        "paragraphs": [
+          "Webstedet selv gemmer ingen cookie for at du kan se kataloget: derfor viser det intet samtykkebanner."
+        ]
+      },
+      {
+        "heading": "Dine rettigheder",
+        "paragraphs": [
+          "Du kan udøve din ret til indsigt, berigtigelse og sletning hos udgiveren, hvis oplysninger står i de juridiske oplysninger, og klage til CNIL, den franske databeskyttelsesmyndighed."
+        ]
+      }
+    ]
+  },
+  "accessibility": {
+    "link": "Tilgængelighed",
+    "title": "Tilgængelighedserklæring",
+    "description": "Det tilgængelighedsniveau, Sekoya Parts sigter mod, hvad der kontrolleres, og de kendte begrænsninger.",
+    "sections": [
+      {
+        "heading": "Mål",
+        "paragraphs": [
+          "Sekoya Parts sigter mod niveau AA i retningslinjerne for tilgængeligt webindhold (WCAG)."
+        ]
+      },
+      {
+        "heading": "Hvad der kontrolleres",
+        "paragraphs": [
+          "Ved hver kodeændring måler Lighthouse tilgængeligheden af de vigtigste sider på mobil, og en ændring, der ville sænke den under 95 ud af 100, bliver ikke offentliggjort. En test kontrollerer også kontrasten i hvert farvepar på webstedet."
+        ]
+      },
+      {
+        "heading": "Hvad der hjælper",
+        "paragraphs": [
+          "Katalogsiderne fungerer uden JavaScript. Et spring-over-link fører til hovedindholdet, og både sprogvælgeren og søgningen er almindelige HTML-elementer, der kan bruges med tastaturet."
+        ]
+      },
+      {
+        "heading": "Kendte begrænsninger",
+        "paragraphs": [
+          "Der er ikke foretaget nogen fuld revision. Siden »ikke fundet« forbliver tom, indtil sidens scripts er indlæst, eller hvis JavaScript er slået fra, og vises på engelsk for et ukendt sprog."
+        ]
+      },
+      {
+        "heading": "Rapportér et problem",
+        "paragraphs": [
+          "Hvis noget indhold ikke er tilgængeligt for dig, kan du skrive til udgiveren, hvis oplysninger står i de juridiske oplysninger."
+        ]
+      }
+    ]
+  }
+}
