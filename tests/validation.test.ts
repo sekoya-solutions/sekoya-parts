@@ -121,6 +121,7 @@ describe("category slugs equal to a model or search word or a page slug", () => 
     ["de", "privacy"],
     ["it", "marques"],
     ["fr", "brands"],
+    ["de", "find-a-part"],
   ] as const)(
     "refuses %s %j and leaves the slug unchanged",
     async (locale, slug) => {

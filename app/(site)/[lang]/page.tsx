@@ -6,8 +6,10 @@
 
 import type { Metadata } from "next";
 import { categoryPath, homePath, perLocale } from "../../../site/addresses.ts";
+import { getBrands } from "../../../site/brands.tsx";
 import { getCategories, getCategoryCounts } from "../../../site/categories.tsx";
 import { fill, getDictionary } from "../../../site/dictionary.ts";
+import { BrandStep } from "../../../site/finder.tsx";
 import { SiteFrame } from "../../../site/frame.tsx";
 import { homeAlternates } from "../../../site/home.ts";
 import { categoryImage } from "../../../site/images.ts";
@@ -27,10 +29,11 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   const locale = localeOf(lang);
   const dictionary = getDictionary(locale);
-  const [categories, counts, showcase] = await Promise.all([
+  const [categories, counts, showcase, brands] = await Promise.all([
     getCategories(),
     getCategoryCounts(),
     getShowcaseRows(),
+    getBrands(),
   ]);
   const format = new Intl.NumberFormat(locale);
   const collator = new Intl.Collator(locale);
@@ -59,6 +62,15 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           categories: format.format(categories.length),
         })}
       </p>
+      {/* The part finder's first step (issue #155): a GET form, no script. */}
+      <section className="mt-8" aria-labelledby="finder">
+        <h2 id="finder" className="text-2xl font-bold">
+          {dictionary.finderHomeTitle}
+        </h2>
+        <div className="mt-3">
+          <BrandStep locale={locale} brands={brands} />
+        </div>
+      </section>
       <h2 className="mt-10 text-2xl font-bold">{dictionary.categories}</h2>
       <ul
         data-list="categories"

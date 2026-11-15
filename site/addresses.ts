@@ -2,7 +2,11 @@
 // under its language, and a product's address carries translated words before
 // its reference, the stable key the page is found by. Pure functions with no
 // Payload or Next.js imports, so the unit and end-to-end tests read them too.
-import { slugify } from "../catalog/generator.ts";
+import {
+  type ApplianceType,
+  applianceTypes,
+  slugify,
+} from "../catalog/generator.ts";
 import { productName } from "../catalog/text.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 
@@ -196,6 +200,52 @@ export function searchPath(locale: Locale, query?: string): string {
 }
 
 /**
+ * The part finder's page in each language (issue #155): brand, then
+ * appliance type, then the model, as query parameters of one page, like the
+ * search page. Each is a valid category slug's form, and Payload refuses a
+ * category slug equal to any of them.
+ */
+export const FINDER_WORDS: Record<Locale, string> = {
+  fr: "trouver-une-piece",
+  en: "find-a-part",
+  de: "teil-finden",
+  es: "buscar-una-pieza",
+  it: "trova-un-ricambio",
+  nl: "onderdeel-vinden",
+  pt: "encontrar-uma-peca",
+  pl: "znajdz-czesc",
+  sv: "hitta-en-reservdel",
+  da: "find-en-reservedel",
+};
+
+const finderWords = new Set(Object.values(FINDER_WORDS));
+
+/** Whether a section is the part finder's, in any language. */
+export const isFinderWord = (section: string): boolean =>
+  finderWords.has(section.toLowerCase());
+
+/** How many of a pair's models the finder's third step lists (owner decision). */
+export const POPULAR_MODELS = 24;
+
+/** Whether a value is one of the generator's appliance types. */
+export const isApplianceType = (value: string): value is ApplianceType =>
+  (applianceTypes as readonly string[]).includes(value);
+
+/** What the finder has been told so far. */
+export type FinderChoice = { brand?: string; type?: string; q?: string };
+
+/** The finder's page in one language, with the choices made so far. */
+export function finderPath(locale: Locale, choice: FinderChoice = {}): string {
+  const params = new URLSearchParams();
+  for (const key of ["brand", "type", "q"] as const) {
+    const value = choice[key];
+    if (value) params.set(key, value);
+  }
+  const query = params.toString();
+  return `/${locale}/${FINDER_WORDS[locale]}${query ? `?${query}` : ""}`;
+}
+
+/**
  * The section word of brand addresses in each language (issue #147): the
  * brand index at /<lang>/<brand word>, and each brand’s listing at
  * /<lang>/<brand word>/<brand slug>, then /<n>. Like the model and search
@@ -356,6 +406,7 @@ export const isReservedWord = (section: string): boolean =>
   isModelWord(section) ||
   isSearchWord(section) ||
   isBrandWord(section) ||
+  isFinderWord(section) ||
   infoPageOf(section) !== null;
 
 /**
