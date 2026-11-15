@@ -1,6 +1,7 @@
 # Lighthouse on each ready Vercel preview, decided in
 # docs/adr/0004-testing-and-ci.md. Since issue #61, the job fails when an
-# address's median mobile performance is below 95. Since issue #59, the
+# address's median mobile performance is below its minimum: 95, then 90 for
+# Phase 4 (issue #141). Since issue #59, the
 # scores also appear in one "Lighthouse scores · <page>" check per page (issue
 # #96) and in a new comment on the pull request for each measured commit
 # (issue #123), with that commit's preview address, and the redacted reports are
@@ -61,7 +62,9 @@ jobs:
       # For each: one request to check the deployment answers (on production,
       # that the public address serves this commit), one Lighthouse warm-up
       # run that is not counted, then five measured runs.
-      # Fails below 95, after writing the figures and the reports. The bypass
+      # Fails below the minimums of scripts/lighthouse-report.ts (performance
+      # 90 for Phase 4, accessibility 95), after writing the figures and the
+      # reports. The bypass
       # secret goes to both: past a preview's sign-in, and past Bot Protection
       # on production (issue #135). /fr/p/sp000001 redirects to the French
       # address of product SP000001, whose words depend on the catalog; the
