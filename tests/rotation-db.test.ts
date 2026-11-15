@@ -70,6 +70,7 @@ describe.runIf(inCi)("rotateSales", () => {
       now: NOW,
       startsAt: NEXT,
       spread: false,
+      limit: 100_000,
     });
     expect(added).toHaveLength(Math.ceil((await products()) * SALE_SHARE));
     for (const sale of await sales()) {
@@ -96,9 +97,19 @@ describe.runIf(inCi)("rotateSales", () => {
   });
 
   it("adds nothing while the share is reached, then replaces the sales that ended", async () => {
-    await rotateSales(client, { now: NOW, startsAt: NEXT, spread: false });
+    await rotateSales(client, {
+      now: NOW,
+      startsAt: NEXT,
+      spread: false,
+      limit: 100_000,
+    });
     expect(
-      await rotateSales(client, { now: NOW, startsAt: NEXT, spread: false }),
+      await rotateSales(client, {
+        now: NOW,
+        startsAt: NEXT,
+        spread: false,
+        limit: 100_000,
+      }),
     ).toHaveLength(0);
     await client.query(
       `UPDATE products SET sale_starts_at = $1, sale_ends_at = $2
@@ -107,8 +118,24 @@ describe.runIf(inCi)("rotateSales", () => {
       [new Date(NOW.getTime() - 10 * DAY), new Date(NOW.getTime() - DAY)],
     );
     expect(
-      await rotateSales(client, { now: NOW, startsAt: NEXT, spread: false }),
+      await rotateSales(client, {
+        now: NOW,
+        startsAt: NEXT,
+        spread: false,
+        limit: 100_000,
+      }),
     ).toHaveLength(5);
+  });
+
+  it("adds at most the run's limit", async () => {
+    expect(
+      await rotateSales(client, {
+        now: NOW,
+        startsAt: NEXT,
+        spread: false,
+        limit: 3,
+      }),
+    ).toHaveLength(3);
   });
 
   it("never touches a sale an editor set that has not ended", async () => {
@@ -121,6 +148,7 @@ describe.runIf(inCi)("rotateSales", () => {
       now: NOW,
       startsAt: NEXT,
       spread: false,
+      limit: 100_000,
     });
     expect(added.map((sale) => sale.id)).not.toContain(1);
     const { rows } = await client.query<{ sale: string }>(
@@ -130,7 +158,12 @@ describe.runIf(inCi)("rotateSales", () => {
   });
 
   it("spreads a fresh catalog's sales so all run at the start and end on different days", async () => {
-    await rotateSales(client, { now: NOW, startsAt: NOW, spread: true });
+    await rotateSales(client, {
+      now: NOW,
+      startsAt: NOW,
+      spread: true,
+      limit: 100_000,
+    });
     const all = await sales();
     for (const sale of all) {
       expect(sale.starts.getTime()).toBeLessThanOrEqual(NOW.getTime());

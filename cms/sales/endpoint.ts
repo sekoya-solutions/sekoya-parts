@@ -8,7 +8,12 @@ import type { Endpoint } from "payload";
 import { nextBoundary } from "../../site/merchandising.ts";
 import { refresh } from "../hooks/refresh.ts";
 import { mayRun } from "../translation/endpoint.ts";
-import { paced, rotateSales, rotationTags } from "./rotation.ts";
+import {
+  MAX_NEW_SALES_PER_RUN,
+  paced,
+  rotateSales,
+  rotationTags,
+} from "./rotation.ts";
 
 export const SALES_RUN_PATH = "/sales/run";
 
@@ -30,6 +35,7 @@ export const salesRunEndpoint: Endpoint = {
       now,
       startsAt,
       spread: false,
+      limit: MAX_NEW_SALES_PER_RUN,
     });
     const refreshed = await paced(rotationTags(sales), (tag) => refresh([tag]));
     const result = {

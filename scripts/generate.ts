@@ -209,6 +209,8 @@ async function main(): Promise<void> {
         now: loadedAt,
         startsAt: loadedAt,
         spread: true,
+        // A load refreshes nothing, so it starts every sale at once.
+        limit: Number.MAX_SAFE_INTEGER,
       });
       console.log(`  ${sales.length} products on sale`);
 

@@ -10,6 +10,14 @@ import { categoryPricesTag, productTags } from "../../site/tags.ts";
 /** The share of products on sale at any time. */
 export const SALE_SHARE = 0.02;
 
+/**
+ * The most sales one daily run adds: 300 refreshes take about 30 seconds at
+ * 10 a second. On a catalog that has none yet, such as one loaded before the
+ * rotation existed, the share is then reached over about a week rather than
+ * in one run of 2,000 refreshes that could outlast the function.
+ */
+export const MAX_NEW_SALES_PER_RUN = 300;
+
 /** Refresh calls per second: Hobby allows 50 per team, shared by its projects. */
 export const REFRESHES_PER_SECOND = 10;
 
@@ -26,13 +34,18 @@ export type RotatedSale = { id: number; categoryId: number };
  * has not ended is never touched. The sale price is the regular price less
  * the discount, rounded down to 10 cents, so it is always below it.
  *
- * `startsAt` is when the new sales start; with `spread`, each starts that
+ * At most `limit` sales are added. `startsAt` is when the new sales start; with `spread`, each starts that
  * many whole days earlier, at random within its length, so a fresh catalog
  * has sales that end on different days, all running at `startsAt`.
  */
 export async function rotateSales(
   db: Query,
-  { now, startsAt, spread }: { now: Date; startsAt: Date; spread: boolean },
+  {
+    now,
+    startsAt,
+    spread,
+    limit,
+  }: { now: Date; startsAt: Date; spread: boolean; limit: number },
 ): Promise<RotatedSale[]> {
   const { rows } = await db.query<{ id: number; category_id: number }>(
     `WITH target AS (
@@ -47,7 +60,7 @@ export async function rotateSales(
        SELECT id FROM products
         WHERE sale_ends_at IS NULL OR sale_ends_at <= $1
         ORDER BY random()
-        LIMIT GREATEST(0, (SELECT n FROM target) - (SELECT n FROM running))
+        LIMIT LEAST($5, GREATEST(0, (SELECT n FROM target) - (SELECT n FROM running)))
      ), drawn AS (
        SELECT id, (2 + floor(random() * 5)) * 0.05 AS discount,
               7 + floor(random() * 22) AS days, random() AS offset_draw
@@ -66,7 +79,7 @@ export async function rotateSales(
        FROM picked
       WHERE p.id = picked.id
      RETURNING p.id, p.category_id`,
-    [now, startsAt, SALE_SHARE, spread],
+    [now, startsAt, SALE_SHARE, spread, limit],
   );
   return rows.map((row) => ({ id: row.id, categoryId: row.category_id }));
 }
