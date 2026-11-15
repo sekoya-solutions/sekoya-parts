@@ -62,8 +62,8 @@ describe("priceLifetime", () => {
         [
           {
             ...sale,
-            saleEndsAt: "2026-11-15T00:00:00Z",
             saleStartsAt: "2026-11-14T00:00:00Z",
+            saleEndsAt: "2026-11-15T00:00:00Z",
           },
         ],
         NOW,
@@ -71,26 +71,33 @@ describe("priceLifetime", () => {
     ).toBe("max");
   });
 
-  it("ends at the next sale date among the products, start or end", () => {
+  it("expires at the next sale date, start or end, and revalidates a minute before", () => {
     const soon = { ...sale, saleStartsAt: "2026-11-15T22:00:00Z" };
     expect(priceLifetime([none, sale, soon], NOW)).toEqual({
-      revalidate: 1800,
+      revalidate: 1740,
       expire: 1800,
     });
     const running = {
       ...sale,
       saleStartsAt: "2026-11-10T00:00:00Z",
-      saleEndsAt: "2026-11-15T21:31:00Z",
+      saleEndsAt: "2026-11-15T21:40:00Z",
     };
     expect(priceLifetime([running], NOW)).toEqual({
-      revalidate: 60,
-      expire: 60,
+      revalidate: 540,
+      expire: 600,
     });
   });
 
-  it("is never 0, which would mean no cache", () => {
-    const now = Date.parse(sale.saleStartsAt) - 100;
-    expect(priceLifetime([sale], now)).toEqual({ revalidate: 1, expire: 1 });
+  it("always has an expire longer than its revalidate, as Next.js requires, and neither 0", () => {
+    for (const ms of [100, 1000, 30_000, 61_000, 3_600_000]) {
+      const lifetime = priceLifetime(
+        [sale],
+        Date.parse(sale.saleStartsAt) - ms,
+      );
+      if (lifetime === "max") throw new Error("expected a lifetime");
+      expect(lifetime.revalidate).toBeGreaterThanOrEqual(1);
+      expect(lifetime.expire).toBeGreaterThan(lifetime.revalidate);
+    }
   });
 });
 

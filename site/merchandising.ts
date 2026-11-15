@@ -111,11 +111,19 @@ export function nextSaleChange(
 }
 
 /**
- * How long a cached part that shows prices may stay cached (ADR 0008): until
- * the next sale start or end among the products it depends on, with both
- * revalidate and expire set to that time, so it is never served past it, or
- * the "max" profile when no date is coming. At least one second, since a
- * lifetime of 0 means no cache.
+ * Seconds before a sale date when a cached part showing it starts to
+ * regenerate in the background: the version served meanwhile is still
+ * correct, since the date has not come.
+ */
+export const REVALIDATE_MARGIN_SECONDS = 60;
+
+/**
+ * How long a cached part that shows prices may stay cached (ADR 0008): its
+ * expire is the time left until the next sale start or end among the products
+ * it depends on, after which the next request waits for a fresh render, and
+ * its revalidate a margin shorter, since Next.js requires expire to be longer
+ * than revalidate and serves the cached version during a revalidation. The
+ * "max" profile when no date is coming.
  */
 export function priceLifetime(
   products: Iterable<Sale>,
@@ -123,8 +131,9 @@ export function priceLifetime(
 ): "max" | { revalidate: number; expire: number } {
   const next = nextSaleChange(products, now);
   if (next === null) return "max";
-  const seconds = Math.max(1, Math.ceil((next - now) / 1000));
-  return { revalidate: seconds, expire: seconds };
+  const expire = Math.max(2, Math.ceil((next - now) / 1000));
+  const revalidate = Math.max(1, expire - REVALIDATE_MARGIN_SECONDS);
+  return { revalidate: Math.min(revalidate, expire - 1), expire };
 }
 
 /** The next 00:00 UTC after a moment, when the rotation's new sales start. */
