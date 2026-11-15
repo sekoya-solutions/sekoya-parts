@@ -169,6 +169,42 @@
     color: var(--color-slate);
   }
 
+  /* The sort and brand controls of category pages (issue #148): each list
+     under its label, side by side when they fit, then the button, all tall
+     enough to tap on a phone. */
+  .listing-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem 1rem;
+  }
+  .listing-controls label span {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+  }
+  .listing-controls select {
+    min-height: 2.75rem;
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+    background-color: var(--color-white);
+    color: var(--color-navy);
+  }
+  .listing-controls button {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-action);
+    color: var(--color-white);
+    font-weight: 600;
+  }
+  .listing-controls button:hover {
+    background-color: var(--color-action-hover);
+  }
+
   /* Previous and next links on numbered pages. */
   .pager {
     display: flex;

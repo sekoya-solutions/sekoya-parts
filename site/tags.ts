@@ -34,6 +34,13 @@ export const CATEGORIES_TAG = "categories";
  */
 export const categoryListingTag = (id: number) => `category:${id}:listing`;
 
+/**
+ * The order of a category's products by price (issue #148): any product's new
+ * price can move it onto or off a price-sorted page, so a price change in the
+ * category refreshes every such page, not only the ones that show it.
+ */
+export const categoryPricesTag = (id: number) => `category:${id}:prices`;
+
 /** The tags to refresh after a category is saved or deleted. */
 export const tagsForCategoryChange = (id: number): string[] => [
   categoryTag(id),
@@ -242,6 +249,12 @@ const referenceOf = (doc: ProductFields): string[] =>
 
 const isShowcase = (doc: ProductFields | undefined) => doc?.showcase === true;
 
+/** The price order of the product's category (issue #148). */
+const pricesOf = (doc: ProductFields): string[] => {
+  const category = comparable(doc.category);
+  return typeof category === "number" ? [categoryPricesTag(category)] : [];
+};
+
 /** The listings a product appears in: its category's and its brand's. */
 const listingOf = (doc: ProductFields): string[] => {
   const category = comparable(doc.category);
@@ -282,7 +295,7 @@ export function tagsForProductChange(
       (field) => comparable(doc[field]) !== comparable(previousDoc[field]),
     );
   const result: string[] = [];
-  if (changed(PART_FIELDS.price)) result.push(tags.price);
+  if (changed(PART_FIELDS.price)) result.push(tags.price, ...pricesOf(doc));
   if (changed(PART_FIELDS.description)) result.push(tags.description);
   if (changed(["reference"]))
     result.push(...referenceOf(previousDoc), ...referenceOf(doc));

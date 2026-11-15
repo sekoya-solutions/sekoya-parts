@@ -7,6 +7,11 @@
 // A brand listing's pages after the first, /<lang>/<brand word>/<brand
 // slug>/<n> (issue #147), share the address shape: the section tells them
 // apart, since Payload refuses a category slug equal to a brand word.
+// Sorted and filtered category pages (issue #148) are served here too, at
+// /<lang>/<category slug>/~<sort>~<brand>/<n>: visitors never see that
+// address, which the query rewrites of next.config.ts lead to from
+// /<lang>/<category slug>[/<n>]?sort=…&brand=…. The page reads only its
+// path, so each combination renders once and is cached.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { Locale } from "../../../../../../cms/locales.ts";
@@ -14,8 +19,10 @@ import {
   categoryPath,
   isBrandWord,
   isModelWord,
+  isViewEntry,
   languageAlternates,
   parsePageNumber,
+  parseViewEntry,
   perLocale,
   referencePageCount,
   referencePagePath,
@@ -24,6 +31,11 @@ import {
 import { BrandPage, brandMetadata } from "../../../../../../site/brands.tsx";
 import { Breadcrumbs } from "../../../../../../site/breadcrumbs.tsx";
 import { getCategories } from "../../../../../../site/categories.tsx";
+import {
+  CategoryPage,
+  categoryMetadata,
+  requestedPath,
+} from "../../../../../../site/category-page.tsx";
 import { fill, getDictionary } from "../../../../../../site/dictionary.ts";
 import { SiteFrame } from "../../../../../../site/frame.tsx";
 import {
@@ -68,6 +80,14 @@ async function resolve(params: Props["params"]) {
   return { locale, route, number, pages, references };
 }
 
+/** A sorted or filtered category page's view and number, or a 404. */
+function viewOf(entry: string, page: string) {
+  const view = parseViewEntry(entry);
+  const number = parsePageNumber(page);
+  if (view === null || number === null) notFound();
+  return { view, number };
+}
+
 /** A brand page's number, or a 404 for anything but a page number. */
 function brandPageNumber(page: string): number {
   const number = parsePageNumber(page);
@@ -77,6 +97,16 @@ function brandPageNumber(page: string): number {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, section, entry, page } = await params;
+  if (isViewEntry(entry)) {
+    const { view, number } = viewOf(entry, page);
+    return categoryMetadata(
+      localeOf(lang),
+      section,
+      number,
+      requestedPath(lang, section),
+      view,
+    );
+  }
   if (isBrandWord(section))
     return brandMetadata(
       localeOf(lang),
@@ -107,6 +137,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // params is read outside any Suspense boundary, as on the product page.
 export default async function ReferencePage({ params }: Props) {
   const { lang, section, entry, page } = await params;
+  if (isViewEntry(entry)) {
+    const { view, number } = viewOf(entry, page);
+    return (
+      <CategoryPage
+        locale={localeOf(lang)}
+        section={section}
+        page={number}
+        path={requestedPath(lang, section)}
+        view={view}
+      />
+    );
+  }
   if (isBrandWord(section))
     return (
       <BrandPage

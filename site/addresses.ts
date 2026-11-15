@@ -488,3 +488,72 @@ export function findCategory(
     null
   );
 }
+
+/**
+ * The orders a category page can be sorted in (issue #148): by reference, the
+ * default, or by price either way. The query values are the same in every
+ * language.
+ */
+export const LISTING_SORTS = ["reference", "price-asc", "price-desc"] as const;
+
+export type ListingSort = (typeof LISTING_SORTS)[number];
+
+export const isListingSort = (value: string): value is ListingSort =>
+  (LISTING_SORTS as readonly string[]).includes(value);
+
+/** A sorted or filtered view of a category: its order and brand, if any. */
+export type ListingView = { sort: ListingSort; brand: string | null };
+
+export const PLAIN_VIEW: ListingView = { sort: "reference", brand: null };
+
+export const isPlainView = (view: ListingView): boolean =>
+  view.sort === "reference" && view.brand === null;
+
+/**
+ * The mark that starts a view's segment in the internal addresses the query
+ * rewrites of next.config.ts lead to (issue #148):
+ * /<lang>/<section>/~<sort>~<brand>/<n>, served by the numbered-page route.
+ * No product, page number or other segment can hold it.
+ */
+export const VIEW_MARK = "~";
+
+/** The brand part of a view's segment when no brand is chosen. */
+export const ANY_BRAND = "-";
+
+/** Whether a segment is a view's, rather than a product's. */
+export const isViewEntry = (entry: string): boolean =>
+  entry.startsWith(VIEW_MARK);
+
+/** A view's segment in the internal addresses, such as ~price-asc~-. */
+export const viewEntry = (view: ListingView): string =>
+  `${VIEW_MARK}${view.sort}${VIEW_MARK}${view.brand ?? ANY_BRAND}`;
+
+/** A view's query string, empty for the plain view. */
+export function viewQuery(view: ListingView): string {
+  const params = new URLSearchParams();
+  if (view.sort !== "reference") params.set("sort", view.sort);
+  if (view.brand !== null) params.set("brand", view.brand);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+/** A category page's address, with the view's query when it is not plain. */
+export const categoryViewPath = (
+  locale: Locale,
+  categorySlug: string,
+  page: number,
+  view: ListingView,
+): string => `${categoryPath(locale, categorySlug, page)}${viewQuery(view)}`;
+
+/**
+ * The view a segment names, or null when it cannot be one: no mark, an
+ * unknown order, or a brand part that is not a brand slug.
+ */
+export function parseViewEntry(entry: string): ListingView | null {
+  const parts = entry.split(VIEW_MARK);
+  if (parts.length !== 3 || parts[0] !== "") return null;
+  const [, sort = "", brand = ""] = parts;
+  if (!isListingSort(sort)) return null;
+  if (brand === ANY_BRAND) return { sort, brand: null };
+  return BRAND_SLUG.test(brand) ? { sort, brand } : null;
+}

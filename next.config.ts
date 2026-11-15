@@ -2,6 +2,7 @@ import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 import { commitHeaders } from "./site/commit.ts";
 import { imageHeaders } from "./site/images-headers.ts";
+import { listingRewrites } from "./site/listing-rewrites.ts";
 
 // Cache Components, decided in docs/adr/0001-framework-and-rendering.md.
 // partialPrefetching stays off (docs/adr/0008-caching-and-partial-refresh.md),
@@ -18,6 +19,11 @@ const nextConfig: NextConfig = {
       ...commitHeaders(process.env.VERCEL_GIT_COMMIT_SHA),
       ...imageHeaders(),
     ];
+  },
+  // Sorted and filtered category pages (issue #148), served by an internal
+  // route that reads only its path, before any page is matched.
+  async rewrites() {
+    return { beforeFiles: listingRewrites(), afterFiles: [], fallback: [] };
   },
 };
 

@@ -30,6 +30,18 @@ export function locationPath(response: APIResponse): string {
   return new URL(values[0] as string, "http://site.test").pathname;
 }
 
+/** The path and query a redirect points to, read as locationPath reads it. */
+export function locationAddress(response: APIResponse): string {
+  const values = response
+    .headersArray()
+    .filter(({ name }) => name.toLowerCase() === "location")
+    .map(({ value }) => value);
+  expect(values.length).toBeGreaterThan(0);
+  expect(new Set(values).size).toBe(1);
+  const url = new URL(values[0] as string, "http://site.test");
+  return url.pathname + url.search;
+}
+
 export async function productAddress(
   request: APIRequestContext,
   locale: Locale,

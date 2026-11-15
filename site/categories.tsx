@@ -10,6 +10,7 @@ import type { Locale } from "../cms/locales.ts";
 import {
   type CategoryNaming,
   categoryPath,
+  type ListingSort,
   PRODUCTS_PER_CATEGORY_PAGE,
   perLocale,
 } from "./addresses.ts";
@@ -19,6 +20,7 @@ import {
   CATEGORIES_TAG,
   categoryListingTag,
   categoryPageTags,
+  categoryPricesTag,
   categoryTag,
 } from "./tags.ts";
 
@@ -96,32 +98,72 @@ export async function getCategoryCounts(): Promise<Record<number, number>> {
 /** One product on a category page, in every language. */
 export type CategoryRow = { route: ProductRoute; priceCents: number };
 
+/**
+ * The number of products of each brand in a category, by brand id, for the
+ * brand filter (issue #148). One entry per category, refreshed with its
+ * listing, which a product joining, leaving or changing brand refreshes.
+ */
+export async function getCategoryBrandCounts(
+  categoryId: number,
+): Promise<Record<number, number>> {
+  "use cache: remote";
+  cacheLife("max");
+  cacheTag(categoryListingTag(categoryId), CATALOG_TAG);
+
+  const drizzle = await database();
+  const { rows } = await drizzle.execute<{ brand_id: number; count: string }>(
+    sql`
+    SELECT brand_id, count(*) AS count FROM products
+     WHERE category_id = ${categoryId}
+     GROUP BY brand_id
+  `,
+  );
+  return Object.fromEntries(
+    rows.map((row) => [row.brand_id, Number(row.count)]),
+  );
+}
+
 /** A page of a category's products. */
 export type CategoryRows = { rows: CategoryRow[]; computedAt: string };
 
 /**
  * Page `page` of a category's products, 48 of them in reference order, read
- * from the index on (category, reference) (owner decision on issue #81). A
- * category holds a few thousand products, so the OFFSET skips at most that
- * many index entries. Tagged with the listing, the category, the catalog, and
- * each shown product's price and brand, under Next.js's limit of 128 tags.
+ * from the index on (category, reference) (owner decision on issue #81), or
+ * sorted by price or filtered by brand (issue #148). A category holds a few
+ * thousand products, so the OFFSET skips at most that many index entries.
+ * Tagged with the listing, the category, the catalog, and each shown
+ * product's price and brand, under Next.js's limit of 128 tags; a price
+ * order also with the category's prices, since any product's new price can
+ * move it onto or off the page.
  */
 export async function getCategoryRows(
   categoryId: number,
   page: number,
+  sort: ListingSort = "reference",
+  brandId: number | null = null,
 ): Promise<CategoryRows> {
   "use cache: remote";
   cacheLife("max");
 
   const drizzle = await database();
+  // Ties in price fall back to reference order, so every page has one order.
+  const order = {
+    reference: sql`reference`,
+    "price-asc": sql`price_cents, reference`,
+    "price-desc": sql`price_cents DESC, reference`,
+  }[sort];
+  const brand = brandId === null ? sql`` : sql`AND brand_id = ${brandId}`;
   const { rows } = await drizzle.execute<{ id: number }>(sql`
     SELECT id FROM products
-     WHERE category_id = ${categoryId}
-     ORDER BY reference
+     WHERE category_id = ${categoryId} ${brand}
+     ORDER BY ${order}
      LIMIT ${PRODUCTS_PER_CATEGORY_PAGE}
     OFFSET ${(page - 1) * PRODUCTS_PER_CATEGORY_PAGE}
   `);
-  const cards = await readCards(rows.map((row) => row.id));
+  const cards = await readCards(
+    rows.map((row) => row.id),
+    sort,
+  );
   cacheTag(
     ...categoryPageTags(
       categoryId,
@@ -129,6 +171,7 @@ export async function getCategoryRows(
       cards.brandIds,
     ),
   );
+  if (sort !== "reference") cacheTag(categoryPricesTag(categoryId));
   return { rows: cards.rows, computedAt: computedAt() };
 }
 
@@ -137,7 +180,10 @@ export async function getCategoryRows(
  * and category each card's name is built from, for the entry's tags. Called
  * inside the listing's cached read, never on its own.
  */
-export async function readCards(ids: number[]): Promise<{
+export async function readCards(
+  ids: number[],
+  sort: ListingSort = "reference",
+): Promise<{
   rows: CategoryRow[];
   brandIds: number[];
   categoryIds: number[];
@@ -154,6 +200,11 @@ export async function readCards(ids: number[]): Promise<{
           sort: "reference",
           pagination: false,
         });
+  // Payload returns them by reference; the listing's own order is the ids'.
+  if (sort !== "reference") {
+    const place = new Map(ids.map((id, index) => [id, index]));
+    docs.sort((a, b) => (place.get(a.id) ?? 0) - (place.get(b.id) ?? 0));
+  }
   const rows: CategoryRow[] = [];
   const brandIds: number[] = [];
   const categoryIds: number[] = [];
