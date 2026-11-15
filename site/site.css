@@ -185,6 +185,24 @@
     margin-top: 0.75rem;
   }
 
+  /* Breadcrumbs (issue #144): one line of small links, wrapping on phones,
+     each tall enough to tap. */
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.5rem;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-slate);
+  }
+  .breadcrumbs li {
+    padding-block: 0.25rem;
+  }
+  .breadcrumbs li + li::before {
+    content: "›";
+    margin-inline-end: 0.5rem;
+  }
+
   /* The footer's link columns (issue #143): one link per line, tall enough
      to tap on a phone. */
   .footer-links a {

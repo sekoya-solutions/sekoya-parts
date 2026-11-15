@@ -128,9 +128,12 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
   baseURL,
 }) => {
   const home = await (await request.get("/fr")).text();
-  // The home page's first links under /fr/ are its category tiles; the
-  // showcase products' links come after them (issue #111).
-  const category = /href="(\/fr\/[a-z0-9-]+)"/.exec(home)?.[1];
+  // The first links under /fr/ in <main> are the home page's category tiles;
+  // the showcase products' links come after them (issue #111), and the bar
+  // and the menu before <main> (issue #144).
+  const category = /href="(\/fr\/[a-z0-9-]+)"/.exec(
+    home.slice(home.indexOf("<main")),
+  )?.[1];
   if (!category) throw new Error("No category link on /fr.");
   for (const path of ["/fr", category]) {
     const context = await browser.newContext({

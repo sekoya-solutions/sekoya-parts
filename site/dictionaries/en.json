@@ -43,6 +43,12 @@
   "footerHelp": "Help",
   "footerLegal": "Legal information",
   "publisherPending": "The publisher’s details will be published soon.",
+  "categoriesMenu": "Categories",
+  "factsModels": "Compatibility checked against {models} appliance models",
+  "factsLanguages": "Available in 10 languages",
+  "factsDemo": "Demonstration shop: nothing is sold",
+  "breadcrumb": "Breadcrumb",
+  "homeCrumb": "Home",
   "notFoundTitle": "Page not found",
   "notFoundText": "This address matches no page in the catalog.",
   "notFoundHome": "Back to the home page"

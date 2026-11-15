@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { Locale } from "../../../../../../cms/locales.ts";
 import {
+  categoryPath,
   isModelWord,
   languageAlternates,
   parsePageNumber,
@@ -16,6 +17,8 @@ import {
   referencePagePath,
   referencePageRanks,
 } from "../../../../../../site/addresses.ts";
+import { Breadcrumbs } from "../../../../../../site/breadcrumbs.tsx";
+import { getCategories } from "../../../../../../site/categories.tsx";
 import { fill, getDictionary } from "../../../../../../site/dictionary.ts";
 import { SiteFrame } from "../../../../../../site/frame.tsx";
 import {
@@ -90,9 +93,34 @@ export default async function ReferencePage({ params }: Props) {
   const paths = perLocale((l: Locale) =>
     referencePagePath(route.paths[l], number),
   );
+  const category = (await getCategories()).find(
+    (c) => c.id === route.categoryId,
+  );
+  const pageText = fill(dictionary.pageOf, {
+    page: format.format(number),
+    pages: format.format(pages),
+  });
 
   return (
     <SiteFrame locale={locale} paths={paths}>
+      <Breadcrumbs
+        locale={locale}
+        crumbs={[
+          ...(category
+            ? [
+                {
+                  name: category.names[locale],
+                  path: categoryPath(locale, category.slugs[locale]),
+                },
+              ]
+            : []),
+          { name: route.names[locale], path: productPath },
+          {
+            name: `${dictionary.compatibleModels} (${pageText})`,
+            path: paths[locale],
+          },
+        ]}
+      />
       <h1 data-computed-at={route.computedAt} className="text-3xl font-bold">
         {fill(dictionary.referencePageHeading, {
           product: route.names[locale],

@@ -43,6 +43,12 @@
   "footerHelp": "Hjälp",
   "footerLegal": "Juridisk information",
   "publisherPending": "Utgivarens uppgifter publiceras inom kort.",
+  "categoriesMenu": "Kategorier",
+  "factsModels": "Kompatibilitet kontrollerad för {models} apparatmodeller",
+  "factsLanguages": "Finns på 10 språk",
+  "factsDemo": "Demonstrationsbutik: ingenting säljs",
+  "breadcrumb": "Brödsmulor",
+  "homeCrumb": "Hem",
   "notFoundTitle": "Sidan hittades inte",
   "notFoundText": "Den här adressen motsvarar ingen sida i katalogen.",
   "notFoundHome": "Tillbaka till startsidan"

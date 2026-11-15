@@ -43,6 +43,12 @@
   "footerHelp": "Aide",
   "footerLegal": "Informations légales",
   "publisherPending": "Les coordonnées de l’éditeur seront publiées prochainement.",
+  "categoriesMenu": "Catégories",
+  "factsModels": "Compatibilité vérifiée sur {models} modèles d’appareils",
+  "factsLanguages": "Disponible en 10 langues",
+  "factsDemo": "Boutique de démonstration : rien n’est vendu",
+  "breadcrumb": "Fil d’Ariane",
+  "homeCrumb": "Accueil",
   "notFoundTitle": "Page introuvable",
   "notFoundText": "Cette adresse ne correspond à aucune page du catalogue.",
   "notFoundHome": "Retour à l’accueil"

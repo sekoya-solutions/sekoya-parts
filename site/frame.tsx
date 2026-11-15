@@ -1,16 +1,24 @@
-// The site layout around every page in a language (issue #83): a navy header
-// with the wordmark, the search box (issue #113) and the language switch, the page's main content, and a
-// footer with the information pages' links (issue #143). The skip link sits
-// in the root layout, before it.
+// The site layout around every page in a language (issue #83): a bar of facts
+// about the demo (issue #144), a navy header with the wordmark, the search box
+// (issue #113), the category menu (issue #144) and the language switch, the
+// page's main content, and a footer with the information pages' links (issue
+// #143). The skip link sits in the root layout, before it.
 //
-// The language switch is plain links, with no browser code
-// (docs/adr/0012-front-end-assets.md): each page passes its own addresses in
-// every language, the same ones as its hreflang tags. A native <details>
-// element folds the list on small screens without any script.
+// The language switch and the category menu are plain links, with no browser
+// code (docs/adr/0012-front-end-assets.md): a native <details> element folds
+// each list without any script. The language switch takes each page's own
+// addresses in every language, the same ones as its hreflang tags.
 import type { ReactNode } from "react";
+import { MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
-import { homePath, type InfoPage, infoPagePath } from "./addresses.ts";
-import { type Dictionary, getDictionary } from "./dictionary.ts";
+import {
+  categoryPath,
+  homePath,
+  type InfoPage,
+  infoPagePath,
+} from "./addresses.ts";
+import { getCategories } from "./categories.tsx";
+import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { getInfoText } from "./info-texts.ts";
 import { MAX_QUERY_LENGTH } from "./search-key.ts";
 import { Wordmark } from "./wordmark.tsx";
@@ -102,6 +110,67 @@ export function SearchBox({
   );
 }
 
+/**
+ * The category menu (issue #144): the 12 categories in the page's language,
+ * sorted by name, each linking to its first page. One cached read, shared by
+ * every page (site/categories.tsx), so a renamed category refreshes the menu
+ * with the pages that show it.
+ */
+export async function CategoryMenu({ locale }: { locale: Locale }) {
+  const dictionary = getDictionary(locale);
+  const categories = [...(await getCategories())].sort((a, b) =>
+    a.names[locale].localeCompare(b.names[locale], locale),
+  );
+  return (
+    <details className="relative">
+      <summary className="cursor-pointer rounded-md px-2 py-1 text-sm text-cream">
+        {dictionary.categoriesMenu}
+      </summary>
+      <nav
+        aria-label={dictionary.categoriesMenu}
+        className="absolute right-0 z-10 mt-2 w-64 rounded-md bg-navy p-2 shadow-lg ring-1 ring-slate"
+      >
+        <ul>
+          {categories.map((category) => (
+            <li key={category.id}>
+              <a
+                href={categoryPath(locale, category.slugs[locale])}
+                className="block rounded-sm px-2 py-1"
+              >
+                {category.names[locale]}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </details>
+  );
+}
+
+/**
+ * The bar above the header, outside its banner landmark (issue #144): true facts about the demo, where a
+ * real shop puts its promises (owner decision, 2026-11-15). The model count is
+ * the same at every catalog scale (ADR 0007).
+ */
+export function FactsBar({ locale }: { locale: Locale }) {
+  const dictionary = getDictionary(locale);
+  return (
+    <div data-facts-bar className="on-navy border-b border-slate">
+      <ul className="mx-auto flex max-w-page flex-wrap justify-center gap-x-6 gap-y-1 px-4 py-1.5 text-xs">
+        <li>
+          {fill(dictionary.factsModels, {
+            models: new Intl.NumberFormat(locale).format(MODEL_COUNT),
+          })}
+        </li>
+        <li>{dictionary.factsLanguages}</li>
+        <li>
+          <a href={infoPagePath(locale, "terms")}>{dictionary.factsDemo}</a>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 export function SiteHeader({
   locale,
   paths,
@@ -118,7 +187,10 @@ export function SiteHeader({
           <Wordmark />
         </a>
         <SearchBox locale={locale} query={query} />
-        {paths && <LanguageSwitch locale={locale} paths={paths} />}
+        <div className="flex items-center gap-2">
+          <CategoryMenu locale={locale} />
+          {paths && <LanguageSwitch locale={locale} paths={paths} />}
+        </div>
       </div>
     </header>
   );
@@ -191,6 +263,7 @@ export function SiteFrame({
 }) {
   return (
     <>
+      <FactsBar locale={locale} />
       <SiteHeader locale={locale} paths={paths} query={query} />
       <main id={MAIN_ID} className="mx-auto max-w-page px-4 py-8">
         {children}
