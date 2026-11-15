@@ -5,7 +5,7 @@ A summary of Sekoya Parts' epics and their issues: what each phase and step deli
 ## Summary
 
 - **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3), which alone holds each issue's status ([#126](https://github.com/sekoya-solutions/sekoya-parts/issues/126)).
-- **Stack decided:** the twelve Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed.
+- **Stack decided:** the fourteen Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed; ADR 0013 and ADR 0014 came with Phase 4 ([#139](https://github.com/sekoya-solutions/sekoya-parts/issues/139)).
 - **Phase 1:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30).
   - Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
   - The first CI workflow runs Markdown lint on every pull request, as a required check ([#33](https://github.com/sekoya-solutions/sekoya-parts/issues/33)).
@@ -34,6 +34,8 @@ A summary of Sekoya Parts' epics and their issues: what each phase and step deli
   - A daily DeepL translation sweep translates them into the nine other languages, with a translation memory that keeps DeepL's 1,000,000 free characters for new and changed text only ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)). Production serves the ten languages since `f1c0f05`, and 91,220 of the 1,000,000 characters are spent.
   - The home, category and model pages open with a text introduction and load right-sized card images: 98 to 100 on every measured page ([#87](https://github.com/sekoya-solutions/sekoya-parts/issues/87)).
   - Bot Protection challenges clients that are not browsers or verified bots; production's Lighthouse runs and the agents' checks send their bypass secrets, so they are never challenged ([#135](https://github.com/sekoya-solutions/sekoya-parts/issues/135)).
+- **Phase 4:** epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), a demo shop: navigation, merchandising, a cart, customer accounts and a mock checkout, with no real payment and no order ever delivered or charged.
+  - The demo-shop scope is in `AGENTS.md`; ADR 0013 decides how visitor state stays out of the cached pages, and ADR 0014 how customer accounts work ([#139](https://github.com/sekoya-solutions/sekoya-parts/issues/139)).
 - **Documentation-only pull requests** run Markdown lint only: Vercel skips their build, the three other CI jobs are skipped, and a stand-in "Lighthouse" check passes in place of the measurement ([#91](https://github.com/sekoya-solutions/sekoya-parts/issues/91), ADR 0004).
 - **Pushes to a pull request** ([#106](https://github.com/sekoya-solutions/sekoya-parts/issues/106), revised by [#123](https://github.com/sekoya-solutions/sekoya-parts/issues/123), ADR 0004): a documentation-only push never interrupts CI; its heavy jobs conclude like the previous head's, waiting for them, and Vercel skips its build, even while the previous build runs. A code push cancels the older commits' CI and Lighthouse runs at once. Each measured commit gets its own Lighthouse comment, with its preview address.
 - **Search:** a search box on every page finds appliance models in PostgreSQL, and an exact model reference leads straight to its page ([#113](https://github.com/sekoya-solutions/sekoya-parts/issues/113)). The results page lists the matching models, then the parts Algolia finds in the visitor's language ([#119](https://github.com/sekoya-solutions/sekoya-parts/issues/119)).
@@ -232,6 +234,23 @@ Epic [#72](https://github.com/sekoya-solutions/sekoya-parts/issues/72), in the o
    - in Log mode, over 24 hours, it flagged 13.9k requests, all on production: production's Lighthouse runs from GitHub's runners (headless Chrome and the script's own `fetch` requests), the agents' curl checks and a few unknown bots. PageSpeed Insights (`Chrome-Lighthouse`, a verified bot), the daily crons and real browsers were not flagged. Previews never appear, as the bypass secret already reaches them;
    - production's Lighthouse run now sends the "CI checks" bypass secret, which the documentation lists as skipping Bot Protection, and agents send the "Agent checks" secret to production (owner decision, 2026-11-14). It changes no figure: preview runs with the header and production runs without it, on the same code, scored the same;
    - the owner switches Bot Protection to Challenge in the dashboard after the merge, once production's first run with the header is no longer flagged.
+
+### Phase 4: a demo shop
+
+Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approved by the owner on 2026-11-15. The site becomes a demo shop a visitor recognises as a real spare-parts store, while keeping mobile performance as high as Next.js allows, per-part cache refresh, the ten languages and no third-party scripts. Real payment, email of any kind, third-party widgets and generated customer reviews stay out. Each step gets its issue when its work starts, and brings its own end-to-end tests, Lighthouse coverage and interface labels in the ten dictionaries.
+
+1. **Scope and architecture decisions** ([#139](https://github.com/sekoya-solutions/sekoya-parts/issues/139)):
+   - `AGENTS.md`, section 1: a demo shop with a cart, a mock checkout and customer accounts, but no real payment, no email sent and no order ever delivered or charged; every shop page says it is a demo;
+   - [ADR 0013](adr/0013-visitor-state.md), visitor state on cached pages: the cart in a cookie of at most 50 lines, the header's cart count read by a small browser component so the catalog pages stay static output, shop actions as forms that work without JavaScript, and a test that two visitors with different carts get the same catalog HTML;
+   - [ADR 0014](adr/0014-customer-accounts.md), customer accounts: Payload's authentication in a `customers` collection that never reaches the admin, after editor-only access rules on every existing collection and on the translation and search-index endpoints; sign-in by username with no email stored; Payload's lockout and sessions; deletion 30 days after the last sign-in; at most 10,000 demo accounts; no password reset.
+2. **Header, navigation and footer:** a reassurance bar, account and cart links, a menu of the part categories and brands without JavaScript, breadcrumbs with structured data, a footer with link columns and the demo notice, and the information pages in ten languages.
+3. **Brand pages and richer category pages:** a brand index and paged brand listings; sorting and filters on category pages, with `noindex` on filtered and sorted pages.
+4. **Merchandising data,** loaded by the generator: availability with a delivery estimate, and sale prices with start and end dates, each a cached part with its own tag.
+5. **Home page merchandising:** a promotional slider and banners edited in Payload, without script or autoplay, and a three-step part finder (brand, appliance type, model).
+6. **Product page:** "Does it fit my appliance?" from one indexed lookup, cross-selling of parts for the same appliances, recently viewed products kept in the browser, and "Add to cart".
+7. **Cart:** additions that work without JavaScript, the header's count, and a cart page with quantities, a free-delivery threshold, up-selling suggestions and a demo promotion code.
+8. **Customer accounts:** sign-up, sign-in, saved addresses, order history and account deletion, with demo accounts deleted after a set time.
+9. **Mock checkout:** delivery address and method, a demo payment step with no card field, and a confirmation; orders stored in Payload, with prices read again from the catalog.
 
 ## Decisions open for the owner
 
