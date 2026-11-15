@@ -76,7 +76,10 @@ test.describe("reference pages", () => {
     expect(onPage).toEqual(onProduct.slice(0, REFERENCES_PER_PAGE));
 
     const main = page.getByRole("main");
-    await expect(main.locator(`a[href="${product}"]`)).toHaveCount(1);
+    // Once in the back link; the breadcrumbs link to it too (issue #144).
+    await expect(main.locator(`:scope > p a[href="${product}"]`)).toHaveCount(
+      1,
+    );
     await expect(main.locator('a[rel="next"]')).toHaveAttribute(
       "href",
       `${product}/2`,

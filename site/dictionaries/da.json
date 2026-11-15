@@ -43,6 +43,12 @@
   "footerHelp": "Hjælp",
   "footerLegal": "Juridiske oplysninger",
   "publisherPending": "Udgiverens oplysninger offentliggøres snart.",
+  "categoriesMenu": "Kategorier",
+  "factsModels": "Kompatibilitet kontrolleret for {models} apparatmodeller",
+  "factsLanguages": "Findes på 10 sprog",
+  "factsDemo": "Demonstrationsbutik: intet bliver solgt",
+  "breadcrumb": "Brødkrummesti",
+  "homeCrumb": "Forside",
   "notFoundTitle": "Siden blev ikke fundet",
   "notFoundText": "Denne adresse svarer ikke til nogen side i kataloget.",
   "notFoundHome": "Tilbage til forsiden"

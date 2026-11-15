@@ -43,6 +43,12 @@
   "footerHelp": "Hilfe",
   "footerLegal": "Rechtliches",
   "publisherPending": "Die Angaben zum Herausgeber werden in Kürze veröffentlicht.",
+  "categoriesMenu": "Kategorien",
+  "factsModels": "Kompatibilität geprüft für {models} Gerätemodelle",
+  "factsLanguages": "In 10 Sprachen verfügbar",
+  "factsDemo": "Demo-Shop: Es wird nichts verkauft",
+  "breadcrumb": "Brotkrümelnavigation",
+  "homeCrumb": "Startseite",
   "notFoundTitle": "Seite nicht gefunden",
   "notFoundText": "Diese Adresse entspricht keiner Seite des Katalogs.",
   "notFoundHome": "Zur Startseite"

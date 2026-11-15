@@ -43,6 +43,12 @@
   "footerHelp": "Hulp",
   "footerLegal": "Juridische informatie",
   "publisherPending": "De gegevens van de uitgever worden binnenkort gepubliceerd.",
+  "categoriesMenu": "Categorieën",
+  "factsModels": "Compatibiliteit gecontroleerd voor {models} apparaatmodellen",
+  "factsLanguages": "Beschikbaar in 10 talen",
+  "factsDemo": "Demonstratiewinkel: er wordt niets verkocht",
+  "breadcrumb": "Kruimelpad",
+  "homeCrumb": "Home",
   "notFoundTitle": "Pagina niet gevonden",
   "notFoundText": "Dit adres komt niet overeen met een pagina van de catalogus.",
   "notFoundHome": "Terug naar de startpagina"

@@ -108,7 +108,10 @@ test("every image address on a category page answers with its format and a year 
   request,
 }) => {
   const home = await (await request.get("/fr")).text();
-  const category = home.match(/<a href="(\/fr\/[a-z-]+)"/)?.[1] as string;
+  // The first link in <main>: the bar and the menu come before it (#144).
+  const category = home
+    .slice(home.indexOf("<main"))
+    .match(/<a href="(\/fr\/[a-z-]+)"/)?.[1] as string;
   const html = await (await request.get(category)).text();
   const urls = [
     ...new Set(html.match(/\/images\/[a-z0-9-]+\.(avif|webp|jpg)/g)),

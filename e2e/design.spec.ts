@@ -25,7 +25,10 @@ const alternates = (page: Page) =>
  * The language switch's menu, found by CSS: while the <details> element is
  * closed its links are hidden, and role locators skip hidden elements.
  */
-const switchMenu = (page: Page) => page.locator("header details nav");
+// The language switch, the header's details element with language links;
+// the category menu is the other one (issue #144).
+const switchMenu = (page: Page) =>
+  page.locator("header details:has(a[hreflang]) nav");
 
 /** The language switch's links, closed or open, as [language, path]. */
 const switchLinks = (page: Page) =>
@@ -74,7 +77,10 @@ test("the language switch opens without browser code and names each language in 
   const nav = switchMenu(page);
   await expect(nav).toHaveCount(1);
   await expect(nav).toBeHidden();
-  await page.getByRole("banner").locator("summary").click();
+  await page
+    .getByRole("banner")
+    .locator("details:has(a[hreflang]) summary")
+    .click();
   await expect(nav).toBeVisible();
   for (const locale of locales.filter((l) => l !== "fr")) {
     const link = nav.locator(`a[hreflang="${locale}"]`);

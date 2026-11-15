@@ -11,12 +11,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { Locale } from "../../../../../cms/locales.ts";
 import {
+  categoryPath,
   isModelWord,
   isPageSegment,
   languageAlternates,
   parsePageNumber,
   referencePagePath,
 } from "../../../../../site/addresses.ts";
+import { Breadcrumbs } from "../../../../../site/breadcrumbs.tsx";
+import { getCategories } from "../../../../../site/categories.tsx";
 import {
   CategoryPage,
   categoryMetadata,
@@ -124,13 +127,29 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
   const { id } = route;
   const dictionary = getDictionary(locale);
   const image = productImage(route.categoryId, id);
-  const [references, total] = await Promise.all([
+  const [references, total, categories] = await Promise.all([
     getReferenceRows(id, 1, PRODUCT_PAGE_REFERENCES),
     getReferenceTotal(id),
+    getCategories(),
   ]);
+  const category = categories.find((c) => c.id === route.categoryId);
 
   return (
     <SiteFrame locale={locale} paths={route.paths}>
+      <Breadcrumbs
+        locale={locale}
+        crumbs={[
+          ...(category
+            ? [
+                {
+                  name: category.names[locale],
+                  path: categoryPath(locale, category.slugs[locale]),
+                },
+              ]
+            : []),
+          { name: route.names[locale], path: route.paths[locale] },
+        ]}
+      />
       {/* Text first on phones (issue #85): the image sits small beside the
           name and price, so the text stays the page's largest element and
           appears with the first paint, where an image would wait for the
@@ -186,6 +205,15 @@ async function ModelPage(locale: Locale, section: string, entry: string) {
 
   return (
     <SiteFrame locale={locale} paths={model.paths}>
+      <Breadcrumbs
+        locale={locale}
+        crumbs={[
+          {
+            name: `${model.brand} ${model.reference}`,
+            path: model.paths[locale],
+          },
+        ]}
+      />
       <h1
         data-computed-at={model.computedAt}
         className="text-3xl font-bold sm:text-4xl"

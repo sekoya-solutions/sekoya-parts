@@ -7,6 +7,7 @@
 import type { Metadata } from "next";
 import type { Locale } from "../cms/locales.ts";
 import { categoryPath, languageAlternates } from "./addresses.ts";
+import { Breadcrumbs } from "./breadcrumbs.tsx";
 import {
   categoryPaths,
   getCategoryCounts,
@@ -22,7 +23,7 @@ import { resolveCategory } from "./resolve.ts";
 export const requestedPath = (lang: string, section: string, page?: string) =>
   page === undefined ? `/${lang}/${section}` : `/${lang}/${section}/${page}`;
 
-function pageLabel(locale: Locale, page: number, pages: number) {
+export function pageLabel(locale: Locale, page: number, pages: number) {
   const format = new Intl.NumberFormat(locale);
   return fill(getDictionary(locale).pageOf, {
     page: format.format(page),
@@ -82,6 +83,20 @@ export async function CategoryPage({
 
   return (
     <SiteFrame locale={locale} paths={categoryPaths(category, page)}>
+      <Breadcrumbs
+        locale={locale}
+        crumbs={[
+          { name: category.names[locale], path: categoryPath(locale, slug) },
+          ...(page > 1
+            ? [
+                {
+                  name: pageLabel(locale, page, pages),
+                  path: categoryPath(locale, slug, page),
+                },
+              ]
+            : []),
+        ]}
+      />
       <h1 className="text-3xl font-bold">{category.names[locale]}</h1>
       {pages > 1 && (
         <p className="mt-1 text-slate">{pageLabel(locale, page, pages)}</p>

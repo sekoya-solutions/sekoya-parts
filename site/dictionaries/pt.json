@@ -43,6 +43,12 @@
   "footerHelp": "Ajuda",
   "footerLegal": "Informação legal",
   "publisherPending": "Os dados do editor serão publicados em breve.",
+  "categoriesMenu": "Categorias",
+  "factsModels": "Compatibilidade verificada em {models} modelos de aparelhos",
+  "factsLanguages": "Disponível em 10 línguas",
+  "factsDemo": "Loja de demonstração: nada é vendido",
+  "breadcrumb": "Navegação estrutural",
+  "homeCrumb": "Início",
   "notFoundTitle": "Página não encontrada",
   "notFoundText": "Este endereço não corresponde a nenhuma página do catálogo.",
   "notFoundHome": "Voltar à página inicial"

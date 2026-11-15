@@ -43,6 +43,12 @@
   "footerHelp": "Aiuto",
   "footerLegal": "Informazioni legali",
   "publisherPending": "I dati dell’editore saranno pubblicati a breve.",
+  "categoriesMenu": "Categorie",
+  "factsModels": "Compatibilità verificata su {models} modelli di elettrodomestici",
+  "factsLanguages": "Disponibile in 10 lingue",
+  "factsDemo": "Negozio dimostrativo: non si vende nulla",
+  "breadcrumb": "Percorso di navigazione",
+  "homeCrumb": "Home",
   "notFoundTitle": "Pagina non trovata",
   "notFoundText": "Questo indirizzo non corrisponde a nessuna pagina del catalogo.",
   "notFoundHome": "Torna alla home page"
