@@ -250,7 +250,7 @@ Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approv
    - **The footer and the information pages** ([#143](https://github.com/sekoya-solutions/sekoya-parts/issues/143)):
      - six pages in ten languages at `/<lang>/<page slug>`: help and frequently asked questions, delivery and returns, legal notice, demo terms of sale, privacy, and accessibility statement. Each is built in advance and lists its ten versions; another language's slug or letter case redirects permanently. They stay out of the sitemap, and `robots.txt` disallows them;
      - their slugs are reserved like the model and search words, so Payload refuses them as category slugs;
-     - the texts describe the site as it is, written in French in `site/info/` and translated by agents in the pull request, with no DeepL characters spent (owner decision, 2026-11-15). The legal notice gives the publisher's details and the host, Vercel Inc.;
+     - the texts describe the site as it is, written in French in `site/info/` and translated by agents in the pull request, with no DeepL characters spent (owner decision, 2026-11-15). The legal notice names the host, Vercel Inc.; the publisher's details are pending (owner decision, 2026-11-15), so the notice says they will be published soon;
      - every page's footer has two columns of links, help and legal information, then the demo notice.
    - **The category menu, the reassurance bar and breadcrumbs** ([#144](https://github.com/sekoya-solutions/sekoya-parts/issues/144)).
 4. **Brand pages and richer category pages:** a brand index and paged brand listings; sorting and filters on category pages, with `noindex` on filtered and sorted pages.

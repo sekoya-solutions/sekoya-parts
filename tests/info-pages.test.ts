@@ -15,9 +15,14 @@ import {
   isReservedWord,
   isSearchWord,
 } from "../site/addresses.ts";
-import { fill, placeholders } from "../site/dictionary.ts";
+import { fill, getDictionary, placeholders } from "../site/dictionary.ts";
 import { infoTexts } from "../site/info-texts.ts";
-import { HOST, legalValues, PUBLISHER } from "../site/publisher.ts";
+import {
+  HOST,
+  legalValues,
+  PUBLISHER,
+  usesPublisher,
+} from "../site/publisher.ts";
 
 describe("information page slugs", () => {
   it("are valid category-slug words in every language", () => {
@@ -111,7 +116,14 @@ describe("information page texts", () => {
   });
 
   it("use placeholders on the legal notice only, each one with a value", () => {
-    const values = legalValues();
+    // With details, so every placeholder is checked even while they are
+    // pending.
+    const values = legalValues({
+      name: "n",
+      address: "a",
+      director: "d",
+      contact: "c",
+    });
     for (const locale of locales)
       for (const page of INFO_PAGES)
         for (const section of infoTexts[locale][page].sections)
@@ -131,10 +143,28 @@ describe("the legal notice's details", () => {
     });
   });
 
-  // Fails until the owner supplies the publisher's details, so the legal
-  // notice never ships with a blank.
-  it("give every publisher detail", () => {
+  // The details are either all given or pending as a whole (owner decision,
+  // 2026-11-15): never a blank in the notice.
+  it("give every publisher detail, unless they are pending", () => {
+    if (PUBLISHER === null) return;
     for (const [field, value] of Object.entries(PUBLISHER))
       expect(value.trim(), field).not.toBe("");
+  });
+
+  it("are exactly the publisher section's paragraphs, which a pending notice replaces", () => {
+    for (const locale of locales) {
+      const [publisher, ...others] = infoTexts[locale].legal.sections;
+      expect(publisher?.paragraphs.every(usesPublisher), locale).toBe(true);
+      for (const section of others)
+        expect(section.paragraphs.some(usesPublisher), locale).toBe(false);
+      expect(getDictionary(locale).publisherPending.trim()).not.toBe("");
+    }
+  });
+
+  it("leave out the publisher while pending", () => {
+    expect(legalValues(null)).toEqual({
+      hostName: HOST.name,
+      hostAddress: HOST.address,
+    });
   });
 });

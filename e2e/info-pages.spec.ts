@@ -4,8 +4,9 @@ import { expect, test } from "@playwright/test";
 import { locales } from "../cms/locales.ts";
 import { isAllowed, parseRobots } from "../scripts/robots-match.ts";
 import { INFO_PAGES, infoPagePath, infoPagePaths } from "../site/addresses.ts";
+import { getDictionary } from "../site/dictionary.ts";
 import { infoTexts } from "../site/info-texts.ts";
-import { HOST } from "../site/publisher.ts";
+import { HOST, PUBLISHER } from "../site/publisher.ts";
 import { locationPath } from "./addresses.ts";
 
 // React escapes these characters in text; the titles hold none of them.
@@ -28,11 +29,16 @@ for (const locale of locales) {
   });
 }
 
-test("the legal notice names the host", async ({ page }) => {
+test("the legal notice names the host, and the publisher or that its details are pending", async ({
+  page,
+}) => {
   await page.goto(infoPagePath("en", "legal"));
-  await expect(page.getByRole("main")).toContainText(
-    `${HOST.name}, ${HOST.address}`,
-  );
+  const main = page.getByRole("main");
+  await expect(main).toContainText(`${HOST.name}, ${HOST.address}`);
+  if (PUBLISHER === null) {
+    await expect(main).toContainText(getDictionary("en").publisherPending);
+    await expect(main).not.toContainText("{publisher");
+  } else await expect(main).toContainText(PUBLISHER.name);
 });
 
 test("an information page lists its ten versions and x-default", async ({

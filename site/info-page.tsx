@@ -13,10 +13,10 @@ import {
   infoPagePaths,
   languageAlternates,
 } from "./addresses.ts";
-import { fill } from "./dictionary.ts";
+import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
 import { getInfoText } from "./info-texts.ts";
-import { legalValues } from "./publisher.ts";
+import { legalValues, PUBLISHER, usesPublisher } from "./publisher.ts";
 
 /**
  * The information page a section names. Another language's slug or another
@@ -56,6 +56,13 @@ export function InfoPageView({
   const text = getInfoText(locale, page);
   // Only the legal notice has placeholders; fill() fails on any other.
   const values = page === "legal" ? legalValues() : {};
+  // While the publisher's details are pending, a section that shows them
+  // says they will be published soon instead.
+  const pending = getDictionary(locale).publisherPending;
+  const paragraphsOf = (paragraphs: string[]) =>
+    PUBLISHER === null && paragraphs.some(usesPublisher)
+      ? [pending]
+      : paragraphs.map((paragraph) => fill(paragraph, values));
   return (
     <SiteFrame locale={locale} paths={infoPagePaths(page)}>
       <article className="info-page max-w-prose">
@@ -63,9 +70,9 @@ export function InfoPageView({
         {text.sections.map((part) => (
           <section key={part.heading}>
             <h2>{part.heading}</h2>
-            {part.paragraphs.map((paragraph, index) => (
+            {paragraphsOf(part.paragraphs).map((paragraph, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static texts, never reordered
-              <p key={index}>{fill(paragraph, values)}</p>
+              <p key={index}>{paragraph}</p>
             ))}
           </section>
         ))}
