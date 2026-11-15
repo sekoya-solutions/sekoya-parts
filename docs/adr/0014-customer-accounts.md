@@ -1,6 +1,6 @@
 # ADR 0014: Customer accounts
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 - Deciders: Owner
 
@@ -48,7 +48,7 @@ Facts were checked on 2026-11-15, in the source of the installed Payload 3.93.0:
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **Payload's authentication in a `customers` collection** (option 1), never allowed into the admin. First, explicit access rules on `products`, `categories`, `brands` and `users` and on both endpoints, for editors only, with tests proving a signed-in customer can change nothing there.
 - **Sign-in with a username** (option a), no email address stored.

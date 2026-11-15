@@ -16,5 +16,5 @@ One record per significant technical choice, written with the options considered
 | [0010](0010-search.md) | Search | Accepted |
 | [0011](0011-languages-and-seo.md) | Languages and search engine optimization | Accepted |
 | [0012](0012-front-end-assets.md) | Front-end assets | Accepted |
-| [0013](0013-visitor-state.md) | Visitor state on cached pages | Proposed |
-| [0014](0014-customer-accounts.md) | Customer accounts | Proposed |
+| [0013](0013-visitor-state.md) | Visitor state on cached pages | Accepted |
+| [0014](0014-customer-accounts.md) | Customer accounts | Accepted |

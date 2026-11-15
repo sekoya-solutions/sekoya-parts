@@ -1,6 +1,6 @@
 # ADR 0013: Visitor state on cached pages
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 - Deciders: Owner
 
@@ -8,7 +8,7 @@
 
 Phase 4 ([#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138)) turns the catalog into a demo shop, with a cart, customer accounts and a mock checkout. This Architecture Decision Record (ADR) chooses where a visitor's cart lives and how per-visitor content appears without slowing the catalog pages. The forces:
 
-- **Owner requirements** ([AGENTS.md](../../AGENTS.md), section 1): PageSpeed 95 to 100, fine-grained cache refresh, no third-party scripts, and free plans.
+- **Owner requirements** ([AGENTS.md](../../AGENTS.md), section 1): mobile performance as high as possible (in Phase 4, at least 90 to merge, owner decision of 2026-11-15), fine-grained cache refresh, no third-party scripts, and free plans.
 - **The catalog pages today** are built from cached parts shared by every visitor ([ADR 0008](0008-caching-and-partial-refresh.md)). None reads the request's cookies, so each page is served as static output once built.
 - **Hosting.** Each request that renders on the server is a function invocation, counted against Hobby's monthly limits ([ADR 0002](0002-hosting-and-environments.md)).
 - **No browser code** is needed today: the language switch is links and the search a form ([ADR 0012](0012-front-end-assets.md)).
@@ -54,7 +54,7 @@ Facts were checked on 2026-11-15, in the documentation shipped with the installe
 
 ## Decision
 
-Proposed:
+Chosen:
 
 - **The cart in a cookie** (option 1): lines only, at most 50 lines and 99 of each product, checked on every read, with unknown or withdrawn products dropped.
 - **The header's count from a small browser component** (option B). The header's account link is the same for everyone; the account pages send a visitor who is not signed in to the sign-in page.
