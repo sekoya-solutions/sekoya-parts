@@ -196,6 +196,42 @@ export function searchPath(locale: Locale, query?: string): string {
 }
 
 /**
+ * The section word of brand addresses in each language (issue #147): the
+ * brand index at /<lang>/<brand word>, and each brand’s listing at
+ * /<lang>/<brand word>/<brand slug>, then /<n>. Like the model and search
+ * words, each is a valid category slug’s form, and Payload refuses a
+ * category slug equal to any of them.
+ */
+export const BRAND_WORDS: Record<Locale, string> = {
+  fr: "marques",
+  en: "brands",
+  de: "marken",
+  es: "marcas",
+  it: "marche",
+  nl: "merken",
+  pt: "marcas",
+  pl: "marki",
+  sv: "varumarken",
+  da: "maerker",
+};
+
+const brandWords = new Set(Object.values(BRAND_WORDS));
+
+/** Whether a section is the brand section, in any language. */
+export const isBrandWord = (section: string): boolean =>
+  brandWords.has(section.toLowerCase());
+
+/** The brand index in one language. */
+export const brandIndexPath = (locale: Locale): string =>
+  `/${locale}/${BRAND_WORDS[locale]}`;
+
+/** A brand listing’s address: page 1 without a number, then /<n>. */
+export function brandPath(locale: Locale, slug: string, page = 1): string {
+  const path = `${brandIndexPath(locale)}/${slug}`;
+  return page === 1 ? path : `${path}/${page}`;
+}
+
+/**
  * The information pages (issue #143), in the footer's order: help first, then
  * the legal information.
  */
@@ -317,7 +353,10 @@ export const infoPagePaths = (page: InfoPage): Record<Locale, string> =>
  * take it as its slug.
  */
 export const isReservedWord = (section: string): boolean =>
-  isModelWord(section) || isSearchWord(section) || infoPageOf(section) !== null;
+  isModelWord(section) ||
+  isSearchWord(section) ||
+  isBrandWord(section) ||
+  infoPageOf(section) !== null;
 
 /**
  * The rule for brand slugs: lowercase letters and digits, with no hyphen, so

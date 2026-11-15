@@ -1,10 +1,12 @@
-// Three templates share the address shape /<lang>/<section>/<entry>
+// Four templates share the address shape /<lang>/<section>/<entry>
 // (docs/adr/0011-languages-and-seo.md):
 // - the product page, /<lang>/<category slug>/<words>-<reference>;
 // - the model page, /<lang>/<model word>/<brand slug>-<model reference>;
-// - a category page after the first, /<lang>/<category slug>/<n> (issue #81).
-// The section tells models apart: Payload refuses a category slug equal to a
-// model word, in any language. An entry of digits only is a category page:
+// - a category page after the first, /<lang>/<category slug>/<n> (issue #81);
+// - a brand listing's first page, /<lang>/<brand word>/<brand slug> (issue
+//   #147).
+// The section tells models and brands apart: Payload refuses a category slug
+// equal to a model or brand word, in any language. An entry of digits only is a category page:
 // Payload refuses a product reference without a letter. Each page is found by its stable key, and any
 // other words, section or letter case redirect permanently to its address.
 import type { Metadata } from "next";
@@ -12,12 +14,14 @@ import { notFound } from "next/navigation";
 import type { Locale } from "../../../../../cms/locales.ts";
 import {
   categoryPath,
+  isBrandWord,
   isModelWord,
   isPageSegment,
   languageAlternates,
   parsePageNumber,
   referencePagePath,
 } from "../../../../../site/addresses.ts";
+import { BrandPage, brandMetadata } from "../../../../../site/brands.tsx";
 import { Breadcrumbs } from "../../../../../site/breadcrumbs.tsx";
 import { getCategories } from "../../../../../site/categories.tsx";
 import {
@@ -67,6 +71,8 @@ type Props = PageProps<"/[lang]/[section]/[entry]">;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, section, entry } = await params;
   const locale = localeOf(lang);
+  if (isBrandWord(section))
+    return brandMetadata(locale, entry, 1, requestedPath(lang, section, entry));
   if (isPageSegment(entry) && !isModelWord(section))
     return categoryMetadata(
       locale,
@@ -101,6 +107,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function EntryPage({ params }: Props) {
   const { lang, section, entry } = await params;
   const locale = localeOf(lang);
+  if (isBrandWord(section))
+    return (
+      <BrandPage
+        locale={locale}
+        entry={entry}
+        page={1}
+        path={requestedPath(lang, section, entry)}
+      />
+    );
   if (isPageSegment(entry) && !isModelWord(section))
     return (
       <CategoryPage

@@ -42,6 +42,7 @@ describe("tagsForProductChange", () => {
     expect(tagsForProductChange(7, { ...before, name: "X" }, before)).toEqual([
       "product:7:description",
       "category:2:listing",
+      "brand:3:listing",
     ]);
   });
 
@@ -54,6 +55,7 @@ describe("tagsForProductChange", () => {
       expect(tagsForProductChange(7, doc, previous)).toEqual([
         "product:7:description",
         "category:2:listing",
+        "brand:3:listing",
         "showcase",
       ]);
     },
@@ -76,7 +78,11 @@ describe("tagsForProductChange", () => {
     ).toEqual(["product:7:price"]);
     expect(
       tagsForProductChange(7, { ...showcase, name: "X" }, showcase),
-    ).toEqual(["product:7:description", "category:2:listing"]);
+    ).toEqual([
+      "product:7:description",
+      "category:2:listing",
+      "brand:3:listing",
+    ]);
     expect(
       tagsForProductChange(7, { ...before, priceCents: 1 }, before),
     ).toEqual(["product:7:price"]);
@@ -96,6 +102,7 @@ describe("tagsForProductChange", () => {
       "product-reference:SK7",
       "product-reference:SK8",
       "category:2:listing",
+      "brand:3:listing",
     ]);
   });
 
@@ -105,6 +112,7 @@ describe("tagsForProductChange", () => {
     ).toEqual([
       "product:7:description",
       "category:2:listing",
+      "brand:3:listing",
       "category:5:listing",
     ]);
   });
@@ -138,7 +146,12 @@ describe("tagsForProductChange", () => {
     expect(tagsForProductChange(7, populated, before)).toEqual([]);
     expect(
       tagsForProductChange(7, { ...before, brand: { id: 4 } }, before),
-    ).toEqual(["product:7:description", "category:2:listing"]);
+    ).toEqual([
+      "product:7:description",
+      "category:2:listing",
+      "brand:3:listing",
+      "brand:4:listing",
+    ]);
   });
 
   it("refreshes every part, the reference's lookup of a new product, whose absence may be cached, and the listing it joins", () => {
@@ -148,6 +161,7 @@ describe("tagsForProductChange", () => {
       "product:7:references",
       "product-reference:SK7",
       "category:2:listing",
+      "brand:3:listing",
     ]);
   });
 });
@@ -160,6 +174,7 @@ describe("tagsForProductDelete", () => {
       "product:7:references",
       "product-reference:SK7",
       "category:2:listing",
+      "brand:3:listing",
     ]);
   });
 });
@@ -168,15 +183,16 @@ describe("tagsForBrandChange", () => {
   it("refreshes the brand and the model lookups of its old and new slugs", () => {
     expect(
       tagsForBrandChange(3, { slug: "norium" }, { slug: "noryum" }),
-    ).toEqual(["brand:3", "brand-slug:noryum", "brand-slug:norium"]);
+    ).toEqual(["brand:3", "brands", "brand-slug:noryum", "brand-slug:norium"]);
   });
 
   it("names a slug once when it does not change, and handles a new brand", () => {
     expect(
       tagsForBrandChange(3, { slug: "norium" }, { slug: "norium" }),
-    ).toEqual(["brand:3", "brand-slug:norium"]);
+    ).toEqual(["brand:3", "brands", "brand-slug:norium"]);
     expect(tagsForBrandChange(4, { slug: "velto" })).toEqual([
       "brand:4",
+      "brands",
       "brand-slug:velto",
     ]);
   });

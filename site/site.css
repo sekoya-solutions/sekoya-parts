@@ -149,6 +149,26 @@
     color: var(--color-navy);
   }
 
+  /* The brand index (issue #147): each brand's name, then its number of
+     products, in as many 12rem columns as fit. */
+  .brand-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 0.25rem 1rem;
+  }
+  .brand-list li {
+    padding-block: 0.375rem;
+  }
+  .brand-list a {
+    font-weight: 600;
+  }
+  .brand-list span {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-slate);
+  }
+
   /* Previous and next links on numbered pages. */
   .pager {
     display: flex;

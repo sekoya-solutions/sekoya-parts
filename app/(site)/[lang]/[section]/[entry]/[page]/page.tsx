@@ -4,11 +4,15 @@
 // pages and to the product. Only a product with more references than its own
 // page shows has these pages. Each page is its own canonical address; none
 // points to the first page.
+// A brand listing's pages after the first, /<lang>/<brand word>/<brand
+// slug>/<n> (issue #147), share the address shape: the section tells them
+// apart, since Payload refuses a category slug equal to a brand word.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { Locale } from "../../../../../../cms/locales.ts";
 import {
   categoryPath,
+  isBrandWord,
   isModelWord,
   languageAlternates,
   parsePageNumber,
@@ -17,6 +21,7 @@ import {
   referencePagePath,
   referencePageRanks,
 } from "../../../../../../site/addresses.ts";
+import { BrandPage, brandMetadata } from "../../../../../../site/brands.tsx";
 import { Breadcrumbs } from "../../../../../../site/breadcrumbs.tsx";
 import { getCategories } from "../../../../../../site/categories.tsx";
 import { fill, getDictionary } from "../../../../../../site/dictionary.ts";
@@ -63,7 +68,22 @@ async function resolve(params: Props["params"]) {
   return { locale, route, number, pages, references };
 }
 
+/** A brand page's number, or a 404 for anything but a page number. */
+function brandPageNumber(page: string): number {
+  const number = parsePageNumber(page);
+  if (number === null) notFound();
+  return number;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang, section, entry, page } = await params;
+  if (isBrandWord(section))
+    return brandMetadata(
+      localeOf(lang),
+      entry,
+      brandPageNumber(page),
+      `/${lang}/${section}/${entry}/${page}`,
+    );
   const { locale, route, number, pages } = await resolve(params);
   const dictionary = getDictionary(locale);
   const format = new Intl.NumberFormat(locale);
@@ -86,6 +106,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // params is read outside any Suspense boundary, as on the product page.
 export default async function ReferencePage({ params }: Props) {
+  const { lang, section, entry, page } = await params;
+  if (isBrandWord(section))
+    return (
+      <BrandPage
+        locale={localeOf(lang)}
+        entry={entry}
+        page={brandPageNumber(page)}
+        path={`/${lang}/${section}/${entry}/${page}`}
+      />
+    );
   const { locale, route, number, pages, references } = await resolve(params);
   const dictionary = getDictionary(locale);
   const productPath = route.paths[locale];

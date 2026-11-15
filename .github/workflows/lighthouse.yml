@@ -56,9 +56,10 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
         run: node scripts/docs-only.ts --superseded "$DEPLOY_SHA"
       - run: npm ci
-      # Single loads, one after another, on five pages: the French home page,
+      # Single loads, one after another, on six pages: the French home page,
       # the first category it lists (issue #81), the heaviest product page, its
-      # first reference page and its most popular model's page (issue #79).
+      # first reference page, its most popular model's page (issue #79) and the
+      # first brand the brand index lists (issue #147).
       # For each: one request to check the deployment answers (on production,
       # that the public address serves this commit), one Lighthouse warm-up
       # run that is not counted, then five measured runs.
@@ -82,6 +83,7 @@ jobs:
           home=/fr category=first-link:/fr:/fr/ product=/fr/p/sp000001
           references=/fr/p/sp000001/1
           model=first-link:/fr/p/sp000001:/fr/appareil/
+          brand=first-link:/fr/marques:/fr/marques/
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

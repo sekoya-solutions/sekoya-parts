@@ -22,7 +22,7 @@ import {
   categoryTag,
 } from "./tags.ts";
 
-async function database() {
+export async function database() {
   const payload = await getPayload({ config });
   return (payload.db as unknown as PostgresAdapter).drizzle;
 }
@@ -121,7 +121,27 @@ export async function getCategoryRows(
      LIMIT ${PRODUCTS_PER_CATEGORY_PAGE}
     OFFSET ${(page - 1) * PRODUCTS_PER_CATEGORY_PAGE}
   `);
-  const ids = rows.map((row) => row.id);
+  const cards = await readCards(rows.map((row) => row.id));
+  cacheTag(
+    ...categoryPageTags(
+      categoryId,
+      cards.rows.map((row) => row.route.id),
+      cards.brandIds,
+    ),
+  );
+  return { rows: cards.rows, computedAt: computedAt() };
+}
+
+/**
+ * The product cards of a listing page, in reference order, with the brand
+ * and category each card's name is built from, for the entry's tags. Called
+ * inside the listing's cached read, never on its own.
+ */
+export async function readCards(ids: number[]): Promise<{
+  rows: CategoryRow[];
+  brandIds: number[];
+  categoryIds: number[];
+}> {
   const payload = await getPayload({ config });
   const { docs } =
     ids.length === 0
@@ -134,22 +154,16 @@ export async function getCategoryRows(
           sort: "reference",
           pagination: false,
         });
-
-  const result: CategoryRow[] = [];
+  const rows: CategoryRow[] = [];
   const brandIds: number[] = [];
+  const categoryIds: number[] = [];
   for (const doc of docs) {
     const read = readProduct(doc);
     brandIds.push(read.brandId);
-    result.push({ route: read.route, priceCents: doc.priceCents });
+    categoryIds.push(read.categoryId);
+    rows.push({ route: read.route, priceCents: doc.priceCents });
   }
-  cacheTag(
-    ...categoryPageTags(
-      categoryId,
-      docs.map((doc) => doc.id),
-      brandIds,
-    ),
-  );
-  return { rows: result, computedAt: computedAt() };
+  return { rows, brandIds, categoryIds };
 }
 
 /** A category page's address in each language. */
