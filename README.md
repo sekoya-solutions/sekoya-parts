@@ -24,6 +24,7 @@ Bootstrap. There is no application code yet: the technical stack is being writte
 - **Tools,** downloaded once into the git-ignored `.tools/` folder; the command names any that is missing and downloads nothing itself:
   - PostgreSQL 18.6 in `.tools/pgsql`: EDB's `postgresql-18.6-1-windows-x64-binaries.zip` from `get.enterprisedb.com`, unpacked so that `.tools/pgsql/bin` holds `pg_ctl`;
   - Chrome Headless Shell in `.tools/ms-playwright`: `PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright npx playwright install --only-shell chromium`.
+- **Connections:** the cluster allows 10 connections per CPU plus 20, at least PostgreSQL's default of 100: the production build prerenders in up to one worker per CPU, each with its own pool of 10 (issue #156).
 - **Isolation:** the database is a new cluster on a free local port, with a password generated for the run, deleted when the run ends, fails or is interrupted. Every variable `.env.example` names is set by the command itself, so `.env.local`, the Neon branches and the Algolia, DeepL and Vercel keys are never used.
 - **Windows:** the command makes the `.next` folder case-sensitive, as on Linux, before building: otherwise `/FR` and `/fr` share one prerendered file.
 
