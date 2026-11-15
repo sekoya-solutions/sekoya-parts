@@ -1,6 +1,7 @@
 // The Lighthouse check's helpers (issues #59, #61, #67, #73 and #83): no report is
 // saved with the bypass secret, the warm-up run is not counted, a median below
-// 95 in performance or accessibility fails, and the texts carry the medians
+// 90 in performance (95 before Phase 4, #141) or 95 in accessibility fails,
+// and the texts carry the medians
 // and the verdict, one check per page with coloured symbols (issue #96).
 import { describe, expect, it } from "vitest";
 import {
@@ -122,48 +123,54 @@ describe("the minimum scores", () => {
     path,
     scores: { ...(figures[0] as Figures).scores, performance, accessibility },
   });
-  it("are 95 in performance (ADR 0004) and accessibility (ADR 0012)", () => {
-    expect(MIN_SCORES).toEqual({ performance: 95, accessibility: 95 });
+  it("are 90 in performance for Phase 4 (ADR 0004, #141) and 95 in accessibility (ADR 0012)", () => {
+    expect(MIN_SCORES).toEqual({ performance: 90, accessibility: 95 });
   });
-  it("pass a median of exactly 95, ignoring one low run", () => {
+  it("pass a median of exactly 90 in performance and 95 in accessibility, ignoring one low run", () => {
     const one = withRuns(
       "product",
       "/product/1",
-      [60, 95, 95, 99, 100],
+      [60, 90, 90, 99, 100],
       [60, 95, 95, 99, 100],
     );
     expect(belowThreshold([one])).toEqual([]);
     expect(gateText([one])).toBe(
-      "Passed: a median performance of at least 95 and accessibility of at least 95.",
+      "Passed: a median performance of at least 90 and accessibility of at least 95.",
     );
     expect(gateText([one, { ...one, page: "home", path: "/" }])).toBe(
-      "Passed: every page has a median performance of at least 95 and accessibility of at least 95.",
+      "Passed: every page has a median performance of at least 90 and accessibility of at least 95.",
     );
   });
-  it("fail a median below 95 and name each failing page", () => {
+  it("pass a performance median from 90 to 94, which failed before Phase 4 (#141)", () => {
+    const f = [90, 92, 94].map((median) =>
+      withRuns("product", "/product/1", [median, median, median, 100, 100]),
+    );
+    expect(f.flatMap((one) => belowThreshold([one]))).toEqual([]);
+  });
+  it("fail a median below 90 and name each failing page", () => {
     const f = [
-      withRuns("product", "/product/1", [94, 94, 100, 94, 100]),
+      withRuns("product", "/product/1", [89, 89, 100, 89, 100]),
       withRuns("home", "/", [100, 100, 100, 100, 100]),
-      withRuns("model", "/model/1", [90, 91, 92, 93, 99]),
+      withRuns("model", "/model/1", [80, 81, 82, 83, 99]),
     ];
     expect(belowThreshold(f)).toEqual([
       {
         page: "product",
         path: "/product/1",
         category: "performance",
-        median: 94,
-        min: 95,
+        median: 89,
+        min: 90,
       },
       {
         page: "model",
         path: "/model/1",
         category: "performance",
-        median: 92,
-        min: 95,
+        median: 82,
+        min: 90,
       },
     ]);
     expect(gateText(f)).toBe(
-      "Failed: product (`/product/1`) has a median performance of 94, below 95; model (`/model/1`) has a median performance of 92, below 95.",
+      "Failed: product (`/product/1`) has a median performance of 89, below 90; model (`/model/1`) has a median performance of 82, below 90.",
     );
     // Each page's own check passes or fails with that page alone.
     expect(f.map((one) => belowThreshold([one]).length > 0)).toEqual([
@@ -291,8 +298,8 @@ describe("pages", () => {
 });
 
 describe("symbols", () => {
-  it("are green from 95, yellow from 90 and red below", () => {
-    expect([100, 95, 94.5, 90, 89.5, 0].map(scoreSymbol)).toEqual([
+  it("are green from 90, yellow from 80 and red below (#141)", () => {
+    expect([100, 90, 89.5, 80, 79.5, 0].map(scoreSymbol)).toEqual([
       "🟢",
       "🟢",
       "🟡",
@@ -311,14 +318,14 @@ describe("texts", () => {
     const lower: Figures = {
       ...(figures[0] as Figures),
       scores: {
-        performance: [92, 92, 92],
-        accessibility: [80, 80, 80],
-        "best-practices": [96, 96, 96],
+        performance: [85, 85, 85],
+        accessibility: [79, 79, 79],
+        "best-practices": [90, 90, 90],
         seo: [100, 100, 100],
       },
     };
     expect(checkTitle(lower)).toBe(
-      "🟡 Performance 92 · 🔴 Accessibility 80 · 🟢 Best practices 96 · 🟢 SEO 100",
+      "🟡 Performance 85 · 🔴 Accessibility 79 · 🟢 Best practices 90 · 🟢 SEO 100",
     );
   });
   it("starts the comment with its marker and gives the runs and reports", () => {
@@ -337,7 +344,7 @@ describe("texts", () => {
     expect(body).toContain("after one warm-up run that is not counted");
     expect(body).toContain(SYMBOLS_LEGEND);
     expect(body).toContain(
-      "**Passed: a median performance of at least 95 and accessibility of at least 95.**",
+      "**Passed: a median performance of at least 90 and accessibility of at least 95.**",
     );
     expect(body).toContain("/artifacts/2");
   });

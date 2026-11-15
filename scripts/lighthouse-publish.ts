@@ -60,8 +60,8 @@ async function github<T>(method: string, path: string, body?: unknown) {
   return (await response.json()) as T;
 }
 
-// Each page's check passes or fails with that page's 95 threshold (issue
-// #61), like the "Lighthouse" job, which is the one required on main.
+// Each page's check passes or fails with that page's thresholds (issues #61
+// and #141), like the "Lighthouse" job, which is the one required on main.
 // One request per page, one after another: API calls, no extra job or run.
 const reports = reportsUrl
   ? `[HTML and JSON reports](${reportsUrl})`

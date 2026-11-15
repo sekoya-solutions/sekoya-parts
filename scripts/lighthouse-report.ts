@@ -245,11 +245,13 @@ export type Figures = {
 
 /**
  * The lowest median mobile score a measured address may have in each gated
- * category: performance (ADR 0004) and accessibility (ADR 0012, issue #83).
- * Below either, the "Lighthouse" check fails.
+ * category: performance (ADR 0004: 90 for Phase 4, owner decision of
+ * 2026-11-15, issue #141, while still aiming for the best score possible)
+ * and accessibility (ADR 0012, issue #83). Below either, the "Lighthouse"
+ * check fails.
  */
 export const MIN_SCORES: Partial<Record<CategoryId, number>> = {
-  performance: 95,
+  performance: 90,
   accessibility: 95,
 };
 
@@ -304,14 +306,15 @@ export function pageArguments(argv: string[]) {
 }
 
 /**
- * A score's symbol (owner decision, issue #96): green from 95, the gate's
- * threshold, yellow from 90, red below.
+ * A score's symbol, in every category (owner decision of 2026-11-15, issue
+ * #141, after issue #96): green from 90, the Phase 4 performance gate, yellow
+ * from 80, red below.
  */
 export const scoreSymbol = (score: number) =>
-  score >= 95 ? "🟢" : score >= 90 ? "🟡" : "🔴";
+  score >= 90 ? "🟢" : score >= 80 ? "🟡" : "🔴";
 
 /** What the symbols mean, under each table. */
-export const SYMBOLS_LEGEND = "🟢 at least 95, 🟡 at least 90, 🔴 below 90.";
+export const SYMBOLS_LEGEND = "🟢 at least 90, 🟡 at least 80, 🔴 below 80.";
 
 /** Each address and gated category whose median is below its minimum. */
 export function belowThreshold(figures: Figures[], mins = MIN_SCORES) {
