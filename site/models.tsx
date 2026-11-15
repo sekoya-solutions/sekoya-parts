@@ -6,6 +6,7 @@
 // shared by the ten languages: a model's address carries a translated section
 // word, so the entry holds data only and the page, which is not cached,
 // builds the links in its language (owner decision on issue #79).
+
 import config from "@payload-config";
 import { type PostgresAdapter, sql } from "@payloadcms/db-postgres";
 import { cacheLife, cacheTag } from "next/cache";
@@ -13,13 +14,10 @@ import { getPayload } from "payload";
 import { type ApplianceType, applianceTypes } from "../catalog/generator.ts";
 import type { Locale } from "../cms/locales.ts";
 import { type ModelKey, modelPath, modelPaths } from "./addresses.ts";
-import { ProductCardImage } from "./picture.tsx";
-import {
-  computedAt,
-  formatPrice,
-  type ProductRoute,
-  readProduct,
-} from "./product.tsx";
+import { priceAt } from "./merchandising.ts";
+import { setPriceLifetime } from "./price-cache.ts";
+import { computedAt, type ProductRoute, readProduct } from "./product.tsx";
+import { ProductCard, type ShownPrice } from "./product-card.tsx";
 import {
   brandSlugTag,
   brandTag,
@@ -223,7 +221,6 @@ export async function ModelProducts({
   locale: Locale;
 }) {
   "use cache: remote";
-  cacheLife("max");
   cacheTag(modelTag(id), CATALOG_TAG);
 
   const drizzle = await database();
@@ -246,7 +243,9 @@ export async function ModelProducts({
           pagination: false,
         });
 
-  const products: { route: ProductRoute; priceCents: number }[] = [];
+  const now = Date.now();
+  setPriceLifetime(docs, now);
+  const products: { route: ProductRoute; price: ShownPrice }[] = [];
   for (const doc of docs) {
     const read = readProduct(doc);
     const tags = productTags(doc.id);
@@ -256,17 +255,19 @@ export async function ModelProducts({
       categoryTag(read.categoryId),
       brandTag(read.brandId),
     );
-    products.push({ route: read.route, priceCents: doc.priceCents });
+    products.push({ route: read.route, price: priceAt(doc, now) });
   }
 
   return (
     <ul data-computed-at={computedAt()} className="product-list">
-      {products.map(({ route, priceCents }, index) => (
-        <li key={route.id}>
-          <ProductCardImage route={route} locale={locale} index={index} />
-          <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
-          <span>{formatPrice(priceCents, locale)}</span>
-        </li>
+      {products.map(({ route, price }, index) => (
+        <ProductCard
+          key={route.id}
+          route={route}
+          price={price}
+          locale={locale}
+          index={index}
+        />
       ))}
     </ul>
   );

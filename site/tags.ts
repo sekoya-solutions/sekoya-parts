@@ -9,6 +9,8 @@ export const productTags = (id: number) => ({
   price: `product:${id}:price`,
   description: `product:${id}:description`,
   references: `product:${id}:references`,
+  // The availability and delivery estimate (issue #151).
+  stock: `product:${id}:stock`,
 });
 
 /**
@@ -210,7 +212,9 @@ export const referenceListTags = (
  * others' is built from the category, the brand and the reference.
  */
 const PART_FIELDS = {
-  price: ["priceCents"],
+  // A sale changes the price shown (issue #151).
+  price: ["priceCents", "salePriceCents", "saleStartsAt", "saleEndsAt"],
+  stock: ["availability"],
   description: [
     "name",
     "description",
@@ -286,6 +290,7 @@ export function tagsForProductChange(
       tags.price,
       tags.description,
       tags.references,
+      tags.stock,
       ...referenceOf(doc),
       ...listingOf(doc),
       ...(isShowcase(doc) ? [SHOWCASE_TAG] : []),
@@ -296,6 +301,7 @@ export function tagsForProductChange(
     );
   const result: string[] = [];
   if (changed(PART_FIELDS.price)) result.push(tags.price, ...pricesOf(doc));
+  if (changed(PART_FIELDS.stock)) result.push(tags.stock);
   if (changed(PART_FIELDS.description)) result.push(tags.description);
   if (changed(["reference"]))
     result.push(...referenceOf(previousDoc), ...referenceOf(doc));

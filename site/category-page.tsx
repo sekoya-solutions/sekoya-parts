@@ -5,6 +5,7 @@
 // address, the first included, and links to the same page in the other
 // languages. Not cached itself: it renders the shared entries of
 // site/categories.tsx in its language.
+
 import type { Metadata } from "next";
 import type { Locale } from "../cms/locales.ts";
 import {
@@ -29,8 +30,7 @@ import {
 } from "./categories.tsx";
 import { fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
-import { ProductCardImage } from "./picture.tsx";
-import { formatPrice } from "./product.tsx";
+import { ProductCard } from "./product-card.tsx";
 import { resolveCategory, resolveCategoryView } from "./resolve.ts";
 
 /** The address a category route was requested at. */
@@ -261,12 +261,14 @@ export function ProductListing({
   return (
     <>
       <ul data-computed-at={computedAt} className="product-list mt-6">
-        {rows.map(({ route, priceCents }, index) => (
-          <li key={route.id}>
-            <ProductCardImage route={route} locale={locale} index={index} />
-            <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
-            <span>{formatPrice(priceCents, locale)}</span>
-          </li>
+        {rows.map(({ route, price }, index) => (
+          <ProductCard
+            key={route.id}
+            route={route}
+            price={price}
+            locale={locale}
+            index={index}
+          />
         ))}
       </ul>
       {pages > 1 && (

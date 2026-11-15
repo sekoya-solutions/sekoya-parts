@@ -163,6 +163,7 @@ describe("tagsForProductChange", () => {
       "product:7:price",
       "product:7:description",
       "product:7:references",
+      "product:7:stock",
       "product-reference:SK7",
       "category:2:listing",
       "brand:3:listing",
@@ -176,6 +177,7 @@ describe("tagsForProductDelete", () => {
       "product:7:price",
       "product:7:description",
       "product:7:references",
+      "product:7:stock",
       "product-reference:SK7",
       "category:2:listing",
       "brand:3:listing",
@@ -317,5 +319,32 @@ describe("MAX_CACHE_TAGS", () => {
       "next/dist/lib/constants.js"
     );
     expect(MAX_CACHE_TAGS).toBe(NEXT_CACHE_TAG_MAX_ITEMS);
+  });
+});
+
+describe("merchandising changes (issue #151)", () => {
+  it("refresh the stock part alone on an availability change", () => {
+    expect(
+      tagsForProductChange(
+        7,
+        { ...before, availability: "on-order" },
+        { ...before, availability: "in-stock" },
+      ),
+    ).toEqual(["product:7:stock"]);
+  });
+
+  it("refresh the price and its category's price order on a sale change", () => {
+    expect(
+      tagsForProductChange(
+        7,
+        {
+          ...before,
+          salePriceCents: 990,
+          saleStartsAt: "2026-11-16T00:00:00Z",
+          saleEndsAt: "2026-11-23T00:00:00Z",
+        },
+        before,
+      ),
+    ).toEqual(["product:7:price", "category:2:prices"]);
   });
 });

@@ -9,6 +9,14 @@ import { placeholderDescription } from "../catalog/text.ts";
 import type { Locale } from "../cms/locales.ts";
 import type { Product } from "../cms/payload-types.ts";
 import { productAddresses } from "./addresses.ts";
+import { getDictionary } from "./dictionary.ts";
+import {
+  availabilityKey,
+  deliveryKey,
+  discountLabel,
+  priceAt,
+} from "./merchandising.ts";
+import { setPriceLifetime } from "./price-cache.ts";
 import {
   brandTag,
   CATALOG_TAG,
@@ -136,21 +144,79 @@ export async function ProductPrice({
   locale: Locale;
 }) {
   "use cache: remote";
-  cacheLife("max");
   cacheTag(productTags(id).price, CATALOG_TAG);
+
+  const now = Date.now();
+  const payload = await getPayload({ config });
+  const product = await payload.findByID({
+    collection: "products",
+    id,
+    depth: 0,
+    select: {
+      priceCents: true,
+      salePriceCents: true,
+      saleStartsAt: true,
+      saleEndsAt: true,
+    },
+    disableErrors: true,
+  });
+  // Until the next sale date, so a sale starts and ends on time (ADR 0008).
+  setPriceLifetime(product ? [product] : [], now);
+  if (!product) return null;
+  const { cents, formerCents } = priceAt(product, now);
+  return (
+    <div data-price data-computed-at={computedAt()}>
+      <p className="text-3xl font-bold">{formatPrice(cents, locale)}</p>
+      {formerCents !== null && (
+        <p className="sale-price mt-1">
+          <s>
+            <span className="sr-only">
+              {getDictionary(locale).formerPrice}{" "}
+            </span>
+            {formatPrice(formerCents, locale)}
+          </s>{" "}
+          <mark>{discountLabel(locale, cents, formerCents)}</mark>
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The product's availability and delivery estimate (issue #151): its own
+ * part, refreshed by the stock tag only, so a stock change leaves the price
+ * and the description cached.
+ */
+export async function ProductAvailability({
+  id,
+  locale,
+}: {
+  id: number;
+  locale: Locale;
+}) {
+  "use cache: remote";
+  cacheLife("max");
+  cacheTag(productTags(id).stock, CATALOG_TAG);
 
   const payload = await getPayload({ config });
   const product = await payload.findByID({
     collection: "products",
     id,
     depth: 0,
-    select: { priceCents: true },
+    select: { availability: true },
     disableErrors: true,
   });
   if (!product) return null;
+  const dictionary = getDictionary(locale);
   return (
-    <p data-computed-at={computedAt()} className="text-3xl font-bold">
-      {formatPrice(product.priceCents, locale)}
+    <p
+      data-availability={product.availability}
+      data-computed-at={computedAt()}
+      className="mt-2"
+    >
+      <strong>{dictionary[availabilityKey(product.availability)]}</strong>
+      {" · "}
+      {dictionary[deliveryKey(product.availability)]}
     </p>
   );
 }

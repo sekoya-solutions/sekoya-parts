@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isProductReference } from "../../site/addresses.ts";
+import { AVAILABILITIES, saleError } from "../../site/merchandising.ts";
 import {
   revalidateProductAfterChange,
   revalidateProductAfterDelete,
@@ -75,6 +76,44 @@ export const Products: CollectionConfig = {
         }
         return true;
       },
+    },
+    // Merchandising data (issue #151): the availability, from which the
+    // delivery estimate follows, and a sale between two dates.
+    {
+      name: "availability",
+      type: "select",
+      required: true,
+      defaultValue: "in-stock",
+      options: AVAILABILITIES.map((value) => ({ label: value, value })),
+    },
+    {
+      name: "salePriceCents",
+      label: "Sale price (euro cents)",
+      type: "number",
+      min: 0,
+      // One rule for the three sale fields, checked on the price.
+      validate: (
+        value: number | null | undefined,
+        { siblingData }: { siblingData: Record<string, unknown> },
+      ) =>
+        saleError(
+          {
+            salePriceCents: value,
+            saleStartsAt: siblingData.saleStartsAt as string | undefined,
+            saleEndsAt: siblingData.saleEndsAt as string | undefined,
+          },
+          Number(siblingData.priceCents),
+        ) ?? true,
+    },
+    {
+      name: "saleStartsAt",
+      type: "date",
+      admin: { date: { pickerAppearance: "dayAndTime" } },
+    },
+    {
+      name: "saleEndsAt",
+      type: "date",
+      admin: { date: { pickerAppearance: "dayAndTime" } },
     },
     {
       name: "showcase",

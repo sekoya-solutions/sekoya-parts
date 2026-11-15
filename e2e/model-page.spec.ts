@@ -205,7 +205,9 @@ test.describe("the model page", () => {
       has: page.locator(`a[href="${product}"]`),
     });
     await expect(item).toHaveCount(1);
-    await expect(item.locator("span")).toHaveText(/^[\d\s  ]+,\d{2}\s€$/u);
+    await expect(item.locator(":scope > span")).toHaveText(
+      /^[\d\s  ]+,\d{2}\s€$/u,
+    );
     for (const href of await main
       .locator("ul > li > a")
       .evaluateAll((anchors) => anchors.map((a) => a.getAttribute("href"))))

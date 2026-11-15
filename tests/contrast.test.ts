@@ -56,6 +56,8 @@ const TEXT_PAIRS: [string, string][] = [
   ["cream", "navy"],
   ["mist", "navy"],
   ["leaf", "navy"],
+  // The discount badge (issue #151): navy text on leaf.
+  ["navy", "leaf"],
   ["white", "navy"],
 ];
 
