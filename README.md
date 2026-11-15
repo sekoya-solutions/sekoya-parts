@@ -13,6 +13,10 @@ Bootstrap. There is no application code yet: the technical stack is being writte
 - Ten languages on one domain (`/fr/`, `/en/`, `/de/` and so on), with French as the source. Twelve showcase products, one per category, are translated automatically when added; the rest use placeholder text.
 - Mobile performance as high as possible, with a Lighthouse median of at least 90 to merge during Phase 4 (95 before), checked on every commit that changes code, and fine-grained cache invalidation: changing a price or a description refreshes only that part of a page.
 
+## Running the site locally
+
+`npm run dev` first applies any pending migration to the database `.env.local` names, the Neon `dev` branch, then starts the development server; a failed migration stops it before the server starts. Vercel's Preview and Production builds migrate the `preview` branch and `main` the same way, so each database follows the schema of the code that uses it.
+
 ## Running the end-to-end tests locally
 
 `npm run test:e2e:local` runs the end-to-end tests as CI's "End-to-end tests" job does, on a throwaway PostgreSQL 18 database: migrations, the small catalog with seed 1, a production build, then Playwright. Pass Playwright's arguments after `--`, for example `npm run test:e2e:local -- e2e/intro.spec.ts`.
