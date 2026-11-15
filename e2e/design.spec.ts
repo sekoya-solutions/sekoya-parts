@@ -101,7 +101,8 @@ test("on a category page, the switch links to the same page number in the other 
   page,
 }) => {
   await page.goto("/fr");
-  const category = page.getByRole("main").locator("li a").first();
+  // The home page's category list, after the promotions (issue #155).
+  const category = page.locator('main ul[data-list="categories"] a').first();
   await page.goto(`${await category.getAttribute("href")}/2`);
   await expectSwitchMatchesAlternates(page, "fr");
   for (const [, path] of await switchLinks(page)) expect(path).toMatch(/\/2$/);
@@ -132,8 +133,7 @@ for (const [locale, kind] of [
     // follows the rule but belongs to no product.
     await page.goto(`/${locale}`);
     const category = (await page
-      .getByRole("main")
-      .locator("li a")
+      .locator('main ul[data-list="categories"] a')
       .first()
       .getAttribute("href")) as string;
     const path =

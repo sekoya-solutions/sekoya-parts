@@ -81,9 +81,9 @@ for (const locale of locales) {
     page,
   }) => {
     await page.goto(`/${locale}`);
+    // The home page's category list, after the promotions (issue #155).
     const category = (await page
-      .getByRole("main")
-      .locator("li a")
+      .locator('main ul[data-list="categories"] a')
       .first()
       .getAttribute("href")) as string;
     await page.goto(category);
@@ -135,11 +135,11 @@ test("card images are fetched at 320 pixels on Lighthouse's phone", async ({
   baseURL,
 }) => {
   const home = await (await request.get("/fr")).text();
-  // The first links under /fr/ in <main> are the home page's category tiles;
-  // the showcase products' links come after them (issue #111), and the bar
-  // and the menu before <main> (issue #144).
+  // The first link of the home page's category list, read by its marker: the
+  // bar and the menu come before <main> (issue #144), the promotions before
+  // the list (issue #155) and the showcase after it (issue #111).
   const category = /href="(\/fr\/[a-z0-9-]+)"/.exec(
-    home.slice(home.indexOf("<main")),
+    home.slice(home.indexOf('data-list="categories"')),
   )?.[1];
   if (!category) throw new Error("No category link on /fr.");
   for (const path of ["/fr", category]) {
