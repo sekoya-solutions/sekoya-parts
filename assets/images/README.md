@@ -37,7 +37,7 @@ Studio product photograph of {SUBJECT}, a household appliance spare part, isolat
 
 The home page's promotion images ([issue #155](https://github.com/sekoya-solutions/sekoya-parts/issues/155)): three slides in `promotion-slides/<n>.jpg` and three tiles in `promotion-tiles/<n>.jpg`. Each set has its own size, and `scripts/images.ts` writes it at its own widths (`IMAGE_SETS` in `site/images.ts`).
 
-- **Made by:** the owner, with an image generator, on 2026-11-15. They are AI-generated, not photographs, and not CC0. The tool's name is to be recorded here.
+- **Made by:** the owner, with Grok Imagine (xAI), on 2026-11-15. They are AI-generated, not photographs, and not CC0, like the catalog images (ADR 0012).
 - **Format:** JPEGs, 2,400 x 900 pixels for the slides and 1,200 x 900 for the tiles, with no text, so the headline in each language is set over or beside them.
 - **Prompt,** with `{SUBJECT}` and `{FORMAT}` replaced (`wide 8:3` for the slides, `4:3` for the tiles):
 
