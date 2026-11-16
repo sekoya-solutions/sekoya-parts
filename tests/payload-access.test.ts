@@ -39,7 +39,9 @@ function rules(access: object | undefined): [string, Rule][] {
 }
 
 async function decide(rule: Rule, user: object | null): Promise<unknown> {
-  return rule({ req: { user } as unknown as PayloadRequest });
+  // Payload's default unlock rule reads the admin's collection from the config.
+  const req = { user, payload: { config: resolved } };
+  return rule({ req: req as unknown as PayloadRequest });
 }
 
 const targets = [

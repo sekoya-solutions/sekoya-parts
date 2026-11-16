@@ -40,3 +40,34 @@ export const editorGlobalAccess = {
   read: editorsOnly,
   update: editorsOnly,
 };
+
+/**
+ * Puts the editor check in front of every rule of Payload's own collections
+ * (`payload-locked-documents`, `payload-migrations`, `payload-preferences` and
+ * the others whose slug starts with `payload-`). Payload 3 gives them its
+ * default rule, any signed-in user, with no setting to change it, so a
+ * customer could delete migration records or lock an editor's document.
+ *
+ * It changes the resolved config in place: Payload's operations read each
+ * collection's rules from that object on every request. Editors pass the
+ * check, and migrations write through the Local API, which skips access
+ * rules, so the admin and migrations work as before. tests/payload-access.test.ts checks every rule of the resolved
+ * config, and tests/payload-access-db.test.ts that Payload enforces them.
+ */
+export async function closePayloadCollections<
+  Config extends {
+    collections: { slug: string; access: object }[];
+  },
+>(config: Promise<Config>): Promise<Config> {
+  const resolved = await config;
+  for (const collection of resolved.collections) {
+    if (!collection.slug.startsWith("payload-")) continue;
+    const access = collection.access as Record<string, unknown>;
+    for (const [operation, rule] of Object.entries(access)) {
+      if (typeof rule !== "function") continue;
+      access[operation] = (args: { req: { user?: unknown } }) =>
+        isEditor(args.req.user) ? rule(args) : false;
+    }
+  }
+  return resolved;
+}
