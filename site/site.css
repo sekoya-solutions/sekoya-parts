@@ -432,6 +432,114 @@
     margin-inline-start: auto;
   }
 
+  /* The cart (issue #168). The buttons take the action colour and are tall
+     enough to tap; a card's button sits at the bottom of its card. */
+  .cart-button {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-action);
+    color: var(--color-white);
+    font-weight: 600;
+  }
+  .cart-button:hover {
+    background-color: var(--color-action-hover);
+  }
+  .add-to-cart {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem 1rem;
+  }
+  .add-to-cart label span {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+  }
+  /* The header's count: a space of fixed width, so nothing moves when the
+     number appears once the page's script has run. */
+  .cart-count {
+    display: inline-block;
+    min-width: 1.5rem;
+    min-height: 1.25rem;
+    border-radius: 9999px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .cart-count[data-cart-count]:not([data-cart-count="0"]) {
+    background-color: var(--color-leaf);
+    color: var(--color-navy);
+  }
+  /* The notice after an addition: fixed at the bottom of the screen, so it
+     moves nothing on the page. */
+  .cart-notice p {
+    position: fixed;
+    inset-inline: 1rem;
+    bottom: 1rem;
+    z-index: 30;
+    max-width: 32rem;
+    margin-inline: auto;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    box-shadow: 0 4px 16px rgb(11 28 41 / 0.3);
+  }
+  .cart-notice a {
+    color: var(--color-cream);
+    font-weight: 600;
+  }
+  .cart-notice button {
+    margin-inline-start: 0.5rem;
+    text-decoration-line: underline;
+  }
+  .cart-lines > li {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: 0.5rem 1rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .cart-lines img {
+    width: 5rem;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+  }
+  .cart-lines form {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-end: 1rem;
+  }
+  .cart-lines input {
+    width: 4.5rem;
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+  }
+  .cart-lines button {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+  }
+  /* A card's button, at the bottom of its card, after the rules above so
+     its more specific selectors come last. */
+  .product-list .card-cart {
+    margin-top: auto;
+  }
+  .product-list .card-cart button {
+    width: 100%;
+  }
+  .product-list .card-cart span {
+    font-size: inherit;
+    color: inherit;
+  }
+
   /* The information pages' text (issue #143). */
   .info-page h2 {
     margin-top: 2rem;

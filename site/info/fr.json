@@ -159,7 +159,9 @@
       {
         "heading": "Cookies",
         "paragraphs": [
-          "Le site lui-même ne dépose aucun cookie pour consulter le catalogue : c’est pourquoi il n’affiche pas de bandeau de consentement."
+          "Parcourir le catalogue ne dépose aucun cookie du site lui-même.",
+          "Lorsque vous ajoutez une pièce au panier, le site dépose un seul cookie, cart_v1, qui ne contient que les numéros des produits et leurs quantités, et le garde 30 jours après sa dernière modification. Il est strictement nécessaire au panier : c’est pourquoi le site n’affiche aucun bandeau de consentement.",
+          "Pour le vider, retirez les pièces depuis la page du panier, ou supprimez les données de ce site dans les réglages de votre navigateur."
         ]
       },
       {

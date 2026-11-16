@@ -159,7 +159,9 @@
       {
         "heading": "Cookies",
         "paragraphs": [
-          "Sajten själv sparar ingen cookie för att du ska kunna bläddra i katalogen: därför visar den ingen samtyckesruta."
+          "När du bläddrar i katalogen sätter webbplatsen ingen egen cookie.",
+          "När du lägger en reservdel i varukorgen sätter webbplatsen en enda cookie, cart_v1, som bara innehåller produkternas nummer och antal, och behåller den i 30 dagar efter den senaste ändringen. Den är strikt nödvändig för varukorgen: därför visar webbplatsen ingen samtyckesbanner.",
+          "För att tömma den, ta bort reservdelarna på varukorgssidan eller radera webbplatsens data i webbläsarens inställningar."
         ]
       },
       {

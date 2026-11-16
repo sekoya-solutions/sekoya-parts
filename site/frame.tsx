@@ -13,11 +13,14 @@ import { MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 import {
   brandIndexPath,
+  cartPath,
   categoryPath,
   homePath,
   type InfoPage,
   infoPagePath,
 } from "./addresses.ts";
+import { CartCount } from "./cart-count.tsx";
+import { CartForms } from "./cart-forms.tsx";
 import { getCategories } from "./categories.tsx";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { getInfoText } from "./info-texts.ts";
@@ -198,9 +201,29 @@ export function SiteHeader({
             {getDictionary(locale).brands}
           </a>
           {paths && <LanguageSwitch locale={locale} paths={paths} />}
+          <CartLink locale={locale} />
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * The cart link (issue #168): the same for every visitor. Its count is filled
+ * in the browser from the cart cookie (site/cart-count.tsx, ADR 0013), in a
+ * space reserved so nothing shifts.
+ */
+export function CartLink({ locale }: { locale: Locale }) {
+  const dictionary = getDictionary(locale);
+  return (
+    <a
+      href={cartPath(locale)}
+      data-cart-link
+      className="flex items-center gap-1 rounded-md px-2 py-1 text-sm"
+    >
+      {dictionary.cart}
+      <CartCount label={dictionary.cartCount} />
+    </a>
   );
 }
 
@@ -272,6 +295,7 @@ export function SiteFrame({
   query?: string;
   children: ReactNode;
 }) {
+  const dictionary = getDictionary(locale);
   return (
     <>
       <FactsBar locale={locale} />
@@ -284,6 +308,17 @@ export function SiteFrame({
         {children}
       </main>
       <SiteFooter locale={locale} />
+      <CartForms
+        cartPath={cartPath(locale)}
+        labels={{
+          cartAdded: dictionary.cartAdded,
+          cartViewCart: dictionary.cartViewCart,
+          cartFull: dictionary.cartFull,
+          cartUnavailable: dictionary.cartUnavailable,
+          cartClose: dictionary.cartClose,
+          cartError: dictionary.cartError,
+        }}
+      />
     </>
   );
 }

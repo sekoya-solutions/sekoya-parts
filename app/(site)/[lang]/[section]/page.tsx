@@ -9,7 +9,8 @@
 // - the brand index, at /<lang>/<brand word> (issue #147);
 // - the part finder, at /<lang>/<finder word>?make=…&appliance=…&q=… (issue
 //   #155);
-// - the fit check's answer, at /<lang>/<fit word>?part=…&q=… (issue #161).
+// - the fit check's answer, at /<lang>/<fit word>?part=…&q=… (issue #161);
+// - the cart, at /<lang>/<cart word> (issue #168).
 // Payload refuses a category slug equal to a search word, a brand word or a
 // page slug, in any language.
 import type { Metadata } from "next";
@@ -21,6 +22,7 @@ import {
   INFO_SLUGS,
   infoPageOf,
   isBrandWord,
+  isCartWord,
   isFinderWord,
   isFitWord,
   isSearchWord,
@@ -29,6 +31,7 @@ import {
   BrandIndexPage,
   brandIndexMetadata,
 } from "../../../../site/brands.tsx";
+import { CartPage, cartMetadata } from "../../../../site/cart-page.tsx";
 import { getCategories } from "../../../../site/categories.tsx";
 import {
   CategoryPage,
@@ -93,6 +96,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${getDictionary(locale).fitTitle} | Sekoya Parts`,
       robots: { index: false },
     };
+  // The cart, which differs per visitor (issue #168).
+  if (isCartWord(section)) return cartMetadata(locale);
   if (infoPageOf(section)) return infoMetadata(locale, section);
   if (isBrandWord(section)) return brandIndexMetadata(locale, section);
   return categoryMetadata(locale, section, 1, requestedPath(lang, section));
@@ -135,6 +140,9 @@ export default async function SectionPage({ params, searchParams }: Props) {
       />
     );
   }
+  // Read outside any <Suspense> boundary, so it works without JavaScript.
+  if (isCartWord(section))
+    return <CartPage locale={locale} searchParams={searchParams} />;
   if (infoPageOf(section))
     return <InfoPageView locale={locale} section={section} />;
   if (isBrandWord(section))

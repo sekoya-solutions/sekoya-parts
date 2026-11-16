@@ -3,6 +3,7 @@
 // current price stays the only <span> directly in a card, which the tests and
 // the card styles read; the former price is an <s> and the badge a <mark>.
 import type { Locale } from "../cms/locales.ts";
+import { CardAddToCart } from "./add-to-cart.tsx";
 import { getDictionary } from "./dictionary.ts";
 import { discountLabel } from "./merchandising.ts";
 import { ProductCardImage } from "./picture.tsx";
@@ -39,7 +40,11 @@ export function Price({
   );
 }
 
-/** A product card: image, name and price, as in every product list. */
+/**
+ * A product card: image, name, price and "Add to cart" (issue #168), as in
+ * every product list. The card does not know the product's stock, which has
+ * its own cache tag: the cart route refuses an out-of-stock product.
+ */
 export function ProductCard({
   route,
   price,
@@ -63,6 +68,7 @@ export function ProductCard({
       />
       <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
       <Price price={price} locale={locale} />
+      <CardAddToCart id={route.id} name={route.names[locale]} locale={locale} />
     </li>
   );
 }

@@ -256,6 +256,34 @@ export function fitPath(locale: Locale, part?: string, q?: string): string {
   return `/${locale}/${FIT_WORDS[locale]}${query ? `?${query}` : ""}`;
 }
 
+/**
+ * The cart page in each language (issue #168): /<lang>/<cart word>. Each is a
+ * valid category slug's form, and Payload refuses a category slug equal to
+ * any of them.
+ */
+export const CART_WORDS: Record<Locale, string> = {
+  fr: "mon-panier",
+  en: "cart",
+  de: "warenkorb",
+  es: "carrito",
+  it: "carrello",
+  nl: "winkelwagen",
+  pt: "carrinho",
+  pl: "koszyk",
+  sv: "varukorg",
+  da: "indkobskurv",
+};
+
+const cartWords = new Set(Object.values(CART_WORDS));
+
+/** Whether a section is the cart page's, in any language. */
+export const isCartWord = (section: string): boolean =>
+  cartWords.has(section.toLowerCase());
+
+/** The cart page in one language. */
+export const cartPath = (locale: Locale): string =>
+  `/${locale}/${CART_WORDS[locale]}`;
+
 /** How many of a pair's models the finder's third step lists (owner decision). */
 export const POPULAR_MODELS = 24;
 
@@ -452,6 +480,7 @@ export const isReservedWord = (section: string): boolean =>
   isBrandWord(section) ||
   isFinderWord(section) ||
   isFitWord(section) ||
+  isCartWord(section) ||
   infoPageOf(section) !== null;
 
 /**
