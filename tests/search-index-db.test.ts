@@ -88,6 +88,36 @@ function fakeAlgolia(initial: string[] = []) {
 type Session = PostgresAdapter["drizzle"];
 
 /** Runs `body` in a transaction that is always rolled back. */
+/** A product's sale cleared, for a test that lowers its price (issue #159). */
+const NO_SALE = {
+  salePriceCents: null,
+  saleStartsAt: null,
+  saleEndsAt: null,
+} as const;
+
+/**
+ * Gives a product a running sale at 10 euros, its price at 20, as the
+ * catalog load may (issue #151): a save that lowers its price below 10 euros
+ * without clearing the sale is then refused, every time.
+ */
+async function giveSale(db: Session, id: number) {
+  await db.execute(sql`
+    UPDATE products
+       SET price_cents = 2000, sale_price_cents = 1000,
+           sale_starts_at = now() - interval '1 day',
+           sale_ends_at = now() + interval '1 day'
+     WHERE id = ${id}
+  `);
+}
+
+/** The database session of a request's transaction. */
+function innerSession(transactionID: string | number | undefined): Session {
+  const adapter = payload.db as unknown as PostgresAdapter;
+  const session = adapter.sessions[String(transactionID)];
+  if (!session) throw new Error("No transaction.");
+  return session.db as unknown as Session;
+}
+
 async function inRollback(
   body: (req: PayloadRequest, db: Session) => Promise<void>,
 ) {
@@ -244,10 +274,13 @@ describe("the search index on the database", () => {
       const algolia = fakeAlgolia();
       await reconcile(db, algolia.connection, { capacity: CAPACITY });
       const id = Number([...algolia.records.keys()][3]);
+      // Whatever sale the load gave it (issue #159), as here, goes with the
+      // lower price: a sale price must stay below the price.
+      await giveSale(db, id);
       await payload.update({
         collection: "products",
         id,
-        data: { priceCents: 777 },
+        data: { priceCents: 777, ...NO_SALE },
         req,
       });
 
@@ -265,10 +298,13 @@ describe("the search index on the database", () => {
       await emptyState(db);
       const inner = await createLocalReq({}, payload);
       await initTransaction(inner);
+      // In the inner transaction, which the save uses and which is rolled
+      // back: the outer one would hold the row's lock.
+      await giveSale(innerSession(await inner.transactionID), 2);
       await payload.update({
         collection: "products",
         id: 2,
-        data: { priceCents: 1 },
+        data: { priceCents: 1, ...NO_SALE },
         req: inner,
       });
       await killTransaction(inner);

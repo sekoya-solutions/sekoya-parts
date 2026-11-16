@@ -17,6 +17,7 @@ import {
   categories,
   categoryLocaleRows,
   compatibilityRows,
+  deriveSeed,
   isScaleName,
   modelRows,
   productLocaleRows,
@@ -204,6 +205,12 @@ async function main(): Promise<void> {
       // The first demo sales, running from now and ending on different days;
       // the daily rotation keeps about 2% of products on sale from then on
       // (issue #151).
+      // PostgreSQL's random() is seeded from the catalog seed (issue #159), so
+      // a given seed gets the same sales on every load, CI's included, and a
+      // failure that depends on them reproduces. setseed takes -1 to 1.
+      await client.query("SELECT setseed($1)", [
+        (deriveSeed(seed, "sales") / 2 ** 32) * 2 - 1,
+      ]);
       const loadedAt = new Date();
       const sales = await rotateSales(client, {
         now: loadedAt,
