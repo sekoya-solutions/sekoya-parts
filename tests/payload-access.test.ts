@@ -19,10 +19,17 @@ const customer = { id: 1, collection: "customers", username: "demo" };
 /** Payload's own collections that refuse everyone, editors included. */
 const CLOSED_TO_ALL = new Set(["payload-kv"]);
 
+/**
+ * Rules that refuse everyone, editors included: no customer, and no editor
+ * as a customer, opens the admin with a customer account (issue #177).
+ */
+const OPERATIONS_CLOSED_TO_ALL = new Set(["customers.admin"]);
+
 /** The project's own collections and globals: editors may do everything. */
 const PROJECT_COLLECTIONS = [
   "brands",
   "categories",
+  "customers",
   "products",
   "promotion-codes",
   "promotions",
@@ -84,6 +91,12 @@ describe("Payload's access rules", () => {
         });
 
         if (CLOSED_TO_ALL.has(target.slug)) continue;
+        if (OPERATIONS_CLOSED_TO_ALL.has(`${target.slug}.${operation}`)) {
+          it(`refuses ${operation} to an editor too`, async () => {
+            expect(await decide(rule, editor)).toBe(false);
+          });
+          continue;
+        }
         it(`allows ${operation} to an editor`, async () => {
           const decision = await decide(rule, editor);
           if (

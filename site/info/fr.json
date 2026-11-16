@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Compte de démonstration",
+        "paragraphs": [
+          "Si vous créez un compte de démonstration, le site enregistre dans sa base de données, hébergée en Europe, son nom d’utilisateur, une empreinte de son mot de passe (jamais le mot de passe lui-même), la date de sa dernière connexion et ses sessions ouvertes (un identifiant et une heure d’expiration). Il ne demande aucune adresse e-mail. Une tâche quotidienne supprime chaque compte dont la dernière connexion date de plus de 30 jours.",
+          "Pendant que vous êtes connecté, le site dépose deux cookies pour 2 heures : payload-token, lisible par le serveur seul, qui porte votre session, et account_v1, qui indique seulement qu’une session est ouverte, pour que l’en-tête l’affiche. Ils sont strictement nécessaires au compte. Se déconnecter supprime les deux ; votre panier est conservé."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Parcourir le catalogue ne dépose aucun cookie du site lui-même.",

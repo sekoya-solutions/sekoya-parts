@@ -11,7 +11,9 @@
 import type { ReactNode } from "react";
 import { MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
+import { AccountState } from "./account-state.tsx";
 import {
+  accountPath,
   brandIndexPath,
   cartPath,
   categoryPath,
@@ -201,10 +203,31 @@ export function SiteHeader({
             {getDictionary(locale).brands}
           </a>
           {paths && <LanguageSwitch locale={locale} paths={paths} />}
+          <AccountLink locale={locale} />
           <CartLink locale={locale} />
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * The account link (issue #177): the same for every visitor, to the account
+ * address, which shows the sign-in form to a visitor who is not signed in.
+ * Whether the visitor is signed in is shown in the browser
+ * (site/account-state.tsx, ADR 0013), in a space reserved so nothing shifts.
+ */
+export function AccountLink({ locale }: { locale: Locale }) {
+  const dictionary = getDictionary(locale);
+  return (
+    <a
+      href={accountPath(locale)}
+      data-account-link
+      className="flex items-center gap-1 rounded-md px-2 py-1 text-sm"
+    >
+      {dictionary.account}
+      <AccountState label={dictionary.accountSignedIn} />
+    </a>
   );
 }
 

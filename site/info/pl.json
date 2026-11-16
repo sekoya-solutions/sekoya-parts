@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Konto demonstracyjne",
+        "paragraphs": [
+          "Jeśli założysz konto demonstracyjne, witryna zapisuje w swojej bazie danych, hostowanej w Europie, jego nazwę użytkownika, skrót hasła (nigdy samo hasło), datę ostatniego logowania i otwarte sesje (identyfikator i czas wygaśnięcia). Nie prosi o adres e-mail. Codzienne zadanie usuwa każde konto, którego ostatnie logowanie miało miejsce ponad 30 dni temu.",
+          "Gdy jesteś zalogowany, witryna zapisuje dwa pliki cookie na 2 godziny: payload-token, który może odczytać tylko serwer i który przenosi Twoją sesję, oraz account_v1, który informuje jedynie, że sesja jest otwarta, aby nagłówek mógł to pokazać. Są niezbędne do działania konta. Wylogowanie usuwa oba; Twój koszyk zostaje zachowany."
+        ]
+      },
+      {
         "heading": "Pliki cookie",
         "paragraphs": [
           "Przeglądanie katalogu nie zapisuje żadnego własnego pliku cookie witryny.",

@@ -577,6 +577,60 @@
     color: inherit;
   }
 
+  /* The header's signed-in mark (issue #177): a space of fixed width, so
+     nothing moves when the dot appears once the page's script has run. */
+  .account-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    height: 1.25rem;
+  }
+  .account-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-leaf);
+  }
+  /* The account forms (issue #177): each field under its label, as tall as
+     the cart's to tap, then the button. */
+  .account-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 24rem;
+  }
+  .account-form label {
+    display: block;
+    font-weight: 600;
+  }
+  .account-form input {
+    width: 100%;
+    min-height: 2.75rem;
+    margin-top: 0.25rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+  }
+  .account-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-slate);
+  }
+  .account-button {
+    justify-self: start;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-action);
+    color: var(--color-white);
+    font-weight: 600;
+  }
+  .account-button:hover {
+    background-color: var(--color-action-hover);
+  }
+
   /* The information pages' text (issue #143). */
   .info-page h2 {
     margin-top: 2rem;

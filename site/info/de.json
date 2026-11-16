@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Demokonto",
+        "paragraphs": [
+          "Wenn Sie ein Demokonto anlegen, speichert die Website in ihrer Datenbank, die in Europa gehostet wird, seinen Benutzernamen, einen Hash seines Passworts (nie das Passwort selbst), das Datum der letzten Anmeldung und seine offenen Sitzungen (eine Kennung und einen Ablaufzeitpunkt). Sie fragt nach keiner E-Mail-Adresse. Eine tägliche Aufgabe löscht jedes Konto, dessen letzte Anmeldung mehr als 30 Tage zurückliegt.",
+          "Solange Sie angemeldet sind, setzt die Website zwei Cookies für 2 Stunden: payload-token, das nur der Server lesen kann und das Ihre Sitzung trägt, und account_v1, das nur angibt, dass eine Sitzung offen ist, damit die Kopfzeile es anzeigen kann. Sie sind für das Konto unbedingt erforderlich. Beim Abmelden werden beide gelöscht; Ihr Warenkorb bleibt erhalten."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Beim Durchsuchen des Katalogs setzt die Website selbst kein Cookie.",

@@ -633,8 +633,13 @@ describe("is-crawlable against robots.txt on production", () => {
     expect(crawlableMismatch(missing, true, ROBOTS_URL)).toMatch(/did not run/);
   });
 
-  it("accepts the cart's own noindex tag beside robots.txt, and nothing else (issue #171)", () => {
-    expect(NOINDEX_TEMPLATES).toEqual(["cart"]);
+  it("accepts the noindex tag of the cart and account pages beside robots.txt, and nothing else (issues #171 and #177)", () => {
+    expect(NOINDEX_TEMPLATES).toEqual([
+      "cart",
+      "account",
+      "sign-up",
+      "sign-out",
+    ]);
     const robots = { source: { type: "source-location", url: ROBOTS_URL } };
     // As Lighthouse quotes the tag Next.js renders for robots: { index: false }.
     const meta = {

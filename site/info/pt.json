@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Conta de demonstração",
+        "paragraphs": [
+          "Se criar uma conta de demonstração, o site guarda na sua base de dados, alojada na Europa, o nome de utilizador, um hash da palavra-passe (nunca a palavra-passe em si), a data do último início de sessão e as sessões abertas (um identificador e uma hora de expiração). Não pede nenhum endereço de e-mail. Uma tarefa diária elimina cada conta cujo último início de sessão tenha mais de 30 dias.",
+          "Enquanto tem sessão iniciada, o site define dois cookies durante 2 horas: payload-token, que só o servidor consegue ler e que transporta a sua sessão, e account_v1, que apenas indica que há uma sessão aberta, para que o cabeçalho o mostre. São estritamente necessários para a conta. Terminar a sessão elimina os dois; o seu carrinho é mantido."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Consultar o catálogo não guarda nenhum cookie próprio do site.",

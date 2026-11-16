@@ -2,6 +2,7 @@
 // the daily cron with CRON_SECRET; anyone else gets 401, a customer included.
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ACCOUNT_PURGE_PATH } from "../cms/accounts/endpoint.ts";
 import { SALES_RUN_PATH } from "../cms/sales/endpoint.ts";
 import { SEARCH_INDEX_RUN_PATH } from "../cms/search-index/endpoint.ts";
 import {
@@ -84,7 +85,7 @@ describe("deeplFromEnvironment", () => {
 });
 
 describe("the daily crons", () => {
-  it("call the translation, search index and sale runs once a day, as Hobby allows", () => {
+  it("call the translation, search index, sale and account purge runs once a day, as Hobby allows", () => {
     const vercel = JSON.parse(readFileSync("vercel.json", "utf8")) as {
       crons?: { path: string; schedule: string }[];
     };
@@ -93,6 +94,8 @@ describe("the daily crons", () => {
       { path: `/api${SEARCH_INDEX_RUN_PATH}`, schedule: "0 4 * * *" },
       // The sale rotation (issue #151).
       { path: `/api${SALES_RUN_PATH}`, schedule: "0 5 * * *" },
+      // The demo accounts' purge (issue #177).
+      { path: `/api${ACCOUNT_PURGE_PATH}`, schedule: "0 2 * * *" },
     ]);
   });
 });
