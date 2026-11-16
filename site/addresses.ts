@@ -284,6 +284,81 @@ export const isCartWord = (section: string): boolean =>
 export const cartPath = (locale: Locale): string =>
   `/${locale}/${CART_WORDS[locale]}`;
 
+/**
+ * The account pages in each language (issue #177): the account address,
+ * where the header's link leads, which shows the sign-in form to a visitor
+ * who is not signed in; the sign-up page; and the sign-out page. Each is a
+ * valid category slug's form, and Payload refuses a category slug equal to
+ * any of them.
+ */
+export const ACCOUNT_WORDS: Record<Locale, string> = {
+  fr: "mon-compte",
+  en: "account",
+  de: "konto",
+  es: "mi-cuenta",
+  it: "il-mio-account",
+  nl: "mijn-account",
+  pt: "minha-conta",
+  pl: "moje-konto",
+  sv: "mitt-konto",
+  da: "min-konto",
+};
+
+export const SIGN_UP_WORDS: Record<Locale, string> = {
+  fr: "inscription",
+  en: "sign-up",
+  de: "registrieren",
+  es: "registro",
+  it: "registrazione",
+  nl: "registreren",
+  pt: "criar-conta",
+  pl: "rejestracja",
+  sv: "skapa-konto",
+  da: "opret-konto",
+};
+
+export const SIGN_OUT_WORDS: Record<Locale, string> = {
+  fr: "deconnexion",
+  en: "sign-out",
+  de: "abmelden",
+  es: "cerrar-sesion",
+  it: "esci",
+  nl: "uitloggen",
+  pt: "terminar-sessao",
+  pl: "wyloguj",
+  sv: "logga-ut",
+  da: "log-ud",
+};
+
+/** The three account pages. */
+export type AccountPage = "account" | "sign-up" | "sign-out";
+
+const ACCOUNT_PAGE_WORDS: Record<AccountPage, Record<Locale, string>> = {
+  account: ACCOUNT_WORDS,
+  "sign-up": SIGN_UP_WORDS,
+  "sign-out": SIGN_OUT_WORDS,
+};
+
+const accountPageByWord = new Map<string, AccountPage>(
+  (Object.keys(ACCOUNT_PAGE_WORDS) as AccountPage[]).flatMap((page) =>
+    Object.values(ACCOUNT_PAGE_WORDS[page]).map(
+      (word) => [word, page] as const,
+    ),
+  ),
+);
+
+/** The account page a section names, in any language and letter case, or null. */
+export const accountPageOf = (section: string): AccountPage | null =>
+  accountPageByWord.get(section.toLowerCase()) ?? null;
+
+/** An account page's address in one language. */
+export const accountPagePath = (locale: Locale, page: AccountPage): string =>
+  `/${locale}/${ACCOUNT_PAGE_WORDS[page][locale]}`;
+
+/** The account address in one language, the header's link. */
+export const accountPath = (locale: Locale): string =>
+  accountPagePath(locale, "account");
+
 /** How many of a pair's models the finder's third step lists (owner decision). */
 export const POPULAR_MODELS = 24;
 
@@ -481,6 +556,7 @@ export const isReservedWord = (section: string): boolean =>
   isFinderWord(section) ||
   isFitWord(section) ||
   isCartWord(section) ||
+  accountPageOf(section) !== null ||
   infoPageOf(section) !== null;
 
 /**

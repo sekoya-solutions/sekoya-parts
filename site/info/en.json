@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Demo account",
+        "paragraphs": [
+          "If you create a demo account, the site stores in its database, hosted in Europe, its username, a hash of its password (never the password itself), the date of its last sign-in and its open sessions (an identifier and an expiry time). It asks for no email address. A daily task deletes every account whose last sign-in is more than 30 days old.",
+          "While you are signed in, the site sets two cookies for 2 hours: payload-token, readable by the server alone, which carries your session, and account_v1, which only says that a session is open, so the header can show it. They are strictly necessary for the account. Signing out deletes both; your cart is kept."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Browsing the catalog sets no cookie of the site’s own.",

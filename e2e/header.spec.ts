@@ -155,3 +155,41 @@ test("breadcrumbs on a category page, a product page, a reference page and a mod
     [modelName, model],
   ]);
 });
+
+// On a phone the account and cart links show icons, their names kept for
+// screen readers (issue #177, owner decision of 2026-11-16). The links may
+// wrap onto a second line, but nothing is ever wider than the screen; a real
+// mobile menu with one row comes with issue #181.
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+
+  for (const locale of locales)
+    test(`the header shows icons and never scrolls sideways in ${locale}`, async ({
+      page,
+    }) => {
+      const dictionary = getDictionary(locale);
+      await page.goto(`/${locale}`);
+      const account = page.locator("header [data-account-link]");
+      const cart = page.locator("header [data-cart-link]");
+      await expect(account).toHaveAccessibleName(dictionary.account);
+      await expect(cart).toHaveAccessibleName(dictionary.cart);
+      await expect(account.locator("svg.header-icon")).toBeVisible();
+      await expect(cart.locator("svg.header-icon")).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true);
+    });
+});
+
+test("on a wide screen the account and cart links show their names, no icon", async ({
+  page,
+}) => {
+  await page.goto("/fr");
+  for (const link of ["[data-account-link]", "[data-cart-link]"]) {
+    await expect(page.locator(`header ${link} svg.header-icon`)).toBeHidden();
+  }
+  await expect(page.locator("header [data-account-link]")).toHaveText(/Compte/);
+  await expect(page.locator("header [data-cart-link]")).toHaveText(/Panier/);
+});

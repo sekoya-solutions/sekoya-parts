@@ -39,6 +39,7 @@ const COLLECTIONS = [
   "promotions",
   "promotion-codes",
   "users",
+  "customers",
   "payload-migrations",
   "payload-locked-documents",
   "payload-preferences",

@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Demokonto",
+        "paragraphs": [
+          "Hvis du opretter en demokonto, gemmer webstedet i sin database, der ligger i Europa, kontoens brugernavn, en hash af adgangskoden (aldrig selve adgangskoden), datoen for det seneste login og dens åbne sessioner (et id og et udløbstidspunkt). Det beder ikke om nogen e-mailadresse. En daglig opgave sletter hver konto, hvis seneste login er mere end 30 dage gammelt.",
+          "Mens du er logget ind, sætter webstedet to cookies i 2 timer: payload-token, som kun serveren kan læse, og som bærer din session, og account_v1, som kun angiver, at en session er åben, så sidehovedet kan vise det. De er strengt nødvendige for kontoen. Når du logger ud, slettes begge; din kurv bevares."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Når du gennemser kataloget, gemmer webstedet ingen egen cookie.",

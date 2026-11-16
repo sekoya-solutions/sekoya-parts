@@ -3,8 +3,10 @@ import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { buildConfig } from "payload";
 import { closePayloadCollections } from "./cms/access";
+import { accountPurgeEndpoint } from "./cms/accounts/endpoint";
 import { Brands } from "./cms/collections/brands";
 import { Categories } from "./cms/collections/categories";
+import { Customers } from "./cms/collections/customers";
 import { Products } from "./cms/collections/products";
 import { PromotionCodes } from "./cms/collections/promotion-codes";
 import { Promotions } from "./cms/collections/promotions";
@@ -39,16 +41,19 @@ export default closePayloadCollections(
       Promotions,
       PromotionCodes,
       Users,
+      // The shop's demo accounts, never allowed into the admin (issue #177).
+      Customers,
     ],
     // The cart's delivery values (issue #169).
     globals: [ShopSettings],
     // The translation sweep (issue #104), the search index run (issue #115)
-    // and the sale rotation (issue #151), each run by a daily cron or a
-    // signed-in user.
+    // the sale rotation (issue #151) and the demo accounts' purge (issue
+    // #177), each run by a daily cron or a signed-in editor.
     endpoints: [
       translationRunEndpoint,
       searchIndexRunEndpoint,
       salesRunEndpoint,
+      accountPurgeEndpoint,
     ],
     // The admin uses REST; no GraphQL endpoint is exposed.
     graphQL: { disable: true },

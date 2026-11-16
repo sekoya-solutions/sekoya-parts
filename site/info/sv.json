@@ -157,6 +157,13 @@
         ]
       },
       {
+        "heading": "Demokonto",
+        "paragraphs": [
+          "Om du skapar ett demokonto sparar webbplatsen i sin databas, som ligger i Europa, kontots användarnamn, en hash av lösenordet (aldrig själva lösenordet), datumet för den senaste inloggningen och dess öppna sessioner (en identifierare och en utgångstid). Den frågar inte efter någon e-postadress. En daglig uppgift raderar varje konto vars senaste inloggning är mer än 30 dagar gammal.",
+          "Medan du är inloggad sätter webbplatsen två kakor i 2 timmar: payload-token, som bara servern kan läsa och som bär din session, och account_v1, som bara anger att en session är öppen, så att sidhuvudet kan visa det. De är strikt nödvändiga för kontot. När du loggar ut raderas båda; din varukorg sparas."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "När du bläddrar i katalogen sätter webbplatsen ingen egen cookie.",

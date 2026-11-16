@@ -150,3 +150,45 @@ for (const [locale, kind] of [
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
   });
 }
+
+// Long words on a phone (issue #177): CI's catalog keeps French names in every
+// language, so this writes a German compound, as the translated catalog holds,
+// into a product page's heading and into the home page's cards, then checks
+// the page is no wider than the screen. Without the hyphenation rules of
+// site/site.css, these words push the page sideways.
+test.describe("long words on a phone", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+  const WORD = "Universalprogrammierungseinheitsaktivkohlefilterpatrone";
+  const fits = (page: Page) =>
+    page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    );
+
+  test("a heading's long word is hyphenated, not pushed past the screen", async ({
+    page,
+    request,
+  }) => {
+    await page.goto(await productAddress(request, "de", 2));
+    await page.locator("main h1").evaluate((h1, word) => {
+      h1.textContent = word;
+    }, WORD);
+    expect(await fits(page)).toBe(true);
+  });
+
+  test("a card's long name is hyphenated, not pushed past the screen", async ({
+    page,
+  }) => {
+    await page.goto("/de");
+    for (const selector of [
+      '[data-list="categories"] a',
+      "main ul.product-list > li > a",
+    ])
+      await page
+        .locator(selector)
+        .first()
+        .evaluate((a, word) => {
+          a.textContent = word;
+        }, WORD);
+    expect(await fits(page)).toBe(true);
+  });
+});

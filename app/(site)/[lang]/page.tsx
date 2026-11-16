@@ -95,9 +95,13 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
                   className="mb-3 aspect-square h-auto w-full rounded-md"
                 />
               )}
+              {/* A name too long for a phone's card, such as the Dutch
+                  Verwarmingselement, is hyphenated in the page's language, or
+                  broken at the edge where the browser has no rules for it
+                  (issue #177). */}
               <a
                 href={categoryPath(locale, category.slugs[locale])}
-                className="text-lg font-bold"
+                className="text-lg font-bold hyphens-auto wrap-break-word"
               >
                 {category.names[locale]}
               </a>

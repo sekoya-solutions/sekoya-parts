@@ -26,8 +26,9 @@ function workflowPages() {
 
 const pages = workflowPages();
 
-test("the workflow measures the seven templates", () => {
+test("the workflow measures the ten templates", () => {
   expect(pages.map((p) => p.page).sort()).toEqual([
+    "account",
     "brand",
     "cart",
     "category",
@@ -35,6 +36,8 @@ test("the workflow measures the seven templates", () => {
     "model",
     "product",
     "references",
+    "sign-out",
+    "sign-up",
   ]);
 });
 

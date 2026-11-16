@@ -47,28 +47,12 @@ import {
   type CartStatus,
   isCartSuccess,
 } from "../../../../site/cart-status.ts";
+import { sameOrigin } from "../../../../site/same-origin.ts";
 
 const NO_STORE = {
   "Cache-Control": "private, no-store",
   "X-Robots-Tag": "noindex",
 };
-
-/**
- * Whether the request comes from a page of this site. Browsers send Origin
- * with every POST; Sec-Fetch-Site covers one that would not.
- */
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("host");
-  if (origin) {
-    try {
-      return host !== null && new URL(origin).host === host;
-    } catch {
-      return false;
-    }
-  }
-  return request.headers.get("sec-fetch-site") === "same-origin";
-}
 
 /** Whether the product exists and can be ordered: in stock or on order. */
 async function orderable(id: number): Promise<boolean> {
