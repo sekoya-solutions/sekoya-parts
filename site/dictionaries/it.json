@@ -100,5 +100,8 @@
   "fitError": "La verifica non è riuscita. Riprova.",
   "fitPart": "Ricambio: {product}",
   "fitBack": "Torna al ricambio",
-  "relatedProducts": "Altri ricambi per gli stessi apparecchi"
+  "relatedProducts": "Altri ricambi per gli stessi apparecchi",
+  "recentlyViewed": "Visti di recente",
+  "recentlyViewedClear": "Cancella la cronologia",
+  "recentlyViewedCleared": "La sua cronologia è stata cancellata."
 }

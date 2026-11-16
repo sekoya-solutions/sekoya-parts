@@ -100,5 +100,8 @@
   "fitError": "Kontrollen gick inte igenom. Försök igen.",
   "fitPart": "Del: {product}",
   "fitBack": "Tillbaka till delen",
-  "relatedProducts": "Andra delar till samma apparater"
+  "relatedProducts": "Andra delar till samma apparater",
+  "recentlyViewed": "Nyligen visade",
+  "recentlyViewedClear": "Rensa historiken",
+  "recentlyViewedCleared": "Din historik har rensats."
 }

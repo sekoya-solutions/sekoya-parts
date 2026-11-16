@@ -51,6 +51,7 @@ import {
   ProductDescription,
   ProductPrice,
 } from "../../../../../site/product.tsx";
+import { RecentlyViewed } from "../../../../../site/recently-viewed.tsx";
 import { PRODUCT_PAGE_REFERENCES } from "../../../../../site/references.ts";
 import { RelatedProducts } from "../../../../../site/related.tsx";
 import {
@@ -228,6 +229,19 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
         </p>
       )}
       <RelatedProducts id={id} locale={locale} />
+      {/* The same empty space for every visitor, filled in the browser from
+          its own history (issue #162). */}
+      <RecentlyViewed
+        locale={locale}
+        reference={route.reference}
+        name={route.names[locale]}
+        path={route.paths[locale]}
+        labels={{
+          recentlyViewed: dictionary.recentlyViewed,
+          recentlyViewedClear: dictionary.recentlyViewedClear,
+          recentlyViewedCleared: dictionary.recentlyViewedCleared,
+        }}
+      />
     </SiteFrame>
   );
 }

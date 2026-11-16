@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Zuletzt angesehene Produkte",
+        "paragraphs": [
+          "Auf einer Produktseite speichert Ihr Browser die 10 zuletzt geöffneten Produkte (Artikelnummer, Name und Adresse) in seinem lokalen Speicher, um sie Ihnen auf den nächsten Produktseiten anzuzeigen. Diese Liste verlässt Ihren Browser nie: Die Website erhält sie nicht.",
+          "Zum Löschen verwenden Sie die Schaltfläche „Verlauf löschen“ unter der Liste oder löschen die Daten dieser Website in den Einstellungen Ihres Browsers."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Die Website selbst setzt kein Cookie, um den Katalog zu durchsuchen: Deshalb zeigt sie kein Einwilligungsbanner."

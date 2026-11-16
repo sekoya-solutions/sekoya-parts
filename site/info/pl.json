@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Ostatnio oglądane produkty",
+        "paragraphs": [
+          "Na stronie produktu przeglądarka zapisuje w swojej pamięci lokalnej 10 ostatnio otwartych produktów (ich numer, nazwę i adres), aby pokazać je na kolejnych stronach produktów. Ta lista nigdy nie opuszcza przeglądarki: serwis jej nie otrzymuje.",
+          "Aby ją usunąć, użyj przycisku „Wyczyść historię” pod listą albo usuń dane tej witryny w ustawieniach przeglądarki."
+        ]
+      },
+      {
         "heading": "Pliki cookie",
         "paragraphs": [
           "Sama strona nie zapisuje żadnego pliku cookie, aby przeglądać katalog: dlatego nie wyświetla baneru zgody."

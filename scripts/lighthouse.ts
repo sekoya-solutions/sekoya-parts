@@ -60,11 +60,17 @@ import {
   targetOf,
   toolbarRequests,
 } from "./lighthouse-report.ts";
+import { chromePath, SEEDED_PRODUCTS, seedProfile } from "./lighthouse-seed.ts";
 import { isAllowed, parseRobots } from "./robots-match.ts";
 
 // Measured runs per address; each address also gets one warm-up run first,
-// which is not counted (splitWarmUp).
-const RUNS = 5;
+// which is not counted (splitWarmUp). Three since issue #162, to keep CI
+// shorter (owner decision, 2026-11-16).
+const RUNS = 3;
+// The template measured with a recently viewed history (issue #162): its
+// warm-up run has none, and each measured run starts from a profile that
+// scripts/lighthouse-seed.ts filled, which the element count confirms.
+const SEEDED_PAGE = "product";
 const LHCI_DIR = ".lighthouseci";
 
 type Report = {
@@ -300,29 +306,63 @@ const configFile = join(configDir, "lighthouserc.json");
 // one of them has passed the secret check.
 const staging = mkdtempSync(join(tmpdir(), "lighthouse-reports-"));
 rmSync(LHCI_DIR, { recursive: true, force: true });
+const profiles: string[] = [];
 try {
-  writeFileSync(
-    configFile,
-    JSON.stringify({
-      ci: {
-        collect: {
-          url: figures.map(({ path }) => new URL(path, base).href),
-          numberOfRuns: RUNS + 1,
-          settings: {
-            ...(Object.keys(headers).length > 0 && { extraHeaders: headers }),
-            ...(skipped.length > 0 && { skipAudits: skipped }),
+  const chrome = await chromePath();
+  // One Lighthouse CI collect, adding its reports to the earlier ones.
+  const collect = (
+    paths: string[],
+    runs: number,
+    seeded?: { profile: string },
+  ) => {
+    writeFileSync(
+      configFile,
+      JSON.stringify({
+        ci: {
+          collect: {
+            url: paths.map((path) => new URL(path, base).href),
+            numberOfRuns: runs,
+            chromePath: chrome,
+            settings: {
+              ...(Object.keys(headers).length > 0 && { extraHeaders: headers }),
+              ...(skipped.length > 0 && { skipAudits: skipped }),
+              ...(seeded && {
+                disableStorageReset: true,
+                chromeFlags: `--user-data-dir=${seeded.profile}`,
+              }),
+            },
           },
         },
-      },
-    }),
-    { mode: 0o600 },
-  );
-  const lhci = spawnSync("npx", ["lhci", "collect", `--config=${configFile}`], {
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
-  if (lhci.status !== 0)
-    throw new Error(`Lighthouse CI exited with ${lhci.status}.`);
+      }),
+      { mode: 0o600 },
+    );
+    const lhci = spawnSync(
+      "npx",
+      ["lhci", "collect", "--additive", `--config=${configFile}`],
+      { stdio: "inherit", shell: process.platform === "win32" },
+    );
+    if (lhci.status !== 0)
+      throw new Error(`Lighthouse CI exited with ${lhci.status}.`);
+  };
+  const plain = figures.filter(({ page }) => page !== SEEDED_PAGE);
+  if (plain.length > 0)
+    collect(
+      plain.map(({ path }) => path),
+      RUNS + 1,
+    );
+  for (const { path } of figures.filter(({ page }) => page === SEEDED_PAGE)) {
+    // The warm-up without a history, then each run from a seeded profile.
+    collect([path], 1);
+    for (let run = 0; run < RUNS; run++) {
+      const profile = await seedProfile(
+        new URL(path, base).href,
+        headers,
+        chrome,
+      );
+      profiles.push(profile);
+      collect([path], 1, { profile });
+    }
+  }
 
   const reports = readdirSync(LHCI_DIR)
     .filter((file) => file.startsWith("lhr-") && file.endsWith(".json"))
@@ -338,6 +378,25 @@ try {
       throw new Error(
         `${path}: ${split?.runs.length ?? 0} runs after the warm-up instead of ${RUNS}.`,
       );
+    // The seeded runs show the list: at least an item and its link per
+    // seeded product more than the warm-up run, which has no history.
+    const elementsOf = (report: Report) =>
+      report.audits["dom-size-insight"]?.details?.debugData?.totalElements ??
+      null;
+    if (entry.page === SEEDED_PAGE) {
+      const before = elementsOf(split.warmUp);
+      for (const report of split.runs) {
+        const after = elementsOf(report);
+        if (
+          before === null ||
+          after === null ||
+          after < before + 2 * SEEDED_PRODUCTS
+        )
+          throw new Error(
+            `${path}: a seeded run has ${after ?? "no"} elements against ${before ?? "no"} without a history, so it did not show the recently viewed list.`,
+          );
+      }
+    }
     // The warm-up run passes the same checks as the measured runs, and its
     // report is saved too, but its scores are not counted.
     for (const [run, report] of [split.warmUp, ...split.runs].entries()) {
@@ -378,9 +437,7 @@ try {
       if (run === 0) entry.warmUp = scores[0]?.[1] ?? null;
       else for (const [id, score] of scores) entry.scores[id].push(score);
       // Lighthouse 13 reports the element count in its DOM size insight.
-      entry.elements =
-        report.audits["dom-size-insight"]?.details?.debugData?.totalElements ??
-        entry.elements;
+      entry.elements = elementsOf(report) ?? entry.elements;
 
       const name = `${path.replace(/^\/|\/$/g, "").replace(/\W+/g, "-") || "home"}-${run === 0 ? "warm-up" : `run-${run}`}`;
       const { json, html } = reportFiles(report, secret);
@@ -394,6 +451,8 @@ try {
     console.log(`Saved ${file}, checked for the secret.`);
   }
 } finally {
+  for (const profile of profiles)
+    rmSync(profile, { recursive: true, force: true });
   rmSync(configDir, { recursive: true, force: true });
   rmSync(LHCI_DIR, { recursive: true, force: true });
   rmSync(staging, { recursive: true, force: true });

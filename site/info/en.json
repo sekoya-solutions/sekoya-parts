@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Recently viewed products",
+        "paragraphs": [
+          "On a product page, your browser keeps the last 10 products you opened (their reference, name and address) in its local storage, to show them on the next product pages. This list never leaves your browser: the site does not receive it.",
+          "To clear it, use the “Clear history” button under the list, or delete this site’s data in your browser’s settings."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "The site itself sets no cookie to browse the catalog: that is why it shows no consent banner."

@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Senest sete produkter",
+        "paragraphs": [
+          "På en produktside gemmer din browser de 10 seneste produkter, du har åbnet (deres varenummer, navn og adresse), i sit lokale lager for at vise dem på de næste produktsider. Listen forlader aldrig din browser: webstedet modtager den ikke.",
+          "Du rydder den med knappen »Ryd historikken« under listen eller ved at slette webstedets data i browserens indstillinger."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Webstedet selv gemmer ingen cookie for at du kan se kataloget: derfor viser det intet samtykkebanner."

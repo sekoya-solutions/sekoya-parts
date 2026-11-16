@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Produits vus récemment",
+        "paragraphs": [
+          "Sur une page produit, votre navigateur garde les 10 derniers produits que vous avez ouverts (leur référence, leur nom et leur adresse) dans son stockage local, pour vous les montrer sur les pages produit suivantes. Cette liste ne quitte jamais votre navigateur : le site ne la reçoit pas.",
+          "Pour l’effacer, utilisez le bouton « Effacer l’historique » sous la liste, ou supprimez les données de ce site dans les réglages de votre navigateur."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Le site lui-même ne dépose aucun cookie pour consulter le catalogue : c’est pourquoi il n’affiche pas de bandeau de consentement."

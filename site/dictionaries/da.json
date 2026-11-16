@@ -100,5 +100,8 @@
   "fitError": "Tjekket gik ikke igennem. Prøv igen.",
   "fitPart": "Del: {product}",
   "fitBack": "Tilbage til delen",
-  "relatedProducts": "Andre dele til de samme apparater"
+  "relatedProducts": "Andre dele til de samme apparater",
+  "recentlyViewed": "Senest sete",
+  "recentlyViewedClear": "Ryd historikken",
+  "recentlyViewedCleared": "Din historik er ryddet."
 }

@@ -100,5 +100,8 @@
   "fitError": "Sprawdzenie się nie powiodło. Spróbuj ponownie.",
   "fitPart": "Część: {product}",
   "fitBack": "Wróć do części",
-  "relatedProducts": "Inne części do tych samych urządzeń"
+  "relatedProducts": "Inne części do tych samych urządzeń",
+  "recentlyViewed": "Ostatnio oglądane",
+  "recentlyViewedClear": "Wyczyść historię",
+  "recentlyViewedCleared": "Twoja historia została wyczyszczona."
 }

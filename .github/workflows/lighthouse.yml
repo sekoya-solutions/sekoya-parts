@@ -62,7 +62,9 @@ jobs:
       # first brand the brand index lists (issue #147).
       # For each: one request to check the deployment answers (on production,
       # that the public address serves this commit), one Lighthouse warm-up
-      # run that is not counted, then five measured runs.
+      # run that is not counted, then three measured runs (five before issue
+      # #162). The product page's measured runs start with a recently viewed
+      # history of three products from its related list (issue #162).
       # Fails below the minimums of scripts/lighthouse-report.ts (performance
       # 90 for Phase 4, accessibility 95), after writing the figures and the
       # reports. The bypass

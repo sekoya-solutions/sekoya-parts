@@ -63,10 +63,10 @@ Chosen:
   - the 2 MB test, which fails if the uncompressed HTML of the heaviest product page reaches 2,000,000 bytes in any language.
 - **On every ready Vercel preview,** a `deployment_status` workflow runs Lighthouse CI against the preview with the bypass header:
   - mobile settings, matching PageSpeed Insights;
-  - one warm-up run, not counted, then five runs (issue #61: the first Chrome on a fresh runner is slower);
+  - one warm-up run, not counted, then three runs, five until issue #162 (issue #61: the first Chrome on a fresh runner is slower);
   - the median run must score at least 90 in performance for Phase 4 (issue #141), and 95 before it.
 - **On every ready Production deployment of `main`** (issue #67), the same workflow runs the same measurement against the public site:
-  - the same warm-up run, five runs and threshold;
+  - the same warm-up run, runs and threshold;
   - every SEO audit, since nothing protects it. Since issue #135, the run also sends the bypass header, so Bot Protection's challenge never stops the runner's headless Chrome (owner decision, 2026-11-14). It changes no figure: the 307 Lighthouse counts before each page also shows on production without the header;
   - at the public address, since Vercel's own address for each deployment stays behind its sign-in. The address only serves the new commit once Vercel moves the domain to it, so the first request checks that its `x-sekoya-commit` header names the deployed commit, and the run fails otherwise, with no retry (owner decision);
   - the scores in the job summary and in one "Lighthouse scores" check per page on `main`'s commit (issue #96), with the redacted reports, and no pull request comment.
@@ -80,7 +80,7 @@ Why:
 - **Next.js's own guidance:** unit tests for components and logic, end-to-end tests for async Server Components, run against a production build.
 - **Vitest** runs TypeScript and JSX as they are. Node's runner cannot load `.tsx` files, and Jest needs Babel.
 - **Playwright** fits ADR 0003's no-install-scripts rule, which Cypress does not.
-- **Lighthouse on the preview** measures the real platform, and the bypass header never leaves CI. Five runs and a median keep a lucky run from deciding, and the warm-up run keeps a cold cache or a cold runner from deciding.
+- **Lighthouse on the preview** measures the real platform, and the bypass header never leaves CI. Several runs and a median keep a lucky run from deciding, and the warm-up run keeps a cold cache or a cold runner from deciding.
 - **`deployment_status`** runs on the deployed commit, so its result lands on the pull request, and a change to the workflow is tested in its own pull request. `repository_dispatch` would need a status posted by hand, and runs only after the workflow is merged.
 
 What it costs, and where each cost is checked:
@@ -118,6 +118,7 @@ Follow-up:
 - **Database and data-model records:** catalog data for the production build in CI.
 - **Experiments 1 and 2:** end-to-end tests of partial refresh, and the 2 MB test's target page, set to `/product/1`, which renders the full reference list (issue #60).
 - **The Lighthouse gate (issue #61):** the check showed on pull requests (#58), so no commit status is needed. It failed below a median of 95, after a warm-up run, until Phase 4 (see below), and is required on `main` with Vercel's deployment status.
+- **Three runs and a seeded product page (issue #162, owner decision, 2026-11-16):** each address gets the median of three runs instead of five, to keep the Lighthouse job shorter; every page scored 97 to 100 on issue #161's preview, and three runs still keep a single lucky run from deciding. The product page's three runs start with a recently viewed history of three products, so its browser component is measured as a returning visitor sees it; its warm-up run has none.
 - **Lighthouse on production (issue #67):** the production run went through the firewall like any visitor. The firewall logs of issue #135 showed that Bot Protection would challenge it, so it sends the bypass header since then.
 - **The Phase 4 performance bar (issue #141, owner decision, 2026-11-15):** the project still aims for the best mobile performance Next.js and current techniques allow, but for Phase 4 a page merges from a median performance of 90. The accessibility minimum stays 95. Each score symbol in the checks and comments is 🟢 from 90, 🟡 from 80 and 🔴 below 80, in every category.
 - **Documentation-only changes (issue #91, owner decision):** a change is documentation only when every file differing between its base and head commits ends in `.md`, so its code is exactly the base commit's. Such a pull request runs Markdown lint only. The three other jobs are skipped by their `if:` condition, which counts as passed. Vercel skips its build through `ignoreCommand`, and reports its status as passed. With no deployment, Lighthouse does not run, so the CI workflow posts a passing "Lighthouse" check in its place on such a pull request. A documentation-only merge leaves production on the previous deployment, with the same code. Any failure to decide counts as a code change, so everything runs. PageSpeed is therefore checked on every commit that changes code.

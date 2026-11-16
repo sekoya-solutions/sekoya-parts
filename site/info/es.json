@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Productos vistos recientemente",
+        "paragraphs": [
+          "En una página de producto, su navegador guarda los 10 últimos productos que ha abierto (su referencia, su nombre y su dirección) en su almacenamiento local, para mostrárselos en las siguientes páginas de producto. Esta lista nunca sale de su navegador: el sitio no la recibe.",
+          "Para borrarla, utilice el botón «Borrar el historial» debajo de la lista, o elimine los datos de este sitio en la configuración de su navegador."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "El propio sitio no guarda ninguna cookie para consultar el catálogo: por eso no muestra ningún aviso de consentimiento."

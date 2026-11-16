@@ -100,5 +100,8 @@
   "fitError": "La vérification n’a pas abouti. Réessayez.",
   "fitPart": "Pièce : {product}",
   "fitBack": "Retour à la pièce",
-  "relatedProducts": "Autres pièces pour les mêmes appareils"
+  "relatedProducts": "Autres pièces pour les mêmes appareils",
+  "recentlyViewed": "Vus récemment",
+  "recentlyViewedClear": "Effacer l’historique",
+  "recentlyViewedCleared": "Votre historique a été effacé."
 }
