@@ -12,6 +12,7 @@ import * as migration_20261115_210953_merchandising from "./20261115_210953_merc
 import * as migration_20261115_232112_promotions from "./20261115_232112_promotions";
 import * as migration_20261115_233000_model_pairs from "./20261115_233000_model_pairs";
 import * as migration_20261116_000000_promotion_seed from "./20261116_000000_promotion_seed";
+import * as migration_20261116_120000_related_products from "./20261116_120000_related_products";
 
 export const migrations = [
   {
@@ -83,5 +84,10 @@ export const migrations = [
     up: migration_20261116_000000_promotion_seed.up,
     down: migration_20261116_000000_promotion_seed.down,
     name: "20261116_000000_promotion_seed",
+  },
+  {
+    up: migration_20261116_120000_related_products.up,
+    down: migration_20261116_120000_related_products.down,
+    name: "20261116_120000_related_products",
   },
 ];

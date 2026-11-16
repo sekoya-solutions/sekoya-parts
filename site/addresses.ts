@@ -9,6 +9,7 @@ import {
 } from "../catalog/generator.ts";
 import { productName } from "../catalog/text.ts";
 import { type Locale, locales } from "../cms/locales.ts";
+import { FIT_PARAMS } from "./fit-params.ts";
 
 export const isLocale = (value: string): value is Locale =>
   (locales as readonly string[]).includes(value);
@@ -224,6 +225,43 @@ const finderWords = new Set(Object.values(FINDER_WORDS));
 export const isFinderWord = (section: string): boolean =>
   finderWords.has(section.toLowerCase());
 
+/**
+ * The fit check's result page in each language (issue #161):
+ * /<lang>/<fit word>?part=<product reference>&q=<model reference>, where the
+ * product page's "Does it fit my appliance?" form leads without JavaScript.
+ * Each is a valid category slug's form, and Payload refuses a category slug
+ * equal to any of them.
+ */
+export const FIT_WORDS: Record<Locale, string> = {
+  fr: "compatibilite",
+  en: "does-it-fit",
+  de: "passt-es",
+  es: "compatibilidad",
+  it: "compatibilita",
+  nl: "past-het",
+  pt: "compatibilidade",
+  pl: "czy-pasuje",
+  sv: "passar-den",
+  da: "passer-den",
+};
+
+const fitWords = new Set(Object.values(FIT_WORDS));
+
+/** Whether a section is the fit check's result page, in any language. */
+export const isFitWord = (section: string): boolean =>
+  fitWords.has(section.toLowerCase());
+
+export { FIT_PARAMS };
+
+/** The fit check's result page in one language, for a product and a model reference. */
+export function fitPath(locale: Locale, part?: string, q?: string): string {
+  const params = new URLSearchParams();
+  if (part) params.set(FIT_PARAMS.part, part);
+  if (q) params.set(FIT_PARAMS.q, q);
+  const query = params.toString();
+  return `/${locale}/${FIT_WORDS[locale]}${query ? `?${query}` : ""}`;
+}
+
 /** How many of a pair's models the finder's third step lists (owner decision). */
 export const POPULAR_MODELS = 24;
 
@@ -419,6 +457,7 @@ export const isReservedWord = (section: string): boolean =>
   isSearchWord(section) ||
   isBrandWord(section) ||
   isFinderWord(section) ||
+  isFitWord(section) ||
   infoPageOf(section) !== null;
 
 /**

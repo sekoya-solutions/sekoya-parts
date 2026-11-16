@@ -86,5 +86,19 @@
   "homeCrumb": "Home",
   "notFoundTitle": "Pagina non trovata",
   "notFoundText": "Questo indirizzo non corrisponde a nessuna pagina del catalogo.",
-  "notFoundHome": "Torna alla home page"
+  "notFoundHome": "Torna alla home page",
+  "fitTitle": "È compatibile con il mio apparecchio?",
+  "fitIntro": "Inserisci il codice del modello riportato sulla targhetta del tuo apparecchio per verificare che questo ricambio sia adatto.",
+  "fitLabel": "Codice del modello",
+  "fitSubmit": "Verifica",
+  "fitChecking": "Verifica in corso…",
+  "fitYes": "Sì, questo ricambio è compatibile con il modello {model}.",
+  "fitNo": "No, questo ricambio non è compatibile con il modello {model}.",
+  "fitNoModel": "Nessun modello di apparecchio ha il codice «{query}».",
+  "fitInvalid": "Inserisci un codice di modello: lettere e cifre, come sulla targhetta.",
+  "fitNoProduct": "Questo ricambio non è più a catalogo.",
+  "fitError": "La verifica non è riuscita. Riprova.",
+  "fitPart": "Ricambio: {product}",
+  "fitBack": "Torna al ricambio",
+  "relatedProducts": "Altri ricambi per gli stessi apparecchi"
 }

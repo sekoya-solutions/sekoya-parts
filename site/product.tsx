@@ -35,6 +35,8 @@ export const computedAt = () => new Date().toISOString();
 /** A product found by its reference: its id, and its name and address in each language. */
 export type ProductRoute = {
   id: number;
+  /** Its stable key, which the fit check sends (issue #161). */
+  reference: string;
   /** Its category, which its image comes from (issue #85). */
   categoryId: number;
   names: Record<Locale, string>;
@@ -95,6 +97,7 @@ export function readProduct(product: Product): ProductRead {
   return {
     route: {
       id: product.id,
+      reference: product.reference,
       categoryId: product.category.id,
       names,
       paths,

@@ -86,5 +86,19 @@
   "homeCrumb": "Hem",
   "notFoundTitle": "Sidan hittades inte",
   "notFoundText": "Den här adressen motsvarar ingen sida i katalogen.",
-  "notFoundHome": "Tillbaka till startsidan"
+  "notFoundHome": "Tillbaka till startsidan",
+  "fitTitle": "Passar den min apparat?",
+  "fitIntro": "Skriv modellnumret från apparatens typskylt för att kontrollera att den här delen passar.",
+  "fitLabel": "Modellnummer",
+  "fitSubmit": "Kontrollera",
+  "fitChecking": "Kontrollerar…",
+  "fitYes": "Ja, den här delen passar modellen {model}.",
+  "fitNo": "Nej, den här delen passar inte modellen {model}.",
+  "fitNoModel": "Ingen apparatmodell har numret ”{query}”.",
+  "fitInvalid": "Skriv ett modellnummer: bokstäver och siffror, som på typskylten.",
+  "fitNoProduct": "Den här delen finns inte längre i katalogen.",
+  "fitError": "Kontrollen gick inte igenom. Försök igen.",
+  "fitPart": "Del: {product}",
+  "fitBack": "Tillbaka till delen",
+  "relatedProducts": "Andra delar till samma apparater"
 }

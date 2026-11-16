@@ -8,18 +8,21 @@
 // - the information pages, at /<lang>/<page slug> (issue #143);
 // - the brand index, at /<lang>/<brand word> (issue #147);
 // - the part finder, at /<lang>/<finder word>?make=…&appliance=…&q=… (issue
-//   #155).
+//   #155);
+// - the fit check's answer, at /<lang>/<fit word>?part=…&q=… (issue #161).
 // Payload refuses a category slug equal to a search word, a brand word or a
 // page slug, in any language.
 import type { Metadata } from "next";
 import {
   BRAND_WORDS,
   FINDER_PARAMS,
+  FIT_PARAMS,
   INFO_PAGES,
   INFO_SLUGS,
   infoPageOf,
   isBrandWord,
   isFinderWord,
+  isFitWord,
   isSearchWord,
 } from "../../../../site/addresses.ts";
 import {
@@ -34,6 +37,7 @@ import {
 } from "../../../../site/category-page.tsx";
 import { getDictionary } from "../../../../site/dictionary.ts";
 import { FinderPage } from "../../../../site/finder.tsx";
+import { FitPage } from "../../../../site/fit-page.tsx";
 import { InfoPageView, infoMetadata } from "../../../../site/info-page.tsx";
 import { localeOf } from "../../../../site/resolve.ts";
 import { SearchPage } from "../../../../site/search.tsx";
@@ -83,6 +87,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${getDictionary(locale).finderTitle} | Sekoya Parts`,
       robots: { index: false },
     };
+  // The fit check's answers too (issue #161).
+  if (isFitWord(section))
+    return {
+      title: `${getDictionary(locale).fitTitle} | Sekoya Parts`,
+      robots: { index: false },
+    };
   if (infoPageOf(section)) return infoMetadata(locale, section);
   if (isBrandWord(section)) return brandIndexMetadata(locale, section);
   return categoryMetadata(locale, section, 1, requestedPath(lang, section));
@@ -112,6 +122,16 @@ export default async function SectionPage({ params, searchParams }: Props) {
           type: one(query[FINDER_PARAMS.type]),
           q: one(query.q),
         }}
+      />
+    );
+  }
+  if (isFitWord(section)) {
+    const query = await searchParams;
+    return (
+      <FitPage
+        locale={locale}
+        part={queryOf(query[FIT_PARAMS.part])}
+        query={queryOf(query[FIT_PARAMS.q])}
       />
     );
   }

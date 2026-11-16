@@ -42,12 +42,16 @@ test("product 1 shows its heading, price, description and references", async ({
   await expect(
     main.locator("p:not([data-price] p):not([data-availability])").first(),
   ).toHaveText(showcase.fr.description);
-  await expect(main.getByRole("heading", { level: 2 })).toHaveText(
+  // Then the fit check, the compatible models and the related products
+  // (issue #161).
+  await expect(main.getByRole("heading", { level: 2 })).toHaveText([
+    "Est-ce compatible avec mon appareil ?",
     "Modèles compatibles",
-  );
+    "Autres pièces pour les mêmes appareils",
+  ]);
 
   // Product 1 is compatible with every model, so it reaches the cap.
-  const links = main.locator("ul > li > a");
+  const links = main.locator('ul[data-list="references"] > li > a');
   await expect(links).toHaveCount(PRODUCT_PAGE_REFERENCES);
   for (const href of await links.evaluateAll((anchors) =>
     anchors.map((a) => a.getAttribute("href")),

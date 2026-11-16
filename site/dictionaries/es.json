@@ -86,5 +86,19 @@
   "homeCrumb": "Inicio",
   "notFoundTitle": "Página no encontrada",
   "notFoundText": "Esta dirección no corresponde a ninguna página del catálogo.",
-  "notFoundHome": "Volver al inicio"
+  "notFoundHome": "Volver al inicio",
+  "fitTitle": "¿Es compatible con mi aparato?",
+  "fitIntro": "Escriba la referencia del modelo que figura en la placa de características de su aparato para comprobar que esta pieza le sirve.",
+  "fitLabel": "Referencia del modelo",
+  "fitSubmit": "Comprobar",
+  "fitChecking": "Comprobando…",
+  "fitYes": "Sí, esta pieza es compatible con el modelo {model}.",
+  "fitNo": "No, esta pieza no es compatible con el modelo {model}.",
+  "fitNoModel": "Ningún modelo de aparato tiene la referencia «{query}».",
+  "fitInvalid": "Escriba una referencia de modelo: letras y cifras, como en la placa de características.",
+  "fitNoProduct": "Esta pieza ya no está en el catálogo.",
+  "fitError": "La comprobación no se ha podido realizar. Inténtelo de nuevo.",
+  "fitPart": "Pieza: {product}",
+  "fitBack": "Volver a la pieza",
+  "relatedProducts": "Otras piezas para los mismos aparatos"
 }

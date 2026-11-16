@@ -86,5 +86,19 @@
   "homeCrumb": "Home",
   "notFoundTitle": "Page not found",
   "notFoundText": "This address matches no page in the catalog.",
-  "notFoundHome": "Back to the home page"
+  "notFoundHome": "Back to the home page",
+  "fitTitle": "Does it fit my appliance?",
+  "fitIntro": "Type the model reference from your appliance’s rating plate to check that this part fits it.",
+  "fitLabel": "Model reference",
+  "fitSubmit": "Check",
+  "fitChecking": "Checking…",
+  "fitYes": "Yes, this part fits the {model}.",
+  "fitNo": "No, this part does not fit the {model}.",
+  "fitNoModel": "No appliance model has the reference “{query}”.",
+  "fitInvalid": "Type a model reference: letters and digits, as on the rating plate.",
+  "fitNoProduct": "This part is no longer in the catalog.",
+  "fitError": "The check did not go through. Please try again.",
+  "fitPart": "Part: {product}",
+  "fitBack": "Back to the part",
+  "relatedProducts": "Other parts for the same appliances"
 }

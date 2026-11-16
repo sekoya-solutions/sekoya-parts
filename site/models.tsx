@@ -126,7 +126,11 @@ export function ReferenceList({
   locale: Locale;
 }) {
   return (
-    <ul data-computed-at={references.computedAt} className="reference-list">
+    <ul
+      data-list="references"
+      data-computed-at={references.computedAt}
+      className="reference-list"
+    >
       {references.rows.map((row) => (
         <li key={row.id}>
           <a

@@ -18,6 +18,7 @@ import {
   productRows,
   scales,
 } from "../catalog/generator.ts";
+import { SHARED_NEIGHBOURS } from "../catalog/related.ts";
 import { showcaseProducts } from "../catalog/showcase.ts";
 import config from "../payload.config.ts";
 
@@ -162,8 +163,37 @@ describe("Payload reads the generated catalog", () => {
 
 describe("the project tables", () => {
   it("hold every model and the compatibility rows", async () => {
+    // The generated rows, then the neighbour models the load adds (issue
+    // #161, catalog/related.ts): each product but the million-model one also
+    // fits the first model of the next SHARED_NEIGHBOURS products in its
+    // category, by id, unless it already does.
+    const models = new Map<number, Set<number>>();
+    const first = new Map<number, number>();
     let expectedRows = 0;
-    for (const _ of compatibilityRows(seed, scaleName)) expectedRows++;
+    for (const [productId, rank, modelId] of compatibilityRows(
+      seed,
+      scaleName,
+    )) {
+      expectedRows++;
+      if (productId === MILLION_PRODUCT_ID) continue;
+      const set = models.get(productId) ?? new Set<number>();
+      set.add(modelId);
+      models.set(productId, set);
+      if (rank === 1) first.set(productId, modelId);
+    }
+    const byCategory = new Map<number, number[]>();
+    for (const [id, , , categoryId] of productRows(seed, scaleName)) {
+      if (id === MILLION_PRODUCT_ID) continue;
+      byCategory.set(categoryId, [...(byCategory.get(categoryId) ?? []), id]);
+    }
+    for (const ids of byCategory.values())
+      ids.forEach((id, i) => {
+        for (const next of ids.slice(i + 1, i + 1 + SHARED_NEIGHBOURS)) {
+          const model = first.get(next);
+          const own = models.get(id);
+          if (model !== undefined && own && !own.has(model)) expectedRows++;
+        }
+      });
     const { rows } = await client.query<{
       models: string;
       compatibility: string;
