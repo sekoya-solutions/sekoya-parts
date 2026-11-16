@@ -161,15 +161,30 @@ export function categoryScore(
 }
 
 /**
+ * The templates meant to carry noindex, which robots.txt also disallows: the
+ * cart page (issue #168, ADR 0013). Their pages fail is-crawlable from both.
+ */
+export const NOINDEX_TEMPLATES: readonly string[] = ["cart"];
+
+/** The robots meta tag with noindex, as Lighthouse quotes it (is-crawlable.js). */
+const NOINDEX_META =
+  /^<meta name="robots" content="[^"]*\bnoindex\b[^"]*" \/>$/;
+
+type CrawlableItem = { source?: { url?: string; snippet?: string } };
+
+/**
  * Why a production run's is-crawlable result contradicts the site's
  * robots.txt, or null when it agrees (issue #130). An allowed page must pass;
  * a disallowed page must fail, blocked by robots.txt alone, so a stray
- * noindex on it is still caught.
+ * noindex on it is still caught. A page of a template meant to carry noindex
+ * (NOINDEX_TEMPLATES) must fail from exactly robots.txt and its own noindex
+ * meta tag (issue #171).
  */
 export function crawlableMismatch(
   report: ScoredReport,
   allowed: boolean,
   robotsUrl: string,
+  noindex = false,
 ): string | null {
   const audit = report.audits[CRAWLABLE_AUDIT];
   if (!audit) return `the ${CRAWLABLE_AUDIT} audit did not run.`;
@@ -179,10 +194,18 @@ export function crawlableMismatch(
       : `robots.txt allows it, but ${CRAWLABLE_AUDIT} failed.`;
   if (audit.score !== 0)
     return `robots.txt disallows it, but ${CRAWLABLE_AUDIT} passed.`;
-  const sources = (audit.details?.items ?? []).map(
-    (item) => (item as { source?: { url?: string } }).source?.url ?? null,
+  const items = (audit.details?.items ?? []) as CrawlableItem[];
+  const fromRobots = items.filter((item) => item.source?.url === robotsUrl);
+  const fromMeta = items.filter((item) =>
+    NOINDEX_META.test(item.source?.snippet ?? ""),
   );
-  return sources.length > 0 && sources.every((url) => url === robotsUrl)
+  if (noindex)
+    return items.length === 2 &&
+      fromRobots.length === 1 &&
+      fromMeta.length === 1
+      ? null
+      : `${CRAWLABLE_AUDIT} failed from other sources than robots.txt and the page's own noindex tag.`;
+  return items.length > 0 && fromRobots.length === items.length
     ? null
     : `${CRAWLABLE_AUDIT} failed for another reason than robots.txt.`;
 }

@@ -25,6 +25,7 @@ import {
   MIN_SCORES,
   mainTemplate,
   median,
+  NOINDEX_TEMPLATES,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
   pageArgument,
@@ -630,6 +631,58 @@ describe("is-crawlable against robots.txt on production", () => {
     const missing = blockedReport();
     delete missing.audits[CRAWLABLE_AUDIT];
     expect(crawlableMismatch(missing, true, ROBOTS_URL)).toMatch(/did not run/);
+  });
+
+  it("accepts the cart's own noindex tag beside robots.txt, and nothing else (issue #171)", () => {
+    expect(NOINDEX_TEMPLATES).toEqual(["cart"]);
+    const robots = { source: { type: "source-location", url: ROBOTS_URL } };
+    // As Lighthouse quotes the tag Next.js renders for robots: { index: false }.
+    const meta = {
+      source: {
+        type: "node",
+        snippet: '<meta name="robots" content="noindex" />',
+      },
+    };
+    const header = { source: "X-Robots-Tag: noindex" };
+    const cart = (items: unknown[]) =>
+      crawlableMismatch(
+        blockedReport({ score: 0, items }),
+        false,
+        ROBOTS_URL,
+        true,
+      );
+    expect(cart([robots, meta])).toBeNull();
+    expect(cart([meta, robots])).toBeNull();
+    for (const items of [
+      [robots],
+      [meta],
+      [robots, meta, header],
+      [robots, robots],
+      [
+        robots,
+        {
+          source: {
+            type: "node",
+            snippet: '<meta name="robots" content="index" />',
+          },
+        },
+      ],
+      [],
+    ])
+      expect(cart(items), JSON.stringify(items)).toMatch(
+        /other sources than robots.txt and the page's own noindex tag/,
+      );
+    expect(
+      crawlableMismatch(blockedReport({ score: 1 }), false, ROBOTS_URL, true),
+    ).toMatch(/disallows it, but is-crawlable passed/);
+    // Any other page keeps the robots.txt-only rule.
+    expect(
+      crawlableMismatch(
+        blockedReport({ score: 0, items: [robots, meta] }),
+        false,
+        ROBOTS_URL,
+      ),
+    ).toMatch(/another reason than robots.txt/);
   });
 
   it("marks a disallowed page in its check and in the table", () => {
