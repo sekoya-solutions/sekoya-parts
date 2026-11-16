@@ -32,3 +32,24 @@ Studio product photograph of {SUBJECT}, a household appliance spare part, isolat
 ## Changing an image
 
 `manifest.json` holds each original's hash, and the build fails when a file differs from it. After replacing an original on purpose, keep it square at 1,600 x 1,600, update its row above, and run `npm run images -- --update-manifest`.
+
+## Promotions
+
+The home page's promotion images ([issue #155](https://github.com/sekoya-solutions/sekoya-parts/issues/155)): three slides in `promotion-slides/<n>.jpg` and three tiles in `promotion-tiles/<n>.jpg`. Each set has its own size, and `scripts/images.ts` writes it at its own widths (`IMAGE_SETS` in `site/images.ts`).
+
+- **Made by:** the owner, with an image generator, on 2026-11-15. They are AI-generated, not photographs, and not CC0. The tool's name is to be recorded here.
+- **Format:** JPEGs, 2,400 x 900 pixels for the slides and 1,200 x 900 for the tiles, with no text, so the headline in each language is set over or beside them.
+- **Prompt,** with `{SUBJECT}` and `{FORMAT}` replaced (`wide 8:3` for the slides, `4:3` for the tiles):
+
+```text
+Wide e-commerce banner photograph of {SUBJECT}, household appliance spare parts, arranged on the right half of the frame, the left half calm and uncluttered for a headline, soft diffused daylight, warm off-white and light grey tones with a hint of deep navy, true-to-life materials, shallow depth of field, {FORMAT} format. No text, no labels, no logos, no brand names, no people, no hands, no packaging, no watermark.
+```
+
+| File | Subject |
+| --- | --- |
+| `promotion-slides/1.jpg` | washing machine and dishwasher parts on a counter: a drain pump, a filter, a door seal and a control board |
+| `promotion-slides/2.jpg` | an open oven with a fan heating element and a door seal |
+| `promotion-slides/3.jpg` | a dial thermostat on a door seal strip |
+| `promotion-tiles/1.jpg` | a drain pump and a mesh filter |
+| `promotion-tiles/2.jpg` | a set of oven and cooktop knobs |
+| `promotion-tiles/3.jpg` | a range hood grease filter and an appliance lamp |
