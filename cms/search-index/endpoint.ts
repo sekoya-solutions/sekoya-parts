@@ -2,7 +2,7 @@
 // index in step with the database (cms/search-index/sync.ts). The daily
 // Vercel cron calls it with `Authorization: Bearer <CRON_SECRET>`
 // (vercel.json), so a send that failed after a save is retried; a signed-in
-// user can open it to run it at once. Anyone else gets 401. An Algolia
+// editor can open it to run it at once. Anyone else gets 401. An Algolia
 // failure answers 502, so Vercel's cron log shows it.
 import type { PostgresAdapter } from "@payloadcms/db-postgres";
 import type { Endpoint } from "payload";

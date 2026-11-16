@@ -1,5 +1,5 @@
-// Who may run the translation sweep (issue #104): a signed-in user, or the
-// daily cron with CRON_SECRET; anyone else gets 401.
+// Who may run the daily jobs (issues #104 and #176): a signed-in editor, or
+// the daily cron with CRON_SECRET; anyone else gets 401, a customer included.
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SALES_RUN_PATH } from "../cms/sales/endpoint.ts";
@@ -13,9 +13,32 @@ import {
 describe("mayRun", () => {
   const secret = "s3cret-value";
 
-  it("lets a signed-in user run it, with or without a header", () => {
-    expect(mayRun({ user: { id: 1 } }, undefined)).toBe(true);
-    expect(mayRun({ user: { id: 1 }, authorization: "Bearer x" }, secret)).toBe(
+  const editor = { id: 1, collection: "users" };
+
+  it("lets a signed-in editor run it, with or without a header", () => {
+    expect(mayRun({ user: editor }, undefined)).toBe(true);
+    expect(mayRun({ user: editor, authorization: "Bearer x" }, secret)).toBe(
+      true,
+    );
+  });
+
+  // Issue #176: a customer signs in to another collection.
+  it.each([
+    ["a customer", { id: 1, collection: "customers" }],
+    ["a user with no collection", { id: 1 }],
+    [
+      "a user of a collection named like editors",
+      { id: 1, collection: "Users" },
+    ],
+  ])("refuses %s without the secret", (_case, user) => {
+    expect(mayRun({ user }, secret)).toBe(false);
+    expect(mayRun({ user, authorization: "Bearer x" }, secret)).toBe(false);
+    expect(mayRun({ user }, undefined)).toBe(false);
+  });
+
+  it("lets a customer's request with the cron's secret run it", () => {
+    const user = { id: 1, collection: "customers" };
+    expect(mayRun({ user, authorization: `Bearer ${secret}` }, secret)).toBe(
       true,
     );
   });
@@ -34,7 +57,7 @@ describe("mayRun", () => {
     expect(mayRun({ authorization }, secret)).toBe(false);
   });
 
-  it("refuses everyone but signed-in users when no secret is set", () => {
+  it("refuses everyone but signed-in editors when no secret is set", () => {
     expect(mayRun({ authorization: "Bearer " }, "")).toBe(false);
     expect(mayRun({ authorization: "Bearer undefined" }, undefined)).toBe(
       false,

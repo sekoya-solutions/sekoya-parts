@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { CATEGORY_SLUG, isReservedWord } from "../../site/addresses.ts";
+import { editorCollectionAccess } from "../access.ts";
 import {
   revalidateCategoryAfterChange,
   revalidateCategoryAfterDelete,
@@ -11,6 +12,8 @@ import { queueCategoryAfterChange } from "../hooks/search-index.ts";
 // (docs/adr/0011-languages-and-seo.md).
 export const Categories: CollectionConfig = {
   slug: "categories",
+  // Editors only (issue #176): no customer reads or changes it through the API.
+  access: editorCollectionAccess,
   hooks: {
     afterChange: [revalidateCategoryAfterChange, queueCategoryAfterChange],
     afterDelete: [revalidateCategoryAfterDelete],

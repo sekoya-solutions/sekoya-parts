@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { buildConfig } from "payload";
+import { closePayloadCollections } from "./cms/access";
 import { Brands } from "./cms/collections/brands";
 import { Categories } from "./cms/collections/categories";
 import { Products } from "./cms/collections/products";
@@ -24,44 +25,51 @@ const connectionString =
     ? process.env.DATABASE_URL_UNPOOLED
     : process.env.DATABASE_URL;
 
-export default buildConfig({
-  admin: {
-    user: Users.slug,
-    importMap: { baseDir: dirname },
-  },
-  collections: [
-    Categories,
-    Brands,
-    Products,
-    Promotions,
-    PromotionCodes,
-    Users,
-  ],
-  // The cart's delivery values (issue #169).
-  globals: [ShopSettings],
-  // The translation sweep (issue #104), the search index run (issue #115)
-  // and the sale rotation (issue #151), each run by a daily cron or a
-  // signed-in user.
-  endpoints: [translationRunEndpoint, searchIndexRunEndpoint, salesRunEndpoint],
-  // The admin uses REST; no GraphQL endpoint is exposed.
-  graphQL: { disable: true },
-  localization: {
-    locales: [...locales],
-    defaultLocale: "fr",
-  },
-  secret: process.env.PAYLOAD_SECRET ?? "",
-  // Payload sends anonymous usage data to telemetry.payloadcms.com unless this
-  // is false; the site sends no data to third parties (issue #88).
-  telemetry: false,
-  typescript: {
-    outputFile: path.resolve(dirname, "cms/payload-types.ts"),
-  },
-  db: postgresAdapter({
-    pool: { connectionString },
-    // The schema comes only from committed migrations (issue #45).
-    push: false,
-    migrationDir: path.resolve(dirname, "migrations"),
-    // The Neon database already exists; Payload must not try to create one.
-    disableCreateDatabase: true,
+// Payload's own collections get the editor check too (issue #176).
+export default closePayloadCollections(
+  buildConfig({
+    admin: {
+      user: Users.slug,
+      importMap: { baseDir: dirname },
+    },
+    collections: [
+      Categories,
+      Brands,
+      Products,
+      Promotions,
+      PromotionCodes,
+      Users,
+    ],
+    // The cart's delivery values (issue #169).
+    globals: [ShopSettings],
+    // The translation sweep (issue #104), the search index run (issue #115)
+    // and the sale rotation (issue #151), each run by a daily cron or a
+    // signed-in user.
+    endpoints: [
+      translationRunEndpoint,
+      searchIndexRunEndpoint,
+      salesRunEndpoint,
+    ],
+    // The admin uses REST; no GraphQL endpoint is exposed.
+    graphQL: { disable: true },
+    localization: {
+      locales: [...locales],
+      defaultLocale: "fr",
+    },
+    secret: process.env.PAYLOAD_SECRET ?? "",
+    // Payload sends anonymous usage data to telemetry.payloadcms.com unless this
+    // is false; the site sends no data to third parties (issue #88).
+    telemetry: false,
+    typescript: {
+      outputFile: path.resolve(dirname, "cms/payload-types.ts"),
+    },
+    db: postgresAdapter({
+      pool: { connectionString },
+      // The schema comes only from committed migrations (issue #45).
+      push: false,
+      migrationDir: path.resolve(dirname, "migrations"),
+      // The Neon database already exists; Payload must not try to create one.
+      disableCreateDatabase: true,
+    }),
   }),
-});
+);

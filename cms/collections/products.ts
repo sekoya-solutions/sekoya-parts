@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { isProductReference } from "../../site/addresses.ts";
 import { AVAILABILITIES, saleError } from "../../site/merchandising.ts";
+import { editorCollectionAccess } from "../access.ts";
 import {
   revalidateProductAfterChange,
   revalidateProductAfterDelete,
@@ -15,6 +16,8 @@ import {
 // generated at render time.
 export const Products: CollectionConfig = {
   slug: "products",
+  // Editors only (issue #176): no customer reads or changes it through the API.
+  access: editorCollectionAccess,
   hooks: {
     afterChange: [revalidateProductAfterChange, queueProductAfterChange],
     afterDelete: [revalidateProductAfterDelete, queueProductAfterDelete],
