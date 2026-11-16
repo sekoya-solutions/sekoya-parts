@@ -176,9 +176,9 @@ describe("the project tables", () => {
     )) {
       expectedRows++;
       if (productId === MILLION_PRODUCT_ID) continue;
-      let set = models.get(productId);
-      if (!set) models.set(productId, (set = new Set()));
+      const set = models.get(productId) ?? new Set<number>();
       set.add(modelId);
+      models.set(productId, set);
       if (rank === 1) first.set(productId, modelId);
     }
     const byCategory = new Map<number, number[]>();
