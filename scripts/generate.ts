@@ -23,6 +23,7 @@ import {
   productLocaleRows,
   productRows,
 } from "../catalog/generator.ts";
+import { relateProducts } from "../catalog/related.ts";
 import { catalogTables } from "../catalog/tables.ts";
 import { rotateSales } from "../cms/sales/rotation.ts";
 
@@ -200,6 +201,11 @@ async function main(): Promise<void> {
         "compatibility",
         ["product_id", "rank", "model_id"],
         compatibilityRows(seed, scale),
+      );
+      // Neighbours' shared models, then the related products (issue #161).
+      const related = await relateProducts(client);
+      console.log(
+        `  compatibility: ${related.shared.toLocaleString("en")} neighbour rows; related_products: ${related.related.toLocaleString("en")} rows`,
       );
 
       // The first demo sales, running from now and ending on different days;

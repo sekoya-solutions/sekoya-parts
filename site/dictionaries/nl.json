@@ -86,5 +86,19 @@
   "homeCrumb": "Home",
   "notFoundTitle": "Pagina niet gevonden",
   "notFoundText": "Dit adres komt niet overeen met een pagina van de catalogus.",
-  "notFoundHome": "Terug naar de startpagina"
+  "notFoundHome": "Terug naar de startpagina",
+  "fitTitle": "Past het op mijn apparaat?",
+  "fitIntro": "Typ het modelnummer van het typeplaatje van uw apparaat om te controleren of dit onderdeel past.",
+  "fitLabel": "Modelnummer",
+  "fitSubmit": "Controleren",
+  "fitChecking": "Bezig met controleren…",
+  "fitYes": "Ja, dit onderdeel past op het model {model}.",
+  "fitNo": "Nee, dit onderdeel past niet op het model {model}.",
+  "fitNoModel": "Geen apparaatmodel heeft het nummer ‘{query}’.",
+  "fitInvalid": "Typ een modelnummer: letters en cijfers, zoals op het typeplaatje.",
+  "fitNoProduct": "Dit onderdeel staat niet meer in de catalogus.",
+  "fitError": "De controle is mislukt. Probeer het opnieuw.",
+  "fitPart": "Onderdeel: {product}",
+  "fitBack": "Terug naar het onderdeel",
+  "relatedProducts": "Andere onderdelen voor dezelfde apparaten"
 }

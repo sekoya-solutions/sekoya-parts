@@ -11,6 +11,9 @@ export const productTags = (id: number) => ({
   references: `product:${id}:references`,
   // The availability and delivery estimate (issue #151).
   stock: `product:${id}:stock`,
+  // The products sharing its models (issue #161), which change only with a
+  // catalog load, which the catalog tag covers.
+  related: `product:${id}:related`,
 });
 
 /**

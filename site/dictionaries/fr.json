@@ -86,5 +86,19 @@
   "homeCrumb": "Accueil",
   "notFoundTitle": "Page introuvable",
   "notFoundText": "Cette adresse ne correspond à aucune page du catalogue.",
-  "notFoundHome": "Retour à l’accueil"
+  "notFoundHome": "Retour à l’accueil",
+  "fitTitle": "Est-ce compatible avec mon appareil ?",
+  "fitIntro": "Saisissez la référence du modèle, inscrite sur la plaque signalétique de votre appareil, pour vérifier que cette pièce lui convient.",
+  "fitLabel": "Référence du modèle",
+  "fitSubmit": "Vérifier",
+  "fitChecking": "Vérification…",
+  "fitYes": "Oui, cette pièce convient au modèle {model}.",
+  "fitNo": "Non, cette pièce ne convient pas au modèle {model}.",
+  "fitNoModel": "Aucun modèle d’appareil n’a la référence « {query} ».",
+  "fitInvalid": "Saisissez une référence de modèle : des lettres et des chiffres, comme sur la plaque signalétique.",
+  "fitNoProduct": "Cette pièce n’est plus au catalogue.",
+  "fitError": "La vérification n’a pas abouti. Réessayez.",
+  "fitPart": "Pièce : {product}",
+  "fitBack": "Retour à la pièce",
+  "relatedProducts": "Autres pièces pour les mêmes appareils"
 }

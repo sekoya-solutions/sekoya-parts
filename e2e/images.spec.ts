@@ -81,10 +81,18 @@ test("the product page's main image loads first, described by the product's name
 }) => {
   await page.goto(await productAddress(request, "de", MILLION_PRODUCT_ID));
   const images = await mainImages(page);
-  expect(images).toHaveLength(1);
+  // The product's own image first, then the related products' cards (issue
+  // #161), which load lazily, as the page's later images.
+  const related = await mainImages(page, 'main ul[data-list="related"]');
+  expect(related.length).toBeGreaterThan(0);
+  expect(images).toHaveLength(1 + related.length);
   expectDescribed(images);
-  expect(images[0]?.loading).toBe("eager");
-  expect(images[0]?.priority).toBe("high");
+  expect(images.map((i) => i.loading)).toEqual(
+    images.map((_, i) => (i === 0 ? "eager" : "lazy")),
+  );
+  expect(images.map((i) => i.priority)).toEqual(
+    images.map((_, i) => (i === 0 ? "high" : null)),
+  );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     images[0]?.alt as string,
   );
@@ -92,6 +100,7 @@ test("the product page's main image loads first, described by the product's name
   const drawn = await page
     .getByRole("main")
     .locator("picture > img")
+    .first()
     .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
   expect(drawn).toBe(true);
 });

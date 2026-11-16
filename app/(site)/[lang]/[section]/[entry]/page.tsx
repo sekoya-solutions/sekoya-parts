@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import type { Locale } from "../../../../../cms/locales.ts";
 import {
   categoryPath,
+  fitPath,
   isBrandWord,
   isModelWord,
   isPageSegment,
@@ -34,6 +35,8 @@ import {
   fill,
   getDictionary,
 } from "../../../../../site/dictionary.ts";
+import { FitCheck } from "../../../../../site/fit-check.tsx";
+import { fitCheckLabels } from "../../../../../site/fit-labels.ts";
 import { SiteFrame } from "../../../../../site/frame.tsx";
 import { productImage } from "../../../../../site/images.ts";
 import {
@@ -49,6 +52,7 @@ import {
   ProductPrice,
 } from "../../../../../site/product.tsx";
 import { PRODUCT_PAGE_REFERENCES } from "../../../../../site/references.ts";
+import { RelatedProducts } from "../../../../../site/related.tsx";
 import {
   localeOf,
   millionProductParams,
@@ -199,6 +203,17 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
           <ProductDescription id={id} locale={locale} />
         </div>
       </div>
+      {/* The same form for every visitor: the answer only appears once they
+          type, in the browser, or on the result page without JavaScript
+          (issue #161). */}
+      <div className="mt-10">
+        <FitCheck
+          locale={locale}
+          part={route.reference}
+          action={fitPath(locale)}
+          labels={fitCheckLabels(dictionary)}
+        />
+      </div>
       <h2 className="mt-10 mb-4 text-2xl font-bold">
         {dictionary.compatibleModels}
       </h2>
@@ -212,6 +227,7 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
           </a>
         </p>
       )}
+      <RelatedProducts id={id} locale={locale} />
     </SiteFrame>
   );
 }

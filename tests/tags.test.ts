@@ -178,6 +178,7 @@ describe("tagsForProductDelete", () => {
       "product:7:description",
       "product:7:references",
       "product:7:stock",
+      "product:7:related",
       "product-reference:SK7",
       "category:2:listing",
       "brand:3:listing",

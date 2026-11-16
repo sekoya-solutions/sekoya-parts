@@ -3,6 +3,7 @@
 // sessions and preferences are not listed, nor the translation memory and
 // lease (issue #104), so a catalog reload keeps translations already paid for.
 export const catalogTables = [
+  "related_products",
   "compatibility",
   "appliance_models",
   "products_locales",

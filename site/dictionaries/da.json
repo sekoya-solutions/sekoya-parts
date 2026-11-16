@@ -86,5 +86,19 @@
   "homeCrumb": "Forside",
   "notFoundTitle": "Siden blev ikke fundet",
   "notFoundText": "Denne adresse svarer ikke til nogen side i kataloget.",
-  "notFoundHome": "Tilbage til forsiden"
+  "notFoundHome": "Tilbage til forsiden",
+  "fitTitle": "Passer den til mit apparat?",
+  "fitIntro": "Skriv modelnummeret fra apparatets typeskilt for at tjekke, at denne del passer.",
+  "fitLabel": "Modelnummer",
+  "fitSubmit": "Tjek",
+  "fitChecking": "Tjekker…",
+  "fitYes": "Ja, denne del passer til modellen {model}.",
+  "fitNo": "Nej, denne del passer ikke til modellen {model}.",
+  "fitNoModel": "Ingen apparatmodel har nummeret »{query}«.",
+  "fitInvalid": "Skriv et modelnummer: bogstaver og tal, som på typeskiltet.",
+  "fitNoProduct": "Denne del findes ikke længere i kataloget.",
+  "fitError": "Tjekket gik ikke igennem. Prøv igen.",
+  "fitPart": "Del: {product}",
+  "fitBack": "Tilbage til delen",
+  "relatedProducts": "Andre dele til de samme apparater"
 }

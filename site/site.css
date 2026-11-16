@@ -205,6 +205,28 @@
     background-color: var(--color-action-hover);
   }
 
+  /* "Does it fit my appliance?" (issue #161): a sand panel, and each answer
+     with a bar in leaf (yes) or slate (no), so colour is never the only
+     signal: the sentence says yes or no. */
+  .fit-check {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-sand);
+  }
+  .fit-answers li {
+    margin-top: 0.5rem;
+    padding-left: 0.75rem;
+    border-left: 0.25rem solid var(--color-slate);
+  }
+  .fit-answers li.fit-yes {
+    border-left-color: var(--color-leaf);
+  }
+  .fit-answers a {
+    color: var(--color-action);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
   /* Sale prices (issue #151): the former price struck through in slate,
      then the discount badge, navy on leaf, as a <mark>. */
   s {

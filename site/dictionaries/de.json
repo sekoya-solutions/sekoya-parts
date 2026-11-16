@@ -86,5 +86,19 @@
   "homeCrumb": "Startseite",
   "notFoundTitle": "Seite nicht gefunden",
   "notFoundText": "Diese Adresse entspricht keiner Seite des Katalogs.",
-  "notFoundHome": "Zur Startseite"
+  "notFoundHome": "Zur Startseite",
+  "fitTitle": "Passt es zu meinem Gerät?",
+  "fitIntro": "Geben Sie die Modellnummer vom Typenschild Ihres Geräts ein, um zu prüfen, ob dieses Teil passt.",
+  "fitLabel": "Modellnummer",
+  "fitSubmit": "Prüfen",
+  "fitChecking": "Wird geprüft…",
+  "fitYes": "Ja, dieses Teil passt zum Modell {model}.",
+  "fitNo": "Nein, dieses Teil passt nicht zum Modell {model}.",
+  "fitNoModel": "Kein Gerätemodell hat die Nummer „{query}“.",
+  "fitInvalid": "Geben Sie eine Modellnummer ein: Buchstaben und Ziffern, wie auf dem Typenschild.",
+  "fitNoProduct": "Dieses Teil ist nicht mehr im Katalog.",
+  "fitError": "Die Prüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+  "fitPart": "Teil: {product}",
+  "fitBack": "Zurück zum Teil",
+  "relatedProducts": "Weitere Teile für dieselben Geräte"
 }
