@@ -159,7 +159,9 @@
       {
         "heading": "Cookies",
         "paragraphs": [
-          "O próprio site não guarda nenhum cookie para consultar o catálogo: é por isso que não apresenta nenhum aviso de consentimento."
+          "Consultar o catálogo não guarda nenhum cookie próprio do site.",
+          "Quando adiciona uma peça ao carrinho, o site guarda um único cookie, cart_v1, que contém apenas os números dos produtos e as suas quantidades, e conserva-o durante 30 dias após a última alteração. É estritamente necessário para o carrinho: é por isso que o site não mostra nenhum aviso de consentimento.",
+          "Para o esvaziar, remova as peças na página do carrinho ou apague os dados deste site nas definições do seu navegador."
         ]
       },
       {

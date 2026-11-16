@@ -12,6 +12,7 @@ export const TEMPLATES = [
   "brands",
   "finder",
   "fit",
+  "cart",
   "search",
   "info",
   "languages",

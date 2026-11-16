@@ -159,7 +159,9 @@
       {
         "heading": "Cookies",
         "paragraphs": [
-          "Webstedet selv gemmer ingen cookie for at du kan se kataloget: derfor viser det intet samtykkebanner."
+          "Når du gennemser kataloget, gemmer webstedet ingen egen cookie.",
+          "Når du lægger en reservedel i kurven, gemmer webstedet en enkelt cookie, cart_v1, som kun indeholder produkternes numre og antal, og beholder den i 30 dage efter den seneste ændring. Den er strengt nødvendig for kurven: derfor viser webstedet intet samtykkebanner.",
+          "For at tømme den skal du fjerne reservedelene på kurvsiden eller slette webstedets data i din browsers indstillinger."
         ]
       },
       {

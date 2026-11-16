@@ -32,6 +32,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { CART_COOKIE, serializeCart } from "../site/cart.ts";
 import { COMMIT_HEADER } from "../site/commit.ts";
 import {
   belowThreshold,
@@ -73,6 +74,19 @@ const RUNS = 3;
 // scripts/lighthouse-seed.ts filled, which the element count confirms.
 const SEEDED_PAGE = "product";
 const LHCI_DIR = ".lighthouseci";
+// The cart page (issue #168) is measured with a cart: the cart cookie of
+// products 1 to 3, which every catalog holds, sent as a header with every
+// request of its runs. The first request checks the page lists the three.
+const CART_PAGE = "cart";
+const CART_LINES_SEEDED = 3;
+const cartHeader = {
+  Cookie: `${CART_COOKIE}=${serializeCart(
+    Array.from({ length: CART_LINES_SEEDED }, (_, i) => ({
+      id: i + 1,
+      quantity: 1,
+    })),
+  )}`,
+};
 
 type Report = {
   requestedUrl: string;
@@ -151,9 +165,12 @@ rmSync(FIGURES_FILE, { force: true });
 
 // One request, without following redirects. A mitigation stops everything at
 // once, with no retry (AGENTS.md, section 2).
-async function request(path: string): Promise<Response> {
+async function request(
+  path: string,
+  extra: Record<string, string> = {},
+): Promise<Response> {
   const response = await fetch(new URL(path, base), {
-    headers,
+    headers: { ...headers, ...extra },
     redirect: "manual",
   });
   const blocked =
@@ -181,9 +198,9 @@ async function request(path: string): Promise<Response> {
 // such link in the list marked data-list="<list>" (issue #155): one more
 // request reads the page first. Either way the measured page must be the
 // template its check names, read from data-template on its <main>.
-async function follow(requested: string) {
+async function follow(requested: string, extra: Record<string, string> = {}) {
   let path = requested;
-  let response = await request(path);
+  let response = await request(path, extra);
   if (response.status === 308) {
     const next = sameOriginPath(
       new URL(path, base),
@@ -198,7 +215,7 @@ async function follow(requested: string) {
     }
     console.log(`${path} redirects to ${next}, which is measured.`);
     path = next;
-    response = await request(path);
+    response = await request(path, extra);
   }
   return { path, response };
 }
@@ -231,7 +248,10 @@ for (const { page, address } of pages) {
   const requested = linked
     ? await firstLink(linked.page, linked.prefix, linked.list)
     : address;
-  const { path, response } = await follow(requested);
+  const { path, response } = await follow(
+    requested,
+    page === CART_PAGE ? cartHeader : {},
+  );
   const html = await response.text();
   if (response.status !== 200) {
     console.error(`Stopped: ${path} answered ${response.status}.`);
@@ -246,6 +266,15 @@ for (const { page, address } of pages) {
       `::error title=Lighthouse::Stopped: ${path} is a ${template ?? "unmarked"} page, not the ${page} page its check measures.`,
     );
     process.exit(1);
+  }
+  if (page === CART_PAGE) {
+    const lines = html.split("data-cart-line=").length - 1;
+    if (lines !== CART_LINES_SEEDED) {
+      console.error(
+        `::error title=Lighthouse::Stopped: ${path} lists ${lines} cart lines, not the ${CART_LINES_SEEDED} its cookie holds.`,
+      );
+      process.exit(1);
+    }
   }
   // Production: the public address must serve the deployed commit. No wait
   // and no retry: a mismatch fails the run (issue #67).
@@ -315,7 +344,9 @@ try {
     paths: string[],
     runs: number,
     seeded?: { profile: string },
+    extra: Record<string, string> = {},
   ) => {
+    const sent = { ...headers, ...extra };
     writeFileSync(
       configFile,
       JSON.stringify({
@@ -325,7 +356,7 @@ try {
             numberOfRuns: runs,
             chromePath: chrome,
             settings: {
-              ...(Object.keys(headers).length > 0 && { extraHeaders: headers }),
+              ...(Object.keys(sent).length > 0 && { extraHeaders: sent }),
               ...(skipped.length > 0 && { skipAudits: skipped }),
               ...(seeded && {
                 disableStorageReset: true,
@@ -345,12 +376,16 @@ try {
     if (lhci.status !== 0)
       throw new Error(`Lighthouse CI exited with ${lhci.status}.`);
   };
-  const plain = figures.filter(({ page }) => page !== SEEDED_PAGE);
+  const plain = figures.filter(
+    ({ page }) => page !== SEEDED_PAGE && page !== CART_PAGE,
+  );
   if (plain.length > 0)
     collect(
       plain.map(({ path }) => path),
       RUNS + 1,
     );
+  for (const { path } of figures.filter(({ page }) => page === CART_PAGE))
+    collect([path], RUNS + 1, undefined, cartHeader);
   for (const { path } of figures.filter(({ page }) => page === SEEDED_PAGE)) {
     // The warm-up without a history, then each run from a seeded profile.
     collect([path], 1);

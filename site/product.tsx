@@ -8,6 +8,7 @@ import { getPayload } from "payload";
 import { placeholderDescription } from "../catalog/text.ts";
 import type { Locale } from "../cms/locales.ts";
 import type { Product } from "../cms/payload-types.ts";
+import { AddToCartForm } from "./add-to-cart.tsx";
 import { productAddresses } from "./addresses.ts";
 import { getDictionary } from "./dictionary.ts";
 import {
@@ -188,7 +189,8 @@ export async function ProductPrice({
 /**
  * The product's availability and delivery estimate (issue #151): its own
  * part, refreshed by the stock tag only, so a stock change leaves the price
- * and the description cached.
+ * and the description cached. The "Add to cart" form (issue #168) comes with
+ * it, so an out-of-stock product shows none and gets it back with its stock.
  */
 export async function ProductAvailability({
   id,
@@ -212,15 +214,20 @@ export async function ProductAvailability({
   if (!product) return null;
   const dictionary = getDictionary(locale);
   return (
-    <p
-      data-availability={product.availability}
-      data-computed-at={computedAt()}
-      className="mt-2"
-    >
-      <strong>{dictionary[availabilityKey(product.availability)]}</strong>
-      {" · "}
-      {dictionary[deliveryKey(product.availability)]}
-    </p>
+    <>
+      <p
+        data-availability={product.availability}
+        data-computed-at={computedAt()}
+        className="mt-2"
+      >
+        <strong>{dictionary[availabilityKey(product.availability)]}</strong>
+        {" · "}
+        {dictionary[deliveryKey(product.availability)]}
+      </p>
+      {product.availability !== "out-of-stock" && (
+        <AddToCartForm id={id} locale={locale} />
+      )}
+    </>
   );
 }
 

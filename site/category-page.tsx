@@ -261,7 +261,11 @@ export function ProductListing({
   const dictionary = getDictionary(locale);
   return (
     <>
-      <ul data-computed-at={computedAt} className="product-list mt-6">
+      <ul
+        data-list="products"
+        data-computed-at={computedAt}
+        className="product-list mt-6"
+      >
         {rows.map(({ route, price }, index) => (
           <ProductCard
             key={route.id}

@@ -59,7 +59,8 @@ jobs:
       # Single loads, one after another, on six pages: the French home page,
       # the first category it lists (issue #81), the heaviest product page, its
       # first reference page, its most popular model's page (issue #79) and the
-      # first brand the brand index lists (issue #147).
+      # first brand the brand index lists (issue #147), and the cart page, with
+      # a cart of three products sent as a cookie (issue #168).
       # For each: one request to check the deployment answers (on production,
       # that the public address serves this commit), one Lighthouse warm-up
       # run that is not counted, then three measured runs (five before issue
@@ -88,6 +89,7 @@ jobs:
           references=/fr/p/sp000001/1
           model=first-link:/fr/p/sp000001:/fr/appareil/
           brand=first-link:/fr/marques:/fr/marques/
+          cart=/fr/mon-panier
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

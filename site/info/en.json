@@ -159,7 +159,9 @@
       {
         "heading": "Cookies",
         "paragraphs": [
-          "The site itself sets no cookie to browse the catalog: that is why it shows no consent banner."
+          "Browsing the catalog sets no cookie of the site’s own.",
+          "When you add a part to the cart, the site sets a single cookie, cart_v1, which holds only the products’ numbers and quantities, and keeps it for 30 days after its last change. It is strictly necessary for the cart: that is why the site shows no consent banner.",
+          "To empty it, remove the parts on the cart page, or delete this site’s data in your browser’s settings."
         ]
       },
       {

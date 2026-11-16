@@ -159,7 +159,9 @@
       {
         "heading": "Cookies",
         "paragraphs": [
-          "Die Website selbst setzt kein Cookie, um den Katalog zu durchsuchen: Deshalb zeigt sie kein Einwilligungsbanner."
+          "Beim Durchsuchen des Katalogs setzt die Website selbst kein Cookie.",
+          "Wenn Sie ein Teil in den Warenkorb legen, setzt die Website ein einziges Cookie, cart_v1, das nur die Nummern der Produkte und ihre Mengen enthält, und behält es 30 Tage nach seiner letzten Änderung. Es ist für den Warenkorb unbedingt erforderlich: Deshalb zeigt die Website kein Einwilligungsbanner.",
+          "Um ihn zu leeren, entfernen Sie die Teile auf der Warenkorbseite oder löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers."
         ]
       },
       {

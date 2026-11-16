@@ -159,7 +159,9 @@
       {
         "heading": "Pliki cookie",
         "paragraphs": [
-          "Sama strona nie zapisuje żadnego pliku cookie, aby przeglądać katalog: dlatego nie wyświetla baneru zgody."
+          "Przeglądanie katalogu nie zapisuje żadnego własnego pliku cookie witryny.",
+          "Gdy dodajesz część do koszyka, witryna zapisuje jeden plik cookie, cart_v1, zawierający tylko numery produktów i ich ilości, i przechowuje go przez 30 dni od ostatniej zmiany. Jest on niezbędny do działania koszyka: dlatego witryna nie wyświetla baneru zgody.",
+          "Aby go opróżnić, usuń części na stronie koszyka lub usuń dane tej witryny w ustawieniach przeglądarki."
         ]
       },
       {
