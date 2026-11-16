@@ -52,6 +52,7 @@ import {
   PRODUCTION_URL,
   pageArguments,
   REPORTS_DIR,
+  refusedRequests,
   reportFiles,
   sameOriginPath,
   scoresTable,
@@ -422,6 +423,14 @@ try {
       if (toolbar.length > 0)
         throw new Error(
           `${path}: Vercel's toolbar loaded (${toolbar[0]}); it must be off for pre-production deployments in the project settings.`,
+        );
+      // A refused resource leaves the page incomplete, so its scores would
+      // not be the page's (issue #166). Like the seeding, nothing retries.
+      const refused = refusedRequests(report);
+      const [first] = refused;
+      if (first)
+        throw new Error(
+          `${path}: ${refused.length} request(s) refused, first ${first.url} with ${first.status}; no retry. Check Vercel's firewall before running again.`,
         );
       const scores = CATEGORIES.map(([id, name]) => {
         // A page robots.txt disallows fails is-crawlable on purpose, so

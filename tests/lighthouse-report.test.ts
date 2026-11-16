@@ -30,6 +30,7 @@ import {
   pageArgument,
   pageArguments,
   redact,
+  refusedRequests,
   reportFiles,
   type ScoredReport,
   SYMBOLS_LEGEND,
@@ -275,6 +276,48 @@ describe("toolbarRequests", () => {
       toolbarRequests(withRequests(["https://preview.example/product/1"])),
     ).toEqual([]);
     expect(toolbarRequests({ audits: {} })).toEqual([]);
+  });
+});
+
+describe("refusedRequests", () => {
+  const withRequests = (items: { url: string; statusCode?: number }[]) => ({
+    audits: { "network-requests": { details: { items } } },
+  });
+  it("finds the requests a firewall refused, rate-limited or denied", () => {
+    expect(
+      refusedRequests(
+        withRequests([
+          { url: "https://sekoya-parts.vercel.app/fr", statusCode: 200 },
+          {
+            url: "https://sekoya-parts.vercel.app/images/hinge-4-480.avif",
+            statusCode: 429,
+          },
+          { url: "https://sekoya-parts.vercel.app/x", statusCode: 403 },
+        ]),
+      ),
+    ).toEqual([
+      {
+        url: "https://sekoya-parts.vercel.app/images/hinge-4-480.avif",
+        status: 429,
+      },
+      { url: "https://sekoya-parts.vercel.app/x", status: 403 },
+    ]);
+  });
+  it("finds none when every request was served, or without the audit", () => {
+    expect(
+      refusedRequests(
+        withRequests([
+          { url: "https://sekoya-parts.vercel.app/fr", statusCode: 200 },
+          { url: "https://sekoya-parts.vercel.app/fr", statusCode: 304 },
+          {
+            url: "https://sekoya-parts.vercel.app/favicon.ico",
+            statusCode: 404,
+          },
+          { url: "https://sekoya-parts.vercel.app/blocked" },
+        ]),
+      ),
+    ).toEqual([]);
+    expect(refusedRequests({ audits: {} })).toEqual([]);
   });
 });
 

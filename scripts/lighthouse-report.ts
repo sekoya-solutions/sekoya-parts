@@ -220,6 +220,28 @@ export function toolbarRequests(lhr: {
     );
 }
 
+/**
+ * Statuses that mean a firewall refused a request: 429 from the project's
+ * rate-limiting rule, 403 from a deny rule or a challenge. A run with one of
+ * them measured an incomplete page, so its scores cannot count (issue #166:
+ * production's runs had images rate-limited without failing).
+ */
+export const REFUSED_STATUSES = [403, 429];
+
+/** The requests of a run that a firewall refused, with their status. */
+export function refusedRequests(lhr: {
+  audits: Record<string, { details?: { items?: unknown[] } } | undefined>;
+}) {
+  const items = lhr.audits["network-requests"]?.details?.items ?? [];
+  return items
+    .map((item) => item as { url?: string; statusCode?: number })
+    .filter(({ statusCode }) => REFUSED_STATUSES.includes(statusCode ?? 0))
+    .map(({ url, statusCode }) => ({
+      url: url ?? "",
+      status: statusCode as number,
+    }));
+}
+
 const NOTES: Record<Target, string> = {
   preview:
     "On previews, the SEO score leaves out `is-crawlable` and `robots-txt`, which fail only because a preview is protected: Vercel's `X-Robots-Tag: noindex` header, and its sign-in redirect on robots.txt.",
