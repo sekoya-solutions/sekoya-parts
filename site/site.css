@@ -527,6 +527,43 @@
     border: 1px solid var(--color-slate);
     border-radius: var(--radius-md);
   }
+  /* The cart's totals and promotion code (issue #169). */
+  .cart-totals dl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.25rem 1rem;
+    max-width: 24rem;
+    font-size: 1.125rem;
+  }
+  .cart-totals dd {
+    text-align: end;
+  }
+  .cart-totals .cart-total {
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--color-line);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .cart-code,
+  .cart-code form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cart-code input {
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+    text-transform: uppercase;
+  }
+  .cart-code button {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+  }
   /* A card's button, at the bottom of its card, after the rules above so
      its more specific selectors come last. */
   .product-list .card-cart {

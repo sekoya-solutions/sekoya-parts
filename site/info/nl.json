@@ -160,7 +160,7 @@
         "heading": "Cookies",
         "paragraphs": [
           "Het bekijken van de catalogus plaatst geen eigen cookie van de site.",
-          "Wanneer je een onderdeel aan de winkelwagen toevoegt, plaatst de site één cookie, cart_v1, met alleen de nummers van de producten en hun aantallen, en bewaart die 30 dagen na de laatste wijziging. Hij is strikt noodzakelijk voor de winkelwagen: daarom toont de site geen toestemmingsbanner.",
+          "Wanneer je een onderdeel aan de winkelwagen toevoegt, plaatst de site een cookie, cart_v1, met alleen de nummers van de producten en hun aantallen. Wanneer je een kortingscode toepast, plaatst hij een tweede, promo_v1, met alleen die code. De site bewaart elk 30 dagen na de laatste wijziging. Ze zijn strikt noodzakelijk voor de winkelwagen: daarom toont de site geen toestemmingsbanner.",
           "Om hem te legen, verwijder je de onderdelen op de winkelwagenpagina, of wis je de gegevens van deze site in de instellingen van je browser."
         ]
       },

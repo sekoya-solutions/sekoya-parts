@@ -123,5 +123,22 @@
   "cartUpdate": "Opdater",
   "cartRemove": "Fjern",
   "cartSubtotal": "Subtotal",
-  "cartNotCounted": "Udsolgt: ikke medregnet i subtotalen."
+  "cartNotCounted": "Udsolgt: ikke medregnet i subtotalen.",
+  "cartSummary": "Oversigt",
+  "cartDiscount": "Rabat ({code})",
+  "cartDelivery": "Levering",
+  "cartDeliveryFree": "Gratis",
+  "cartTotal": "I alt",
+  "cartFreeDeliveryLeft": "Kun {amount} mere til gratis levering.",
+  "cartFreeDeliveryReached": "Din levering er gratis.",
+  "cartCodeLabel": "Rabatkode",
+  "cartCodeApply": "Anvend",
+  "cartCodeRemove": "Fjern koden",
+  "cartCodeApplied": "Koden {code} er anvendt.",
+  "cartCodeNotApplied": "Koden {code} er ikke anvendt.",
+  "cartCodeUnknown": "Denne rabatkode findes ikke.",
+  "cartCodeExpired": "Denne rabatkode er udløbet.",
+  "cartCodeMinimum": "Denne rabatkode kræver en højere subtotal.",
+  "cartCodeHint": "Prøv koden {code} i demoen.",
+  "cartSuggestions": "Gør din reparation færdig"
 }

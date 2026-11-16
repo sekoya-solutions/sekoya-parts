@@ -160,7 +160,7 @@
         "heading": "Cookies",
         "paragraphs": [
           "När du bläddrar i katalogen sätter webbplatsen ingen egen cookie.",
-          "När du lägger en reservdel i varukorgen sätter webbplatsen en enda cookie, cart_v1, som bara innehåller produkternas nummer och antal, och behåller den i 30 dagar efter den senaste ändringen. Den är strikt nödvändig för varukorgen: därför visar webbplatsen ingen samtyckesbanner.",
+          "När du lägger en reservdel i varukorgen sätter webbplatsen en cookie, cart_v1, som bara innehåller produkternas nummer och antal. När du använder en rabattkod sätter den en andra, promo_v1, som bara innehåller koden. Webbplatsen behåller var och en i 30 dagar efter den senaste ändringen. De är strikt nödvändiga för varukorgen: därför visar webbplatsen ingen samtyckesbanner.",
           "För att tömma den, ta bort reservdelarna på varukorgssidan eller radera webbplatsens data i webbläsarens inställningar."
         ]
       },

@@ -123,5 +123,22 @@
   "cartUpdate": "Bijwerken",
   "cartRemove": "Verwijderen",
   "cartSubtotal": "Subtotaal",
-  "cartNotCounted": "Niet op voorraad: niet meegeteld in het subtotaal."
+  "cartNotCounted": "Niet op voorraad: niet meegeteld in het subtotaal.",
+  "cartSummary": "Overzicht",
+  "cartDiscount": "Korting ({code})",
+  "cartDelivery": "Verzending",
+  "cartDeliveryFree": "Gratis",
+  "cartTotal": "Totaal",
+  "cartFreeDeliveryLeft": "Nog maar {amount} tot gratis verzending.",
+  "cartFreeDeliveryReached": "Uw verzending is gratis.",
+  "cartCodeLabel": "Kortingscode",
+  "cartCodeApply": "Toepassen",
+  "cartCodeRemove": "Code verwijderen",
+  "cartCodeApplied": "De code {code} is toegepast.",
+  "cartCodeNotApplied": "De code {code} is niet toegepast.",
+  "cartCodeUnknown": "Deze kortingscode bestaat niet.",
+  "cartCodeExpired": "Deze kortingscode is verlopen.",
+  "cartCodeMinimum": "Deze kortingscode vraagt een hoger subtotaal.",
+  "cartCodeHint": "Probeer voor de demo de code {code}.",
+  "cartSuggestions": "Maak uw reparatie compleet"
 }

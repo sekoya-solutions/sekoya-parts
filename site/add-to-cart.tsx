@@ -46,18 +46,30 @@ export function AddToCartForm({ id, locale }: { id: number; locale: Locale }) {
   );
 }
 
-/** A product card's form: one item, with the product's name for screen readers. */
+/**
+ * A product card's form: one item, with the product's name for screen
+ * readers. With plainPost, the browser always posts it and follows the route
+ * to the cart page, as the cart page's suggestions need (issue #169): the page
+ * then shows its totals computed again.
+ */
 export function CardAddToCart({
   id,
   name,
   locale,
+  plainPost = false,
 }: {
   id: number;
   name: string;
   locale: Locale;
+  plainPost?: boolean;
 }) {
   return (
-    <form method="post" action={CART_ROUTE} className="card-cart" {...marker}>
+    <form
+      method="post"
+      action={CART_ROUTE}
+      className="card-cart"
+      {...(plainPost ? {} : marker)}
+    >
       <input type="hidden" name="lang" value={locale} />
       <input type="hidden" name="intent" value="add" />
       <input type="hidden" name="product" value={id} />

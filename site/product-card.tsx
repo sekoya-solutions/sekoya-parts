@@ -51,12 +51,15 @@ export function ProductCard({
   locale,
   index,
   lazy,
+  plainPost,
 }: {
   route: ProductRoute;
   price: ShownPrice;
   locale: Locale;
   index: number;
   lazy?: boolean;
+  /** See CardAddToCart. */
+  plainPost?: boolean;
 }) {
   return (
     <li>
@@ -68,7 +71,12 @@ export function ProductCard({
       />
       <a href={route.paths[locale]}>{route.names[locale]}</a>{" "}
       <Price price={price} locale={locale} />
-      <CardAddToCart id={route.id} name={route.names[locale]} locale={locale} />
+      <CardAddToCart
+        id={route.id}
+        name={route.names[locale]}
+        locale={locale}
+        plainPost={plainPost}
+      />
     </li>
   );
 }
