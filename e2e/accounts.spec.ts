@@ -10,6 +10,7 @@ import {
   type APIRequestContext,
   type BrowserContext,
   expect,
+  type Locator,
   type Page,
   test,
 } from "@playwright/test";
@@ -37,13 +38,31 @@ const state = (page: Page) =>
 const cartCookie = async (context: BrowserContext) =>
   (await context.cookies(BASE)).find((c) => c.name === CART_COOKIE)?.value;
 
+/**
+ * Clicks a form's button and waits for the page the account route leads to:
+ * the GET its 303 redirected to. The page before may already show the same
+ * notice, so waiting on the notice alone would race the next navigation.
+ */
+async function submit(page: Page, button: Locator) {
+  const landed = page.waitForResponse(
+    (response) =>
+      response.request().method() === "GET" &&
+      response.request().isNavigationRequest() &&
+      (response.request().redirectedFrom()?.url().endsWith("/api/account") ??
+        false),
+  );
+  await button.click();
+  await landed;
+  await page.waitForLoadState("domcontentloaded");
+}
+
 /** Fills and sends the sign-up form of the page it is on. */
 async function signUp(page: Page, name: string, password = PASSWORD) {
   const form = page.locator('main form[data-account-form="sign-up"]');
   await form.getByLabel("Nom d’utilisateur").fill(name);
   await form.getByLabel("Mot de passe", { exact: true }).fill(password);
   await form.getByLabel("Confirmez le mot de passe").fill(password);
-  await form.getByRole("button", { name: "Créer mon compte" }).click();
+  await submit(page, form.getByRole("button", { name: "Créer mon compte" }));
 }
 
 /** Fills and sends the account page's sign-in form. */
@@ -51,7 +70,7 @@ async function signIn(page: Page, name: string, password = PASSWORD) {
   const form = page.locator('main form[data-account-form="sign-in"]');
   await form.getByLabel("Nom d’utilisateur").fill(name);
   await form.getByLabel("Mot de passe").fill(password);
-  await form.getByRole("button", { name: "Se connecter" }).click();
+  await submit(page, form.getByRole("button", { name: "Se connecter" }));
 }
 
 /** Signs up through the route, as the sign-up form does, and returns its cookies. */
@@ -113,10 +132,12 @@ test.describe("with JavaScript", () => {
     expect(session?.httpOnly).toBe(true);
     expect(cookies.find((c) => c.name === SIGNED_IN_COOKIE)?.value).toBe("1");
 
-    await page
-      .locator('main [data-account="signed-in"]')
-      .getByRole("button", { name: "Se déconnecter" })
-      .click();
+    await submit(
+      page,
+      page
+        .locator('main [data-account="signed-in"]')
+        .getByRole("button", { name: "Se déconnecter" }),
+    );
     await expect(page).toHaveURL(
       new RegExp(`${SIGN_OUT}\\?account=signed-out$`),
     );
@@ -200,10 +221,12 @@ test.describe("without JavaScript", () => {
 
     // The sign-out page asks first.
     await page.goto(SIGN_OUT);
-    await page
-      .locator('main [data-account="signed-in"]')
-      .getByRole("button", { name: "Se déconnecter" })
-      .click();
+    await submit(
+      page,
+      page
+        .locator('main [data-account="signed-in"]')
+        .getByRole("button", { name: "Se déconnecter" }),
+    );
     await expect(
       page.locator('main [data-account-notice="signed-out"]'),
     ).toBeVisible();
@@ -233,7 +256,7 @@ test.describe("without JavaScript", () => {
     await form.getByLabel("Nom d’utilisateur").fill(name);
     await form.getByLabel("Mot de passe", { exact: true }).fill(PASSWORD);
     await form.getByLabel("Confirmez le mot de passe").fill(`${PASSWORD}!`);
-    await form.getByRole("button", { name: "Créer mon compte" }).click();
+    await submit(page, form.getByRole("button", { name: "Créer mon compte" }));
     await expect(
       page.locator('main [data-account-notice="mismatch"]'),
     ).toBeVisible();

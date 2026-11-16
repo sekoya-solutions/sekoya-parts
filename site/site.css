@@ -38,6 +38,15 @@
   html {
     background-color: var(--color-navy);
   }
+  /* A heading with a word too long for a phone, such as the German
+     Aktivkohlefilterpatrone, is hyphenated in the page's language, or broken
+     at the edge where the browser has no rules for it (issue #177). */
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
   body {
     background-color: var(--color-white);
     color: var(--color-navy);
@@ -118,6 +127,14 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
+  }
+  /* A product name with a word too long for a phone's card, such as the
+     German kunststoffbeschichtetem, is hyphenated in the page's language, or
+     broken at the edge where the browser has no rules for it (issue #177). */
+  .product-list > li,
+  .cart-lines > li {
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   @media (min-width: 40rem) {
     .product-list {
@@ -577,6 +594,16 @@
     color: inherit;
   }
 
+  /* The account and cart icons (issue #177): shown on phones only, where
+     the links' names are kept for screen readers alone. */
+  .header-icon {
+    flex: none;
+  }
+  @media (width >= 40rem) {
+    .header-icon {
+      display: none;
+    }
+  }
   /* The header's signed-in mark (issue #177): a space of fixed width, so
      nothing moves when the dot appears once the page's script has run. */
   .account-state {

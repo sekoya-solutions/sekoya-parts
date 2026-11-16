@@ -25,6 +25,7 @@ import { CartCount } from "./cart-count.tsx";
 import { CartForms } from "./cart-forms.tsx";
 import { getCategories } from "./categories.tsx";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
+import { AccountIcon, CartIcon } from "./header-icons.tsx";
 import { getInfoText } from "./info-texts.ts";
 import { MAX_QUERY_LENGTH } from "./search-key.ts";
 import type { Template } from "./templates.ts";
@@ -194,7 +195,10 @@ export function SiteHeader({
           <Wordmark />
         </a>
         <SearchBox locale={locale} query={query} />
-        <div className="flex items-center gap-2">
+        {/* On a phone the account and cart links show icons, and the links
+            wrap rather than scroll sideways; a real mobile menu with one row
+            comes with issue #181 (owner decision, 2026-11-16). */}
+        <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
           <CategoryMenu locale={locale} />
           <a
             href={brandIndexPath(locale)}
@@ -214,7 +218,8 @@ export function SiteHeader({
 /**
  * The account link (issue #177): the same for every visitor, to the account
  * address, which shows the sign-in form to a visitor who is not signed in.
- * Whether the visitor is signed in is shown in the browser
+ * On a phone it shows an icon, its name kept for screen readers (owner
+ * decision, 2026-11-16). Whether the visitor is signed in is shown in the browser
  * (site/account-state.tsx, ADR 0013), in a space reserved so nothing shifts.
  */
 export function AccountLink({ locale }: { locale: Locale }) {
@@ -225,7 +230,8 @@ export function AccountLink({ locale }: { locale: Locale }) {
       data-account-link
       className="flex items-center gap-1 rounded-md px-2 py-1 text-sm"
     >
-      {dictionary.account}
+      <AccountIcon />
+      <span className="sr-only sm:not-sr-only">{dictionary.account}</span>
       <AccountState label={dictionary.accountSignedIn} />
     </a>
   );
@@ -244,7 +250,8 @@ export function CartLink({ locale }: { locale: Locale }) {
       data-cart-link
       className="flex items-center gap-1 rounded-md px-2 py-1 text-sm"
     >
-      {dictionary.cart}
+      <CartIcon />
+      <span className="sr-only sm:not-sr-only">{dictionary.cart}</span>
       <CartCount label={dictionary.cartCount} />
     </a>
   );

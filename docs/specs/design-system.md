@@ -20,6 +20,8 @@ The site's look, decided by the owner on 2026-11-13 in [issue #83](https://githu
   - Latin (24,836 bytes), preloaded, for nine languages;
   - Latin Extended (15,120 bytes), for Polish, downloaded only by a page that holds one of its characters.
 - While Manrope loads, the text shows in Arial sized to Manrope's metrics, so the swap does not move it.
+- **Long words** (issue #177): headings, card names and the cart's lines are hyphenated in the page's language (`hyphens: auto`, read from `<html lang>`), so a German, Dutch or Scandinavian compound never pushes a phone's page wider than its screen. Where a browser has no hyphenation rules for the language, `overflow-wrap: break-word` breaks the word at the edge instead. Body paragraphs are not hyphenated.
+- **Phone header** (issue #177, owner decision of 2026-11-16): below the `sm` breakpoint, the account and cart links show icons drawn for the site (`site/header-icons.tsx`), in the text's colour, their names kept for screen readers; the header's links wrap onto a second line rather than scroll sideways, until the mobile menu of [#181](https://github.com/sekoya-solutions/sekoya-parts/issues/181).
 
 ## Colours
 
