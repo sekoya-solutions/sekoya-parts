@@ -8,7 +8,9 @@ import {
   slugify,
 } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
-import { infoPagePath } from "../site/addresses.ts";
+import { SIGNED_IN_COOKIE } from "../site/account-rules.ts";
+import { brandIndexPath, infoPagePath } from "../site/addresses.ts";
+import { CART_COOKIE } from "../site/cart.ts";
 import { fill, getDictionary } from "../site/dictionary.ts";
 import { productAddress } from "./addresses.ts";
 
@@ -156,37 +158,189 @@ test("breadcrumbs on a category page, a product page, a reference page and a mod
   ]);
 });
 
-// On a phone the account and cart links show icons, their names kept for
-// screen readers (issue #177, owner decision of 2026-11-16). The links may
-// wrap onto a second line, but nothing is ever wider than the screen; a real
-// mobile menu with one row comes with issue #181.
-test.describe("on a phone", () => {
-  test.use({ viewport: { width: 360, height: 740 } });
+// On a phone the header keeps one row: the menu button, the wordmark, and the
+// account and cart, which show icons (issues #177 and #181). The menu is a <details>
+// element, so it works with JavaScript off too.
+const PHONE_WIDTHS = [320, 360];
 
-  for (const locale of locales)
-    test(`the header shows icons and never scrolls sideways in ${locale}`, async ({
-      page,
-    }) => {
-      const dictionary = getDictionary(locale);
-      await page.goto(`/${locale}`);
-      const account = page.locator("header [data-account-link]");
-      const cart = page.locator("header [data-cart-link]");
-      await expect(account).toHaveAccessibleName(dictionary.account);
-      await expect(cart).toHaveAccessibleName(dictionary.cart);
-      await expect(account.locator("svg.header-icon")).toBeVisible();
-      await expect(cart.locator("svg.header-icon")).toBeVisible();
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= window.innerWidth,
-        ),
-      ).toBe(true);
-    });
+/** The menu's links, in order, as [name, href] pairs. */
+const menuLinks = (locale: Locale) => {
+  const dictionary = getDictionary(locale);
+  return [
+    ...menuEntries(locale).map((entry) => [entry.name, entry.href]),
+    [dictionary.brands, brandIndexPath(locale)],
+    ...locales
+      .filter((other) => other !== locale)
+      .map((other) => [getDictionary(other).languageName, `/${other}`]),
+  ];
+};
+
+const noSidewaysScroll = (page: Page) =>
+  page.evaluate(
+    () => document.documentElement.scrollWidth <= window.innerWidth,
+  );
+
+for (const javaScript of [true, false])
+  test.describe(`on a phone, JavaScript ${javaScript ? "on" : "off"}`, () => {
+    test.use({ javaScriptEnabled: javaScript });
+
+    for (const locale of locales)
+      test(`the header holds one row and the menu opens in ${locale}`, async ({
+        page,
+      }) => {
+        const dictionary = getDictionary(locale);
+        await page.setViewportSize({ width: 360, height: 740 });
+        await page.goto(`/${locale}`);
+        const menu = page.locator("header [data-mobile-menu]");
+        const button = menu.locator("summary");
+        const panel = menu.getByRole("navigation", { name: dictionary.menu });
+
+        for (const width of PHONE_WIDTHS) {
+          await page.setViewportSize({ width, height: 740 });
+          await expect(button).toHaveAccessibleName(dictionary.menu);
+          const account = page.locator("header [data-account-link]");
+          const cart = page.locator("header [data-cart-link]");
+          await expect(account).toHaveAccessibleName(dictionary.account);
+          await expect(cart).toHaveAccessibleName(dictionary.cart);
+          await expect(account.locator("svg.header-icon")).toBeVisible();
+          await expect(cart.locator("svg.header-icon")).toBeVisible();
+          await expect(page.locator("header [data-wide-links]")).toBeHidden();
+          // The wordmark, the button, the account and the cart share one row: each
+          // one's middle lies within the button's height, and the
+          // wordmark holds one line.
+          const row = (await button.boundingBox()) as {
+            y: number;
+            height: number;
+          };
+          const wordmark = page.locator(`header a[href="/${locale}"]`);
+          for (const item of [wordmark, account, cart]) {
+            const box = (await item.boundingBox()) as {
+              y: number;
+              height: number;
+            };
+            const middle = box.y + box.height / 2;
+            expect(middle).toBeGreaterThan(row.y);
+            expect(middle).toBeLessThan(row.y + row.height);
+          }
+          expect((await wordmark.boundingBox())?.height).toBeLessThan(40);
+          expect(await noSidewaysScroll(page)).toBe(true);
+        }
+
+        await expect(panel).toBeHidden();
+        await button.click();
+        await expect(panel).toBeVisible();
+        await expect(button).toHaveAccessibleName(dictionary.menuClose);
+        const links = await panel
+          .locator("a")
+          .evaluateAll((anchors) =>
+            anchors.map((a) => [a.textContent, a.getAttribute("href")]),
+          );
+        expect(links).toEqual(menuLinks(locale));
+        const box = (await panel.boundingBox()) as { x: number; width: number };
+        expect(box.x + box.width).toBeLessThanOrEqual(320);
+        expect(await noSidewaysScroll(page)).toBe(true);
+        await button.click();
+        await expect(panel).toBeHidden();
+      });
+  });
+
+// With a two-digit cart count and the signed-in mark, both badges on their
+// icons, the row still holds at 320 px in Swedish, the widest language.
+test("the count and the signed-in mark keep the phone header on one row", async ({
+  page,
+  baseURL,
+}) => {
+  await page.context().addCookies(
+    [
+      { name: CART_COOKIE, value: "1_12" },
+      { name: SIGNED_IN_COOKIE, value: "1" },
+    ].map((cookie) => ({ ...cookie, url: baseURL as string })),
+  );
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/sv");
+  const account = page.locator("header [data-account-link]");
+  const cart = page.locator("header [data-cart-link]");
+  await expect(cart.locator('[data-cart-count="12"]')).toBeVisible();
+  await expect(
+    account.locator('[data-account-state="signed-in"] .account-dot'),
+  ).toBeVisible();
+  const row = (await page
+    .locator("header [data-mobile-menu]")
+    .boundingBox()) as { y: number; height: number };
+  for (const item of [account, cart]) {
+    const box = (await item.boundingBox()) as { y: number; height: number };
+    const middle = box.y + box.height / 2;
+    expect(middle).toBeGreaterThan(row.y);
+    expect(middle).toBeLessThan(row.y + row.height);
+  }
+  expect(await noSidewaysScroll(page)).toBe(true);
 });
 
-test("on a wide screen the account and cart links show their names, no icon", async ({
+test.describe("the phone menu by keyboard", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+
+  test("Escape closes it and gives focus back to its button", async ({
+    page,
+  }) => {
+    await page.goto("/en");
+    const button = page.locator("header [data-mobile-menu] summary");
+    const panel = page.getByRole("navigation", { name: "Menu" });
+    await button.focus();
+    await page.keyboard.press("Enter");
+    await expect(panel).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(panel.getByRole("link").first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(panel).toBeHidden();
+    await expect(button).toBeFocused();
+  });
+
+  test("focus leaving it or a tap beside it closes it", async ({ page }) => {
+    await page.goto("/en");
+    const button = page.locator("header [data-mobile-menu] summary");
+    const panel = page.getByRole("navigation", { name: "Menu" });
+    await button.click();
+    await panel.getByRole("link").last().focus();
+    await page.keyboard.press("Tab");
+    await expect(panel).toBeHidden();
+
+    await button.click();
+    await expect(panel).toBeVisible();
+    await page.mouse.click(350, 400);
+    await expect(panel).toBeHidden();
+    await expect(page).toHaveURL(/\/en$/);
+  });
+
+  test("with no script, Enter opens and closes it and Tab moves into it", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      javaScriptEnabled: false,
+      viewport: { width: 360, height: 740 },
+    });
+    const page = await context.newPage();
+    await page.goto("/en");
+    const button = page.locator("header [data-mobile-menu] summary");
+    const panel = page.getByRole("navigation", { name: "Menu" });
+    await button.focus();
+    await page.keyboard.press("Enter");
+    await expect(panel).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(panel.getByRole("link").first()).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(button).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(panel).toBeHidden();
+    await context.close();
+  });
+});
+
+test("on a wide screen the header keeps its links and shows no menu", async ({
   page,
 }) => {
   await page.goto("/fr");
+  await expect(page.locator("header [data-mobile-menu]")).toBeHidden();
+  await expect(page.locator("header [data-wide-links]")).toBeVisible();
   for (const link of ["[data-account-link]", "[data-cart-link]"]) {
     await expect(page.locator(`header ${link} svg.header-icon`)).toBeHidden();
   }

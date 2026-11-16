@@ -91,11 +91,13 @@ test.describe("the brand index", () => {
           ["x-default", "/fr/marques"],
         ].sort(),
       );
-      // The header links to it on every page, the home page included.
+      // The header links to it on every page, the home page included, and
+      // so does the phone menu (issue #181).
       await page.goto(`/${locale}`);
-      await expect(
-        page.getByRole("banner").locator(`a[href="${path}"]`),
-      ).toHaveCount(1);
+      for (const links of ["[data-wide-links]", "[data-mobile-menu]"])
+        await expect(
+          page.getByRole("banner").locator(`${links} a[href="${path}"]`),
+        ).toHaveCount(1);
     });
 
   test("another language's brand word or letter case redirects permanently", async ({

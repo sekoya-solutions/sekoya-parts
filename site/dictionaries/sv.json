@@ -76,6 +76,8 @@
   "publisherPending": "Utgivarens uppgifter publiceras inom kort.",
   "categoriesMenu": "Kategorier",
   "brands": "Varumärken",
+  "menu": "Meny",
+  "menuClose": "Stäng",
   "brandsIntro": "Katalogens delar kommer från {count} varumärken för hushållsapparater. Välj din apparats varumärke för att se alla dess reservdelar, sorterade efter artikelnummer och med pris i euro.",
   "brandHeading": "Reservdelar till {brand}",
   "brandIntro": "Varumärket {brand}: {count} reservdelar, sorterade efter artikelnummer. Varje produktsida anger priset i euro och listan över kompatibla apparatmodeller, så att du kan kontrollera att en del passar din apparat innan du väljer den.",

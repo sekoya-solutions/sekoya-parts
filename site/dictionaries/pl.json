@@ -76,6 +76,8 @@
   "publisherPending": "Dane wydawcy zostaną wkrótce opublikowane.",
   "categoriesMenu": "Kategorie",
   "brands": "Marki",
+  "menu": "Menu",
+  "menuClose": "Zamknij",
   "brandsIntro": "Części w katalogu pochodzą od {count} marek sprzętu AGD. Wybierz markę swojego urządzenia, aby zobaczyć wszystkie jej części zamienne, uporządkowane według numeru i z ceną w euro.",
   "brandHeading": "Części zamienne {brand}",
   "brandIntro": "Marka {brand}: części zamienne ({count}), uporządkowane według numeru. Każda karta podaje cenę w euro i listę zgodnych modeli urządzeń, aby przed wyborem sprawdzić, czy część pasuje do Twojego urządzenia.",

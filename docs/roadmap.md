@@ -265,7 +265,10 @@ Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approv
      - a bar above the header gives true facts about the demo rather than shop promises (owner decision, 2026-11-15): the number of appliance models, the ten languages, and that nothing is sold, linking to the demo terms of sale;
      - a category menu in the header, a native `<details>` element like the language switch, lists the 12 categories in the page's language, sorted by name, with no browser code;
      - breadcrumbs open the category, product, reference and model pages, with the same trail as schema.org `BreadcrumbList` data at full addresses.
-   - **A real mobile menu** ([#181](https://github.com/sekoya-solutions/sekoya-parts/issues/181)), added after #177 measured the header's links wrapping on phones (owner decision, 2026-11-16): one header row on a phone, with a menu button holding the categories, brands, language and account, working without JavaScript.
+   - **A real mobile menu** ([#181](https://github.com/sekoya-solutions/sekoya-parts/issues/181)), added after #177 measured the header's links wrapping on phones (owner decision, 2026-11-16):
+     - below 40rem, the header holds one row, the menu button, the wordmark, and the account and cart icons, with the search box on its own row under it; the desktop header is unchanged;
+     - the menu is a native `<details>` element, so it opens and closes without JavaScript: a panel from the left of the screen, over a dimmed page, lists the categories, the brands and the other languages, and its button becomes the panel's "Close" bar;
+     - once the page's script runs, Escape, a tap beside the panel and focus leaving it close the menu, Escape giving focus back to its button.
 4. **Brand pages and richer category pages,** in two parts:
    - **Brand pages** ([#147](https://github.com/sekoya-solutions/sekoya-parts/issues/147)):
      - a brand index at `/<lang>/<brand word>`, such as `/fr/marques`, lists every brand by name with its number of products; the header links to it;
