@@ -37,3 +37,21 @@ export function CartIcon() {
     </svg>
   );
 }
+
+/** Three lines, for the phone menu's button (issue #181). */
+export function MenuIcon() {
+  return (
+    <svg {...ICON} width={24} height={24} aria-hidden="true">
+      <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />
+    </svg>
+  );
+}
+
+/** A cross, for the phone menu's button once the menu is open. */
+export function CloseIcon() {
+  return (
+    <svg {...ICON} aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}

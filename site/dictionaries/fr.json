@@ -76,6 +76,8 @@
   "publisherPending": "Les coordonnées de l’éditeur seront publiées prochainement.",
   "categoriesMenu": "Catégories",
   "brands": "Marques",
+  "menu": "Menu",
+  "menuClose": "Fermer",
   "brandsIntro": "Les pièces du catalogue viennent de {count} marques d’électroménager. Choisissez la marque de votre appareil pour voir toutes ses pièces détachées, classées par référence, avec leur prix en euros.",
   "brandHeading": "Pièces détachées {brand}",
   "brandIntro": "Marque {brand} : {count} pièces détachées, classées par référence. Chaque fiche donne le prix en euros et la liste des modèles d’appareils compatibles, pour vérifier qu’une pièce convient à votre appareil avant de la choisir.",

@@ -76,6 +76,8 @@
   "publisherPending": "Los datos del editor se publicarán próximamente.",
   "categoriesMenu": "Categorías",
   "brands": "Marcas",
+  "menu": "Menú",
+  "menuClose": "Cerrar",
   "brandsIntro": "Las piezas del catálogo proceden de {count} marcas de electrodomésticos. Elija la marca de su aparato para ver todos sus repuestos, ordenados por referencia y con su precio en euros.",
   "brandHeading": "Repuestos {brand}",
   "brandIntro": "Marca {brand}: {count} repuestos, ordenados por referencia. Cada ficha indica el precio en euros y la lista de modelos de aparatos compatibles, para comprobar que una pieza sirve para su aparato antes de elegirla.",

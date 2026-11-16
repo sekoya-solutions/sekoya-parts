@@ -25,15 +25,16 @@ const alternates = (page: Page) =>
  * The language switch's menu, found by CSS: while the <details> element is
  * closed its links are hidden, and role locators skip hidden elements.
  */
-// The language switch, the header's details element with language links;
-// the category menu is the other one (issue #144).
+// The language switch, the wide header's details element with language
+// links; the category menu is the other one (issue #144), and the phone
+// menu (issue #181) holds the same language links.
 const switchMenu = (page: Page) =>
-  page.locator("header details:has(a[hreflang]) nav");
+  page.locator("header [data-wide-links] details:has(a[hreflang]) nav");
 
-/** The language switch's links, closed or open, as [language, path]. */
-const switchLinks = (page: Page) =>
-  switchMenu(page)
-    .locator("a")
+/** The language links of the switch, or of the phone menu, as [language, path]. */
+const switchLinks = (page: Page, menu = switchMenu(page)) =>
+  menu
+    .locator("a[hreflang]")
     .evaluateAll((anchors) =>
       anchors.map((a) => [
         a.getAttribute("hreflang") as string,
@@ -48,6 +49,8 @@ async function expectSwitchMatchesAlternates(page: Page, current: string) {
     .sort();
   expect(expected).toHaveLength(locales.length - 1);
   expect((await switchLinks(page)).sort()).toEqual(expected);
+  const phoneMenu = page.locator("header [data-mobile-menu] nav");
+  expect((await switchLinks(page, phoneMenu)).sort()).toEqual(expected);
 }
 
 test("the skip link is the first thing a keyboard reaches and leads to the main content", async ({
@@ -79,7 +82,7 @@ test("the language switch opens without browser code and names each language in 
   await expect(nav).toBeHidden();
   await page
     .getByRole("banner")
-    .locator("details:has(a[hreflang]) summary")
+    .locator("[data-wide-links] details:has(a[hreflang]) summary")
     .click();
   await expect(nav).toBeVisible();
   for (const locale of locales.filter((l) => l !== "fr")) {

@@ -76,6 +76,8 @@
   "publisherPending": "Udgiverens oplysninger offentliggøres snart.",
   "categoriesMenu": "Kategorier",
   "brands": "Mærker",
+  "menu": "Menu",
+  "menuClose": "Luk",
   "brandsIntro": "Katalogets dele kommer fra {count} mærker af husholdningsapparater. Vælg dit apparats mærke for at se alle dets reservedele, sorteret efter varenummer og med pris i euro.",
   "brandHeading": "Reservedele til {brand}",
   "brandIntro": "Mærket {brand}: {count} reservedele, sorteret efter varenummer. Hver produktside angiver prisen i euro og listen over kompatible apparatmodeller, så du kan tjekke, at en del passer til dit apparat, før du vælger den.",

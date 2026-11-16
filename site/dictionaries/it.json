@@ -76,6 +76,8 @@
   "publisherPending": "I dati dell’editore saranno pubblicati a breve.",
   "categoriesMenu": "Categorie",
   "brands": "Marche",
+  "menu": "Menu",
+  "menuClose": "Chiudi",
   "brandsIntro": "I ricambi del catalogo provengono da {count} marche di elettrodomestici. Scegliete la marca del vostro apparecchio per vedere tutti i suoi ricambi, ordinati per codice e con il prezzo in euro.",
   "brandHeading": "Ricambi {brand}",
   "brandIntro": "Marca {brand}: {count} ricambi, ordinati per codice. Ogni scheda indica il prezzo in euro e l’elenco dei modelli di apparecchi compatibili, per verificare che un ricambio sia adatto al vostro apparecchio prima di sceglierlo.",

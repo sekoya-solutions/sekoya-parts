@@ -76,6 +76,8 @@
   "publisherPending": "The publisher’s details will be published soon.",
   "categoriesMenu": "Categories",
   "brands": "Brands",
+  "menu": "Menu",
+  "menuClose": "Close",
   "brandsIntro": "The catalog’s parts come from {count} appliance brands. Choose your appliance’s brand to see all its spare parts, sorted by reference, with their prices in euros.",
   "brandHeading": "{brand} spare parts",
   "brandIntro": "{brand}: {count} spare parts, sorted by reference. Each product page gives the price in euros and the list of compatible appliance models, so you can check that a part fits your appliance before choosing it.",
