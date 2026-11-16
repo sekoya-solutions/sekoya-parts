@@ -1,12 +1,14 @@
 // GET /api/translations/run (issue #104): runs one translation sweep. The
 // daily Vercel cron calls it with `Authorization: Bearer <CRON_SECRET>`
 // (vercel.json; Vercel sends that header when CRON_SECRET is set), and a
-// signed-in admin user can open it to run it at once. Anyone else gets 401.
+// signed-in editor can open it to run it at once. Anyone else gets 401, a
+// signed-in customer included (issue #176).
 //
 // It is a GET because Vercel's crons send GET requests. It answers with what
 // the run did; a DeepL failure answers 502, so Vercel's cron log shows it.
 import { timingSafeEqual } from "node:crypto";
 import type { Endpoint } from "payload";
+import { isEditor } from "../access.ts";
 import type { DeepLClient } from "./deepl.ts";
 import { runTranslation } from "./store.ts";
 
@@ -20,14 +22,15 @@ function sameSecret(given: string, expected: string): boolean {
 }
 
 /**
- * Whether a request may run the sweep: a signed-in user, or the cron's
- * secret. With no secret set, or an empty one, only signed-in users can.
+ * Whether a request may run a daily job: a signed-in editor, or the cron's
+ * secret. With no secret set, or an empty one, only signed-in editors can.
+ * A user of any other collection, a customer, is refused (issue #176).
  */
 export function mayRun(
   request: { user?: unknown; authorization?: string | null },
   cronSecret: string | undefined,
 ): boolean {
-  if (request.user) return true;
+  if (isEditor(request.user)) return true;
   if (!cronSecret || !request.authorization) return false;
   return sameSecret(request.authorization, `Bearer ${cronSecret}`);
 }

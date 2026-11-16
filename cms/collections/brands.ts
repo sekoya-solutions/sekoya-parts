@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { BRAND_SLUG } from "../../site/addresses.ts";
+import { editorCollectionAccess } from "../access.ts";
 import {
   revalidateBrandAfterChange,
   revalidateBrandAfterDelete,
@@ -12,6 +13,8 @@ import { queueBrandAfterChange } from "../hooks/search-index.ts";
 // (docs/adr/0011-languages-and-seo.md).
 export const Brands: CollectionConfig = {
   slug: "brands",
+  // Editors only (issue #176): no customer reads or changes it through the API.
+  access: editorCollectionAccess,
   hooks: {
     afterChange: [revalidateBrandAfterChange, queueBrandAfterChange],
     afterDelete: [revalidateBrandAfterDelete],

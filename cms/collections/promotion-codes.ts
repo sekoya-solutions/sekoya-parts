@@ -4,6 +4,7 @@ import {
   normalizeCode,
   PROMOTION_CODE_KINDS,
 } from "../../site/cart-pricing.ts";
+import { editorCollectionAccess } from "../access.ts";
 
 // The cart's promotion codes (issue #169): a percentage or a fixed amount off
 // the subtotal, with an optional minimum and optional dates. The cart page
@@ -20,6 +21,8 @@ const time = (date: unknown) =>
 
 export const PromotionCodes: CollectionConfig = {
   slug: "promotion-codes",
+  // Editors only (issue #176): no customer reads or changes it through the API.
+  access: editorCollectionAccess,
   labels: { singular: "Promotion code", plural: "Promotion codes" },
   admin: {
     useAsTitle: "code",

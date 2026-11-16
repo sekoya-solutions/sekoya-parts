@@ -9,6 +9,7 @@ import {
   PROMOTION_LINKS,
 } from "../../site/promotion-rules.ts";
 import { PROMOTIONS_TAG } from "../../site/tags.ts";
+import { editorCollectionAccess } from "../access.ts";
 import { refresh } from "../hooks/refresh.ts";
 
 // The home page's promotions (issue #155): slides for the slider and tiles
@@ -26,6 +27,8 @@ const refreshAfterDelete: CollectionAfterDeleteHook = () => {
 
 export const Promotions: CollectionConfig = {
   slug: "promotions",
+  // Editors only (issue #176): no customer reads or changes it through the API.
+  access: editorCollectionAccess,
   hooks: {
     afterChange: [refreshAfterChange],
     afterDelete: [refreshAfterDelete],

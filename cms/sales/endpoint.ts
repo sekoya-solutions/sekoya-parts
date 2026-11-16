@@ -1,6 +1,6 @@
 // GET /api/sales/run (issue #151): the daily sale rotation. Vercel's cron
 // calls it with `Authorization: Bearer <CRON_SECRET>` (vercel.json); a
-// signed-in user can open it to run it at once. Anyone else gets 401. New
+// signed-in editor can open it to run it at once. Anyone else gets 401. New
 // sales start at the next 00:00 UTC, so the run's time within its hour never
 // matters, and their prices are refreshed before then (cms/sales/rotation.ts).
 import type { PostgresAdapter } from "@payloadcms/db-postgres";
