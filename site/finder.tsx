@@ -173,6 +173,7 @@ export async function FinderPage({
   return (
     <SiteFrame
       locale={locale}
+      template="finder"
       paths={perLocale((l) =>
         finderPath(l, {
           brand: brand?.slug,

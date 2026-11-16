@@ -21,7 +21,9 @@ import {
   type Figures,
   firstMainLink,
   gateText,
+  linkedAddress,
   MIN_SCORES,
+  mainTemplate,
   median,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
@@ -290,6 +292,11 @@ describe("pages", () => {
     expect(() => pageArgument("/fr")).toThrow(/<page>=<address>/);
     expect(() => pageArgument("Home=/fr")).toThrow(/<page>=<address>/);
     expect(() => pageArguments(["home=/fr", "home=/en"])).toThrow(/twice/);
+  });
+  it("refuses a page that is not a template, which no page could match", () => {
+    expect(() => pageArgument("categories=/fr/x")).toThrow(
+      /not a page template/,
+    );
   });
   it("names one check per page", () => {
     expect(checkName(figures[0] as Figures)).toBe(
@@ -608,5 +615,51 @@ describe("firstMainLink", () => {
     expect(firstMainLink(html, "/fr/marques/")).toBeNull();
     expect(firstMainLink(html, "/fr/c.u")).toBeNull();
     expect(firstMainLink('<a href="/fr/x">', "/fr/")).toBeNull();
+  });
+
+  // The promotions came first on the home page (issue #155), so the
+  // "category" check measured the part finder (PR #158's run).
+  const home = `<main data-template="home">
+<ul class="slider"><li><a href="/fr/trouver-une-piece">Trouver</a></li></ul>
+<ul data-list="categories"><li><a href="/fr/courroie">Courroie</a></li></ul>
+</main>`;
+
+  it("reads the link from the list it names, whatever comes before it", () => {
+    expect(firstMainLink(home, "/fr/")).toBe("/fr/trouver-une-piece");
+    expect(firstMainLink(home, "/fr/", "categories")).toBe("/fr/courroie");
+    expect(firstMainLink(home, "/fr/", "showcase")).toBeNull();
+  });
+});
+
+describe("linkedAddress", () => {
+  it("parses a first link, with or without its list", () => {
+    expect(linkedAddress("/fr")).toBeNull();
+    expect(linkedAddress("first-link:/fr/p/sp000001:/fr/appareil/")).toEqual({
+      page: "/fr/p/sp000001",
+      list: undefined,
+      prefix: "/fr/appareil/",
+    });
+    expect(linkedAddress("first-link:/fr:categories:/fr/")).toEqual({
+      page: "/fr",
+      list: "categories",
+      prefix: "/fr/",
+    });
+  });
+  it("refuses a first link whose prefix is not an address", () => {
+    expect(() => linkedAddress("first-link:/fr:categories")).toThrow(
+      /first-link:<page>/,
+    );
+  });
+});
+
+describe("mainTemplate", () => {
+  it("reads the template named on <main>, and only there", () => {
+    expect(mainTemplate('<main id="main" data-template="category">')).toBe(
+      "category",
+    );
+    expect(
+      mainTemplate('<div data-template="home"></div><main id="main">'),
+    ).toBeNull();
+    expect(mainTemplate("<p>no main</p>")).toBeNull();
   });
 });

@@ -58,7 +58,11 @@ export function NotFoundPage() {
           </a>
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-page px-4 py-16">
+      <main
+        id="main"
+        data-template="not-found"
+        className="mx-auto max-w-page px-4 py-16"
+      >
         <p className="text-sm font-bold text-slate">404</p>
         <h1 className="mt-1 text-3xl font-bold">{text.notFoundTitle}</h1>
         <p className="mt-2 text-slate">{text.notFoundText}</p>

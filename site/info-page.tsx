@@ -64,7 +64,7 @@ export function InfoPageView({
       ? [pending]
       : paragraphs.map((paragraph) => fill(paragraph, values));
   return (
-    <SiteFrame locale={locale} paths={infoPagePaths(page)}>
+    <SiteFrame locale={locale} template="info" paths={infoPagePaths(page)}>
       <article className="info-page max-w-prose">
         <h1 className="text-3xl font-bold">{text.title}</h1>
         {text.sections.map((part) => (

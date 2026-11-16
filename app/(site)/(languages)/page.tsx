@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function LanguagesPage() {
   return (
-    <SiteFrame locale="fr">
+    <SiteFrame locale="fr" template="languages">
       <h1 className="text-3xl font-bold">Sekoya Parts</h1>
       <ul className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-3">
         {locales.map((locale) => (

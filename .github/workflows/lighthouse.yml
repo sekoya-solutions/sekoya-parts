@@ -70,8 +70,10 @@ jobs:
       # on production (issue #135). /fr/p/sp000001 redirects to the French
       # address of product SP000001, whose words depend on the catalog; the
       # script measures the target. first-link: measures the first link on
-      # that page whose address starts with the prefix. Each address follows
-      # its page's name, which names its check (issue #96).
+      # that page whose address starts with the prefix, in the list it names
+      # if any, such as the home page's categories (issue #155). Each address
+      # follows its page's name, which names its check (issue #96) and the
+      # template the measured page must be, or the run stops.
       - name: Measure the deployment
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -80,7 +82,7 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
         run: >-
           node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL"
-          home=/fr category=first-link:/fr:/fr/ product=/fr/p/sp000001
+          home=/fr category=first-link:/fr:categories:/fr/ product=/fr/p/sp000001
           references=/fr/p/sp000001/1
           model=first-link:/fr/p/sp000001:/fr/appareil/
           brand=first-link:/fr/marques:/fr/marques/

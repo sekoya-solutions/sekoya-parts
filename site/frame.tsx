@@ -22,6 +22,7 @@ import { getCategories } from "./categories.tsx";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { getInfoText } from "./info-texts.ts";
 import { MAX_QUERY_LENGTH } from "./search-key.ts";
+import type { Template } from "./templates.ts";
 import { Wordmark } from "./wordmark.tsx";
 
 /** Where the search box sends its form: app/(site)/api/search/route.ts. */
@@ -255,15 +256,18 @@ export function SiteFooter({ locale }: { locale: Locale }) {
  * A page in one language: header, main content and footer. `paths` are the
  * page's addresses in every language, for the language switch; a page with
  * none, like the 404, shows no switch. `query` fills the search box on the
- * results page.
+ * results page. `template` names the page's template on <main>, which the
+ * checks that reach a page through a link verify (site/templates.ts).
  */
 export function SiteFrame({
   locale,
+  template,
   paths,
   query,
   children,
 }: {
   locale: Locale;
+  template: Template;
   paths?: Record<Locale, string>;
   query?: string;
   children: ReactNode;
@@ -272,7 +276,11 @@ export function SiteFrame({
     <>
       <FactsBar locale={locale} />
       <SiteHeader locale={locale} paths={paths} query={query} />
-      <main id={MAIN_ID} className="mx-auto max-w-page px-4 py-8">
+      <main
+        id={MAIN_ID}
+        data-template={template}
+        className="mx-auto max-w-page px-4 py-8"
+      >
         {children}
       </main>
       <SiteFooter locale={locale} />

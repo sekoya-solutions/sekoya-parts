@@ -50,7 +50,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   );
 
   return (
-    <SiteFrame locale={locale} paths={perLocale(homePath)}>
+    <SiteFrame locale={locale} template="home" paths={perLocale(homePath)}>
       <h1 className="text-3xl font-bold sm:text-4xl">Sekoya Parts</h1>
       <p className="mt-2 text-lg text-slate">{dictionary.homeTagline}</p>
       {/* The first screen's largest element, painted with the HTML rather
