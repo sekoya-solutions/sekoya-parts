@@ -4,7 +4,13 @@
 // `npm run generate`, with the same seed and scale (CATALOG_SEED and
 // CATALOG_SCALE, by default 1 and small).
 
-import { getPayload, type Payload } from "payload";
+import {
+  createLocalReq,
+  getPayload,
+  initTransaction,
+  killTransaction,
+  type Payload,
+} from "payload";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -20,6 +26,7 @@ import {
 } from "../catalog/generator.ts";
 import { SHARED_NEIGHBOURS } from "../catalog/related.ts";
 import { showcaseProducts } from "../catalog/showcase.ts";
+import { targetLocales } from "../cms/translation/sweep.ts";
 import config from "../payload.config.ts";
 
 // No silent skip: without a database this test fails.
@@ -102,7 +109,7 @@ describe("Payload reads the generated catalog", () => {
     }
   });
 
-  it("returns each showcase product's French text, and French in a language not translated yet", async () => {
+  it("returns each showcase product's French text", async () => {
     const { docs } = await payload.find({
       collection: "products",
       where: { showcase: { equals: true } },
@@ -114,22 +121,68 @@ describe("Payload reads the generated catalog", () => {
       showcaseProducts.map((p) => p.id).sort(),
     );
     for (const listed of showcaseProducts) {
-      // Payload falls back to French, the default locale, for a missing
-      // translation: the page shows it until the translation job runs.
-      for (const locale of ["fr", "de"] as const) {
-        const product = await payload.findByID({
-          collection: "products",
-          id: listed.id,
-          depth: 0,
-          locale,
-        });
-        expect(product.showcase).toBe(true);
-        expect(typeof product.category === "number" && product.category).toBe(
-          listed.categoryId,
-        );
+      const product = await payload.findByID({
+        collection: "products",
+        id: listed.id,
+        depth: 0,
+        locale: "fr",
+      });
+      expect(product.showcase).toBe(true);
+      expect(typeof product.category === "number" && product.category).toBe(
+        listed.categoryId,
+      );
+      expect(product.name).toBe(listed.fr.name);
+      expect(product.description).toBe(listed.fr.description);
+    }
+  });
+
+  // Payload falls back to French, the default locale, for a missing
+  // translation: the page shows it until the translation job runs. A database
+  // may hold every showcase translation already (Neon's dev branch, locally),
+  // so the test makes its own product with French text only, in a transaction
+  // that is always rolled back: no other connection ever sees it, and it
+  // touches no row the other tests write, so it cannot deadlock with their
+  // transactions (issue #182). Through the database adapter no hook runs, so
+  // nothing is sent to DeepL.
+  it("returns French in a language not translated yet", async () => {
+    const listed = showcaseProducts[0];
+    if (!listed) throw new Error("No showcase product.");
+    const req = await createLocalReq({}, payload);
+    await initTransaction(req);
+    try {
+      const created = await payload.db.create({
+        collection: "products",
+        data: {
+          reference: "SPFALLBACK182",
+          brand: 1,
+          category: listed.categoryId,
+          priceCents: 100,
+          showcase: true,
+          name: { fr: listed.fr.name },
+          description: { fr: listed.fr.description },
+        },
+        req,
+      });
+      for (const locale of targetLocales) {
+        const read = (fallbackLocale?: false) =>
+          payload.findByID({
+            collection: "products",
+            id: created.id,
+            depth: 0,
+            locale,
+            fallbackLocale,
+            req,
+          });
+        // Without the fallback the text is missing: the case is untranslated.
+        const own = await read(false);
+        expect(own.name ?? null).toBeNull();
+        expect(own.description ?? null).toBeNull();
+        const product = await read();
         expect(product.name).toBe(listed.fr.name);
         expect(product.description).toBe(listed.fr.description);
       }
+    } finally {
+      await killTransaction(req);
     }
   });
 
