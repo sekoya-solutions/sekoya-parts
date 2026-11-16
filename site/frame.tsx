@@ -207,8 +207,9 @@ export function SiteHeader({
           </a>
         </div>
         <SearchBox locale={locale} query={query} />
-        {/* On a phone the menu above holds these links but the cart, which
-            shows an icon, so the header keeps one row (issue #181). */}
+        {/* On a phone the menu above holds these links but the account and
+            the cart, which show icons, so the header keeps one row (issue
+            #181). */}
         <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
           <div data-wide-links className="hidden sm:contents">
             <CategoryMenu locale={locale} />
@@ -219,8 +220,8 @@ export function SiteHeader({
               {getDictionary(locale).brands}
             </a>
             {paths && <LanguageSwitch locale={locale} paths={paths} />}
-            <AccountLink locale={locale} />
           </div>
+          <AccountLink locale={locale} />
           <CartLink locale={locale} />
         </div>
       </div>
@@ -230,11 +231,11 @@ export function SiteHeader({
 
 /**
  * The phone menu (issue #181): a button with three lines, then the menu, a
- * panel from the left side of the screen with the categories, the brands,
- * the account and the languages. A native <details> element, so it opens
- * and closes without any script; its button becomes the panel's top bar,
- * "Close" with a cross, while it is open. Hidden from 40rem on, where the
- * header's own links fit. The backdrop's script adds Escape, a tap beside
+ * panel from the left side of the screen with the categories, the brands
+ * and the languages; the account and the cart keep their icons in the
+ * header's row. A native <details> element, so it opens and closes without
+ * any script; its button becomes the panel's top bar, "Close" with a cross,
+ * while it is open. Hidden from 40rem on, where the header's own links fit. The backdrop's script adds Escape, a tap beside
  * the panel and focus leaving it (site/menu-backdrop.tsx).
  */
 export async function MobileMenu({
@@ -276,17 +277,6 @@ export async function MobileMenu({
           <li>
             <a href={brandIndexPath(locale)}>{dictionary.brands}</a>
           </li>
-          <li>
-            <a
-              href={accountPath(locale)}
-              data-menu-account-link
-              className="flex items-center gap-2"
-            >
-              <AccountIcon />
-              {dictionary.account}
-              <AccountState label={dictionary.accountSignedIn} />
-            </a>
-          </li>
         </ul>
         {paths && (
           <>
@@ -322,7 +312,7 @@ export function AccountLink({ locale }: { locale: Locale }) {
     <a
       href={accountPath(locale)}
       data-account-link
-      className="flex items-center gap-1 rounded-md px-2 py-1 text-sm"
+      className="header-badge-link relative flex items-center rounded-md p-2.5 text-sm sm:gap-1 sm:px-2 sm:py-1"
     >
       <AccountIcon />
       <span className="sr-only sm:not-sr-only">{dictionary.account}</span>
@@ -342,7 +332,7 @@ export function CartLink({ locale }: { locale: Locale }) {
     <a
       href={cartPath(locale)}
       data-cart-link
-      className="flex items-center gap-1 rounded-md px-2 py-1 text-sm"
+      className="header-badge-link relative flex items-center rounded-md p-2.5 text-sm sm:gap-1 sm:px-2 sm:py-1"
     >
       <CartIcon />
       <span className="sr-only sm:not-sr-only">{dictionary.cart}</span>

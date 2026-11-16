@@ -691,6 +691,29 @@
       overflow: hidden;
     }
   }
+  /* On a phone the account and cart links show their icons alone, 40px
+     square to tap, and the cart's count and the signed-in mark become
+     badges on the icons' corner, so the header keeps one row (issue #181).
+     Placed out of the flow, they still move nothing when they appear. */
+  @media (width < 40rem) {
+    .header-badge-link .cart-count {
+      position: absolute;
+      top: 0.125rem;
+      right: 0;
+      min-width: 1.125rem;
+      min-height: 1.125rem;
+      padding-inline: 0.25rem;
+      font-size: 0.6875rem;
+      line-height: 1.125rem;
+    }
+    .header-badge-link .account-state {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      width: 0.5rem;
+      height: 0.5rem;
+    }
+  }
   /* The header's signed-in mark (issue #177): a space of fixed width, so
      nothing moves when the dot appears once the page's script has run. */
   .account-state {

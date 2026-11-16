@@ -8,11 +8,9 @@ import {
   slugify,
 } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
-import {
-  accountPath,
-  brandIndexPath,
-  infoPagePath,
-} from "../site/addresses.ts";
+import { SIGNED_IN_COOKIE } from "../site/account-rules.ts";
+import { brandIndexPath, infoPagePath } from "../site/addresses.ts";
+import { CART_COOKIE } from "../site/cart.ts";
 import { fill, getDictionary } from "../site/dictionary.ts";
 import { productAddress } from "./addresses.ts";
 
@@ -160,8 +158,8 @@ test("breadcrumbs on a category page, a product page, a reference page and a mod
   ]);
 });
 
-// On a phone the header keeps one row: the menu button, the wordmark and the
-// cart, which shows an icon (issues #177 and #181). The menu is a <details>
+// On a phone the header keeps one row: the menu button, the wordmark, and the
+// account and cart, which show icons (issues #177 and #181). The menu is a <details>
 // element, so it works with JavaScript off too.
 const PHONE_WIDTHS = [320, 360];
 
@@ -171,7 +169,6 @@ const menuLinks = (locale: Locale) => {
   return [
     ...menuEntries(locale).map((entry) => [entry.name, entry.href]),
     [dictionary.brands, brandIndexPath(locale)],
-    [dictionary.account, accountPath(locale)],
     ...locales
       .filter((other) => other !== locale)
       .map((other) => [getDictionary(other).languageName, `/${other}`]),
@@ -201,11 +198,14 @@ for (const javaScript of [true, false])
         for (const width of PHONE_WIDTHS) {
           await page.setViewportSize({ width, height: 740 });
           await expect(button).toHaveAccessibleName(dictionary.menu);
+          const account = page.locator("header [data-account-link]");
           const cart = page.locator("header [data-cart-link]");
+          await expect(account).toHaveAccessibleName(dictionary.account);
           await expect(cart).toHaveAccessibleName(dictionary.cart);
+          await expect(account.locator("svg.header-icon")).toBeVisible();
           await expect(cart.locator("svg.header-icon")).toBeVisible();
           await expect(page.locator("header [data-wide-links]")).toBeHidden();
-          // The wordmark, the button and the cart share one row: each
+          // The wordmark, the button, the account and the cart share one row: each
           // one's middle lies within the button's height, and the
           // wordmark holds one line.
           const row = (await button.boundingBox()) as {
@@ -213,7 +213,7 @@ for (const javaScript of [true, false])
             height: number;
           };
           const wordmark = page.locator(`header a[href="/${locale}"]`);
-          for (const item of [wordmark, cart]) {
+          for (const item of [wordmark, account, cart]) {
             const box = (await item.boundingBox()) as {
               y: number;
               height: number;
@@ -243,6 +243,38 @@ for (const javaScript of [true, false])
         await expect(panel).toBeHidden();
       });
   });
+
+// With a two-digit cart count and the signed-in mark, both badges on their
+// icons, the row still holds at 320 px in Swedish, the widest language.
+test("the count and the signed-in mark keep the phone header on one row", async ({
+  page,
+  baseURL,
+}) => {
+  await page.context().addCookies(
+    [
+      { name: CART_COOKIE, value: "1_12" },
+      { name: SIGNED_IN_COOKIE, value: "1" },
+    ].map((cookie) => ({ ...cookie, url: baseURL as string })),
+  );
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/sv");
+  const account = page.locator("header [data-account-link]");
+  const cart = page.locator("header [data-cart-link]");
+  await expect(cart.locator('[data-cart-count="12"]')).toBeVisible();
+  await expect(
+    account.locator('[data-account-state="signed-in"] .account-dot'),
+  ).toBeVisible();
+  const row = (await page
+    .locator("header [data-mobile-menu]")
+    .boundingBox()) as { y: number; height: number };
+  for (const item of [account, cart]) {
+    const box = (await item.boundingBox()) as { y: number; height: number };
+    const middle = box.y + box.height / 2;
+    expect(middle).toBeGreaterThan(row.y);
+    expect(middle).toBeLessThan(row.y + row.height);
+  }
+  expect(await noSidewaysScroll(page)).toBe(true);
+});
 
 test.describe("the phone menu by keyboard", () => {
   test.use({ viewport: { width: 360, height: 740 } });
