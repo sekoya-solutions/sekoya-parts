@@ -10,18 +10,12 @@ import {
 import { productName } from "../catalog/text.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 import { FIT_PARAMS } from "./fit-params.ts";
+import { PRODUCT_REFERENCE } from "./product-reference.ts";
 
 export const isLocale = (value: string): value is Locale =>
   (locales as readonly string[]).includes(value);
 
-/**
- * The rule for product references: uppercase letters and digits only, so the
- * reference is always the last hyphen-separated word of the address and reads
- * back unchanged, with at least one letter, so a number after a category slug
- * is always a category page (issue #81). Payload checks it when a product is
- * saved.
- */
-export const PRODUCT_REFERENCE = /^(?=[0-9]*[A-Z])[A-Z0-9]+$/;
+export { PRODUCT_REFERENCE };
 
 export const isProductReference = (value: string): boolean =>
   PRODUCT_REFERENCE.test(value);

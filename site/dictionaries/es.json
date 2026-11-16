@@ -100,5 +100,8 @@
   "fitError": "La comprobación no se ha podido realizar. Inténtelo de nuevo.",
   "fitPart": "Pieza: {product}",
   "fitBack": "Volver a la pieza",
-  "relatedProducts": "Otras piezas para los mismos aparatos"
+  "relatedProducts": "Otras piezas para los mismos aparatos",
+  "recentlyViewed": "Vistos recientemente",
+  "recentlyViewedClear": "Borrar el historial",
+  "recentlyViewedCleared": "Su historial se ha borrado."
 }

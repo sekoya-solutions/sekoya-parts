@@ -100,5 +100,8 @@
   "fitError": "De controle is mislukt. Probeer het opnieuw.",
   "fitPart": "Onderdeel: {product}",
   "fitBack": "Terug naar het onderdeel",
-  "relatedProducts": "Andere onderdelen voor dezelfde apparaten"
+  "relatedProducts": "Andere onderdelen voor dezelfde apparaten",
+  "recentlyViewed": "Onlangs bekeken",
+  "recentlyViewedClear": "Geschiedenis wissen",
+  "recentlyViewedCleared": "Uw geschiedenis is gewist."
 }

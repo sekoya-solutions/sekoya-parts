@@ -227,6 +227,66 @@
     text-decoration: underline;
   }
 
+  /* "Recently viewed" on the product page (issue #162): a space of fixed
+     height, the same empty one for every visitor before the browser fills
+     it, so nothing below shifts. Its rows have fixed heights too: a heading
+     of up to two lines, one strip of cards scrolled sideways, each name on
+     up to two lines, then the clear button. Nothing can overflow the space,
+     whatever the language or the number of products. */
+  .recently-viewed {
+    height: 13rem;
+    margin-top: 2.5rem;
+    padding: 0.25rem;
+    overflow: hidden;
+  }
+  .recently-viewed section {
+    display: grid;
+    grid-template-rows: 3.5rem 5.5rem 2.75rem;
+    gap: 0.5rem;
+    height: 100%;
+  }
+  .recently-viewed h2 {
+    align-self: end;
+    font-size: var(--text-xl);
+    line-height: 1.75rem;
+    overflow: hidden;
+  }
+  .recently-viewed ul {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+  }
+  .recently-viewed li {
+    flex: 0 0 12rem;
+    height: 4.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    scroll-snap-align: start;
+  }
+  .recently-viewed a {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.5rem;
+    font-weight: 600;
+  }
+  .recently-viewed button {
+    justify-self: start;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.25rem;
+    color: var(--color-action);
+    font-weight: 600;
+    text-decoration-line: underline;
+  }
+  .recently-viewed button:hover {
+    color: var(--color-action-hover);
+  }
+
   /* Sale prices (issue #151): the former price struck through in slate,
      then the discount badge, navy on leaf, as a <mark>. */
   s {

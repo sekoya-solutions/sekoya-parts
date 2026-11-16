@@ -100,5 +100,8 @@
   "fitError": "A verificação não foi concluída. Tente novamente.",
   "fitPart": "Peça: {product}",
   "fitBack": "Voltar à peça",
-  "relatedProducts": "Outras peças para os mesmos aparelhos"
+  "relatedProducts": "Outras peças para os mesmos aparelhos",
+  "recentlyViewed": "Vistos recentemente",
+  "recentlyViewedClear": "Limpar o histórico",
+  "recentlyViewedCleared": "O seu histórico foi limpo."
 }

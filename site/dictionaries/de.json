@@ -100,5 +100,8 @@
   "fitError": "Die Prüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
   "fitPart": "Teil: {product}",
   "fitBack": "Zurück zum Teil",
-  "relatedProducts": "Weitere Teile für dieselben Geräte"
+  "relatedProducts": "Weitere Teile für dieselben Geräte",
+  "recentlyViewed": "Zuletzt angesehen",
+  "recentlyViewedClear": "Verlauf löschen",
+  "recentlyViewedCleared": "Ihr Verlauf wurde gelöscht."
 }

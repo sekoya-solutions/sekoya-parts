@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Prodotti visti di recente",
+        "paragraphs": [
+          "In una pagina prodotto, il suo browser conserva gli ultimi 10 prodotti che ha aperto (codice, nome e indirizzo) nella sua memoria locale, per mostrarglieli nelle pagine prodotto successive. Questo elenco non lascia mai il suo browser: il sito non lo riceve.",
+          "Per cancellarlo, usi il pulsante «Cancella la cronologia» sotto l’elenco, oppure elimini i dati di questo sito nelle impostazioni del suo browser."
+        ]
+      },
+      {
         "heading": "Cookie",
         "paragraphs": [
           "Il sito stesso non salva alcun cookie per consultare il catalogo: per questo non mostra alcun banner per il consenso."

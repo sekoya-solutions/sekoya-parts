@@ -150,6 +150,13 @@
         ]
       },
       {
+        "heading": "Nyligen visade produkter",
+        "paragraphs": [
+          "På en produktsida sparar din webbläsare de 10 senaste produkterna du har öppnat (deras artikelnummer, namn och adress) i sin lokala lagring, för att visa dem på nästa produktsidor. Listan lämnar aldrig din webbläsare: webbplatsen tar inte emot den.",
+          "Du rensar den med knappen ”Rensa historiken” under listan, eller genom att radera webbplatsens data i webbläsarens inställningar."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Sajten själv sparar ingen cookie för att du ska kunna bläddra i katalogen: därför visar den ingen samtyckesruta."

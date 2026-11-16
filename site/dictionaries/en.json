@@ -100,5 +100,8 @@
   "fitError": "The check did not go through. Please try again.",
   "fitPart": "Part: {product}",
   "fitBack": "Back to the part",
-  "relatedProducts": "Other parts for the same appliances"
+  "relatedProducts": "Other parts for the same appliances",
+  "recentlyViewed": "Recently viewed",
+  "recentlyViewedClear": "Clear history",
+  "recentlyViewedCleared": "Your history has been cleared."
 }
