@@ -123,5 +123,22 @@
   "cartUpdate": "Atualizar",
   "cartRemove": "Remover",
   "cartSubtotal": "Subtotal",
-  "cartNotCounted": "Esgotada: não incluída no subtotal."
+  "cartNotCounted": "Esgotada: não incluída no subtotal.",
+  "cartSummary": "Resumo",
+  "cartDiscount": "Desconto ({code})",
+  "cartDelivery": "Envio",
+  "cartDeliveryFree": "Grátis",
+  "cartTotal": "Total",
+  "cartFreeDeliveryLeft": "Faltam apenas {amount} para o envio grátis.",
+  "cartFreeDeliveryReached": "O seu envio é grátis.",
+  "cartCodeLabel": "Código promocional",
+  "cartCodeApply": "Aplicar",
+  "cartCodeRemove": "Remover o código",
+  "cartCodeApplied": "O código {code} está aplicado.",
+  "cartCodeNotApplied": "O código {code} não está aplicado.",
+  "cartCodeUnknown": "Este código promocional não existe.",
+  "cartCodeExpired": "Este código promocional expirou.",
+  "cartCodeMinimum": "Este código promocional exige um subtotal mais alto.",
+  "cartCodeHint": "Para a demonstração, experimente o código {code}.",
+  "cartSuggestions": "Complete a sua reparação"
 }

@@ -123,5 +123,22 @@
   "cartUpdate": "Uppdatera",
   "cartRemove": "Ta bort",
   "cartSubtotal": "Delsumma",
-  "cartNotCounted": "Slut i lager: räknas inte i delsumman."
+  "cartNotCounted": "Slut i lager: räknas inte i delsumman.",
+  "cartSummary": "Sammanfattning",
+  "cartDiscount": "Rabatt ({code})",
+  "cartDelivery": "Frakt",
+  "cartDeliveryFree": "Gratis",
+  "cartTotal": "Totalt",
+  "cartFreeDeliveryLeft": "Bara {amount} kvar till fri frakt.",
+  "cartFreeDeliveryReached": "Din frakt är gratis.",
+  "cartCodeLabel": "Rabattkod",
+  "cartCodeApply": "Använd",
+  "cartCodeRemove": "Ta bort koden",
+  "cartCodeApplied": "Koden {code} används.",
+  "cartCodeNotApplied": "Koden {code} används inte.",
+  "cartCodeUnknown": "Den här rabattkoden finns inte.",
+  "cartCodeExpired": "Den här rabattkoden har gått ut.",
+  "cartCodeMinimum": "Den här rabattkoden kräver en högre delsumma.",
+  "cartCodeHint": "Prova koden {code} i demon.",
+  "cartSuggestions": "Gör din reparation komplett"
 }

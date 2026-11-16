@@ -11,6 +11,9 @@
 /** The cookie's name, versioned so a later shape can drop older values. */
 export const CART_COOKIE = "cart_v1";
 
+/** The cookie holding the promotion code a visitor applied (issue #169). */
+export const PROMO_COOKIE = "promo_v1";
+
 /** The most lines a cart holds (ADR 0013). */
 export const CART_LINES = 50;
 

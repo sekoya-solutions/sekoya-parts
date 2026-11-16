@@ -160,7 +160,7 @@
         "heading": "Pliki cookie",
         "paragraphs": [
           "Przeglądanie katalogu nie zapisuje żadnego własnego pliku cookie witryny.",
-          "Gdy dodajesz część do koszyka, witryna zapisuje jeden plik cookie, cart_v1, zawierający tylko numery produktów i ich ilości, i przechowuje go przez 30 dni od ostatniej zmiany. Jest on niezbędny do działania koszyka: dlatego witryna nie wyświetla baneru zgody.",
+          "Gdy dodajesz część do koszyka, witryna zapisuje plik cookie, cart_v1, zawierający tylko numery produktów i ich ilości. Gdy stosujesz kod rabatowy, zapisuje drugi, promo_v1, zawierający tylko ten kod. Witryna przechowuje każdy z nich przez 30 dni od ostatniej zmiany. Są one niezbędne do działania koszyka: dlatego witryna nie wyświetla baneru zgody.",
           "Aby go opróżnić, usuń części na stronie koszyka lub usuń dane tej witryny w ustawieniach przeglądarki."
         ]
       },

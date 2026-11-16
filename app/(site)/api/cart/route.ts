@@ -1,6 +1,7 @@
 // POST /api/cart (issue #168, docs/adr/0013-visitor-state.md): every change
 // to the visitor's cart, from a plain form that works without JavaScript.
-// Fields: lang, intent (add, set or remove), product (its id) and quantity.
+// Fields: lang, intent (add, set or remove), product (its id) and quantity;
+// or intent code with the code typed, or code-remove (issue #169).
 //
 // - Without JavaScript the browser follows a 303 to the cart page, in the
 //   form's language, with a notice when the change was refused.
@@ -27,6 +28,7 @@ import {
   CART_MAX_AGE,
   type CartLine,
   cartCount,
+  PROMO_COOKIE,
   parseCart,
   parseProductId,
   parseQuantity,
@@ -35,8 +37,15 @@ import {
   setQuantity,
 } from "../../../../site/cart.ts";
 import {
+  readCode,
+  readLines,
+  subtotalCents,
+} from "../../../../site/cart-lines.ts";
+import { codeRefusal, normalizeCode } from "../../../../site/cart-pricing.ts";
+import {
   CART_NOTICE_PARAM,
   type CartStatus,
+  isCartSuccess,
 } from "../../../../site/cart-status.ts";
 
 const NO_STORE = {
@@ -76,6 +85,31 @@ async function orderable(id: number): Promise<boolean> {
 
 type Change = { cart: CartLine[]; status: CartStatus };
 
+/**
+ * A promotion code typed on the cart page (issue #169): checked against
+ * Payload's codes and the subtotal the catalog gives now. Null when the form
+ * does not apply a code. An applied code is kept in its own cookie, and the
+ * cart page checks it again on each visit.
+ */
+async function codeChange(
+  cart: CartLine[],
+  form: FormData,
+): Promise<{ status: CartStatus; code: string | null } | null> {
+  const intent = form.get("intent");
+  if (intent === "code-remove") return { status: "code-removed", code: null };
+  if (intent !== "code") return null;
+  const typed = normalizeCode(form.get("code"));
+  const code = typed === null ? null : await readCode(typed);
+  const refusal = codeRefusal(
+    code,
+    code ? subtotalCents(await readLines(cart)) : 0,
+    Date.now(),
+  );
+  return refusal === null && code
+    ? { status: "code-applied", code: code.code }
+    : { status: `code-${refusal ?? "unknown"}`, code: null };
+}
+
 async function change(
   cart: CartLine[],
   form: FormData,
@@ -110,7 +144,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   const lang = form.get("lang");
   const locale = typeof lang === "string" && isLocale(lang) ? lang : "fr";
   const cart = parseCart(request.cookies.get(CART_COOKIE)?.value);
-  const result = await change(cart, form);
+  const codeResult = await codeChange(cart, form);
+  const result = codeResult
+    ? { cart, status: codeResult.status }
+    : await change(cart, form);
   const next = result === "invalid" ? cart : result.cart;
   const status: CartStatus = result === "invalid" ? "invalid" : result.status;
   const wantsJson = (request.headers.get("accept") ?? "").includes(
@@ -125,7 +162,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     );
   } else {
     const target = new URL(cartPath(locale), request.url);
-    if (status !== "added" && status !== "updated")
+    if (!isCartSuccess(status))
       target.searchParams.set(CART_NOTICE_PARAM, status);
     // A relative Location, so the redirect stays on the address the
     // visitor used, whatever host the function sees.
@@ -142,6 +179,17 @@ export async function POST(request: NextRequest): Promise<Response> {
       sameSite: "lax",
       // Readable by the header's count (ADR 0013): ids and quantities only.
       httpOnly: false,
+      secure: request.nextUrl.protocol === "https:",
+      maxAge: CART_MAX_AGE,
+    });
+  if (codeResult?.status === "code-removed")
+    response.cookies.delete(PROMO_COOKIE);
+  else if (codeResult?.code)
+    response.cookies.set(PROMO_COOKIE, codeResult.code, {
+      path: "/",
+      sameSite: "lax",
+      // Only the server reads it.
+      httpOnly: true,
       secure: request.nextUrl.protocol === "https:",
       maxAge: CART_MAX_AGE,
     });

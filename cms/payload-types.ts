@@ -71,6 +71,7 @@ export interface Config {
     brands: Brand;
     products: Product;
     promotions: Promotion;
+    'promotion-codes': PromotionCode;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -83,6 +84,7 @@ export interface Config {
     brands: BrandsSelect<false> | BrandsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     promotions: PromotionsSelect<false> | PromotionsSelect<true>;
+    'promotion-codes': PromotionCodesSelect<false> | PromotionCodesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -98,8 +100,12 @@ export interface Config {
     | null
     | ('fr' | 'en' | 'de' | 'es' | 'it' | 'nl' | 'pt' | 'pl' | 'sv' | 'da')
     | ('fr' | 'en' | 'de' | 'es' | 'it' | 'nl' | 'pt' | 'pl' | 'sv' | 'da')[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'shop-settings': ShopSetting;
+  };
+  globalsSelect: {
+    'shop-settings': ShopSettingsSelect<false> | ShopSettingsSelect<true>;
+  };
   locale: 'fr' | 'en' | 'de' | 'es' | 'it' | 'nl' | 'pt' | 'pl' | 'sv' | 'da';
   widgets: {
     collections: CollectionsWidget;
@@ -205,6 +211,22 @@ export interface Promotion {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotion-codes".
+ */
+export interface PromotionCode {
+  id: number;
+  code: string;
+  kind: 'percent' | 'amount';
+  percent?: number | null;
+  amountCents?: number | null;
+  minimumCents?: number | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -272,6 +294,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'promotions';
         value: number | Promotion;
+      } | null)
+    | ({
+        relationTo: 'promotion-codes';
+        value: number | PromotionCode;
       } | null)
     | ({
         relationTo: 'users';
@@ -377,6 +403,21 @@ export interface PromotionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotion-codes_select".
+ */
+export interface PromotionCodesSelect<T extends boolean = true> {
+  code?: T;
+  kind?: T;
+  percent?: T;
+  amountCents?: T;
+  minimumCents?: T;
+  startsAt?: T;
+  endsAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -441,6 +482,28 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shop-settings".
+ */
+export interface ShopSetting {
+  id: number;
+  deliveryCents: number;
+  freeDeliveryFromCents: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shop-settings_select".
+ */
+export interface ShopSettingsSelect<T extends boolean = true> {
+  deliveryCents?: T;
+  freeDeliveryFromCents?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

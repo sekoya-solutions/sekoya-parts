@@ -123,5 +123,22 @@
   "cartUpdate": "Update",
   "cartRemove": "Remove",
   "cartSubtotal": "Subtotal",
-  "cartNotCounted": "Out of stock: not counted in the subtotal."
+  "cartNotCounted": "Out of stock: not counted in the subtotal.",
+  "cartSummary": "Summary",
+  "cartDiscount": "Discount ({code})",
+  "cartDelivery": "Delivery",
+  "cartDeliveryFree": "Free",
+  "cartTotal": "Total",
+  "cartFreeDeliveryLeft": "Only {amount} more for free delivery.",
+  "cartFreeDeliveryReached": "Your delivery is free.",
+  "cartCodeLabel": "Promotion code",
+  "cartCodeApply": "Apply",
+  "cartCodeRemove": "Remove the code",
+  "cartCodeApplied": "The code {code} is applied.",
+  "cartCodeNotApplied": "The code {code} is not applied.",
+  "cartCodeUnknown": "This promotion code does not exist.",
+  "cartCodeExpired": "This promotion code has expired.",
+  "cartCodeMinimum": "This promotion code needs a higher subtotal.",
+  "cartCodeHint": "For the demo, try the code {code}.",
+  "cartSuggestions": "Complete your repair"
 }

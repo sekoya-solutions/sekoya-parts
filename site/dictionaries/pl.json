@@ -123,5 +123,22 @@
   "cartUpdate": "Aktualizuj",
   "cartRemove": "Usuń",
   "cartSubtotal": "Suma częściowa",
-  "cartNotCounted": "Niedostępna: nie wliczona do sumy częściowej."
+  "cartNotCounted": "Niedostępna: nie wliczona do sumy częściowej.",
+  "cartSummary": "Podsumowanie",
+  "cartDiscount": "Rabat ({code})",
+  "cartDelivery": "Dostawa",
+  "cartDeliveryFree": "Gratis",
+  "cartTotal": "Razem",
+  "cartFreeDeliveryLeft": "Jeszcze tylko {amount} do darmowej dostawy.",
+  "cartFreeDeliveryReached": "Dostawa jest darmowa.",
+  "cartCodeLabel": "Kod rabatowy",
+  "cartCodeApply": "Zastosuj",
+  "cartCodeRemove": "Usuń kod",
+  "cartCodeApplied": "Kod {code} został zastosowany.",
+  "cartCodeNotApplied": "Kod {code} nie został zastosowany.",
+  "cartCodeUnknown": "Taki kod rabatowy nie istnieje.",
+  "cartCodeExpired": "Ten kod rabatowy wygasł.",
+  "cartCodeMinimum": "Ten kod rabatowy wymaga wyższej sumy częściowej.",
+  "cartCodeHint": "W wersji demonstracyjnej wypróbuj kod {code}.",
+  "cartSuggestions": "Uzupełnij swoją naprawę"
 }

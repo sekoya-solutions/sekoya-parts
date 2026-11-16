@@ -9,96 +9,80 @@
 // already disallows it (site/crawl.ts).
 //
 // Every change is a plain form posting to the cart route, which sends the
-// visitor back here, so the page needs no browser code of its own.
-import config from "@payload-config";
+// visitor back here, so the page needs no browser code of its own. Below the
+// lines (issue #169): the subtotal, a promotion code's discount, delivery
+// with what is left for free delivery, and the total, all computed here from
+// the catalog and Payload's values (site/cart-pricing.ts), then "Complete
+// your repair" suggestions from the lines' related products.
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { getPayload } from "payload";
 import type { Locale } from "../cms/locales.ts";
-import type { Product } from "../cms/payload-types.ts";
 import { CART_ROUTE } from "./add-to-cart.tsx";
 import { cartPath, categoryPath, perLocale } from "./addresses.ts";
-import { CART_COOKIE, type CartLine, MAX_QUANTITY, parseCart } from "./cart.ts";
+import { CART_COOKIE, MAX_QUANTITY, PROMO_COOKIE, parseCart } from "./cart.ts";
+import {
+  counted,
+  readCode,
+  readDelivery,
+  readLines,
+  readSuggestions,
+  type ShownLine,
+  type Suggestion,
+  subtotalCents,
+} from "./cart-lines.ts";
+import {
+  type CartTotals,
+  CODE_LENGTH,
+  type CodeRefusal,
+  cartTotals,
+  codeRefusal,
+  normalizeCode,
+  type PromotionCode,
+} from "./cart-pricing.ts";
 import {
   CART_NOTICE_PARAM,
   type CartRefusalStatus,
   isCartRefusal,
 } from "./cart-status.ts";
 import { getCategories } from "./categories.tsx";
-import { type Dictionary, getDictionary } from "./dictionary.ts";
+import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
-import {
-  type Availability,
-  availabilityKey,
-  priceAt,
-} from "./merchandising.ts";
+import { availabilityKey } from "./merchandising.ts";
 import { ProductCardImage } from "./picture.tsx";
-import { formatPrice, type ProductRoute, readProduct } from "./product.tsx";
-import { Price } from "./product-card.tsx";
+import { formatPrice } from "./product.tsx";
+import { Price, ProductCard } from "./product-card.tsx";
 
 export const cartMetadata = (locale: Locale): Metadata => ({
   title: `${getDictionary(locale).cartTitle} | Sekoya Parts`,
   robots: { index: false },
 });
 
-/** A cart line as the page shows it, with what the catalog says now. */
-export type ShownLine = {
-  route: ProductRoute;
-  quantity: number;
-  cents: number;
-  formerCents: number | null;
-  availability: Availability;
-};
+const codeRefusalText = (dictionary: Dictionary, refusal: CodeRefusal) =>
+  refusal === "expired"
+    ? dictionary.cartCodeExpired
+    : refusal === "minimum"
+      ? dictionary.cartCodeMinimum
+      : dictionary.cartCodeUnknown;
 
-/** Whether a line can be ordered, and so counts in the subtotal. */
-export const counted = (line: Pick<ShownLine, "availability">): boolean =>
-  line.availability !== "out-of-stock";
-
-/** The subtotal of the lines that can be ordered, in cents. */
-export const subtotalCents = (lines: readonly ShownLine[]): number =>
-  lines
-    .filter(counted)
-    .reduce((sum, line) => sum + line.cents * line.quantity, 0);
-
-/**
- * The cart's lines with the catalog's data, in the cart's order. A product
- * no longer in the catalog is left out.
- */
-async function readLines(cart: readonly CartLine[]): Promise<ShownLine[]> {
-  if (cart.length === 0) return [];
-  const payload = await getPayload({ config });
-  const { docs } = await payload.find({
-    collection: "products",
-    where: { id: { in: cart.map((line) => line.id) } },
-    locale: "all",
-    depth: 1,
-    limit: cart.length,
-    pagination: false,
-  });
-  const byId = new Map<number, Product>(docs.map((doc) => [doc.id, doc]));
-  const now = Date.now();
-  return cart.flatMap((line) => {
-    const product = byId.get(line.id);
-    if (!product) return [];
-    const { cents, formerCents } = priceAt(product, now);
-    return [
-      {
-        route: readProduct(product).route,
-        quantity: line.quantity,
-        cents,
-        formerCents,
-        availability: product.availability,
-      },
-    ];
-  });
+function refusalText(dictionary: Dictionary, notice: CartRefusalStatus) {
+  switch (notice) {
+    case "full":
+      return dictionary.cartFull;
+    case "unavailable":
+      return dictionary.cartUnavailable;
+    case "code-unknown":
+      return codeRefusalText(dictionary, "unknown");
+    case "code-expired":
+      return codeRefusalText(dictionary, "expired");
+    case "code-minimum":
+      return codeRefusalText(dictionary, "minimum");
+    default:
+      return dictionary.cartError;
+  }
 }
 
-const refusalText = (dictionary: Dictionary, notice: CartRefusalStatus) =>
-  notice === "full"
-    ? dictionary.cartFull
-    : notice === "unavailable"
-      ? dictionary.cartUnavailable
-      : dictionary.cartError;
+/** The code the demo invites visitors to try, shown only while it applies. */
+const DEMO_CODE = "DEMO10";
 
 function LineForms({
   line,
@@ -158,7 +142,25 @@ async function CartContents({
   const dictionary = getDictionary(locale);
   const [store, query] = await Promise.all([cookies(), searchParams]);
   const notice = query[CART_NOTICE_PARAM];
-  const lines = await readLines(parseCart(store.get(CART_COOKIE)?.value));
+  const cart = parseCart(store.get(CART_COOKIE)?.value);
+  const applied = normalizeCode(store.get(PROMO_COOKIE)?.value);
+  const [lines, delivery, code, demo, suggestions] = await Promise.all([
+    readLines(cart),
+    readDelivery(),
+    applied ? readCode(applied) : null,
+    readCode(DEMO_CODE),
+    readSuggestions(cart),
+  ]);
+  const now = Date.now();
+  const subtotal = subtotalCents(lines);
+  // The applied code is checked again on each visit: it may have ended, or
+  // the subtotal dropped below its minimum, since it was applied.
+  const refusal = applied ? codeRefusal(code, subtotal, now) : null;
+  const totals = cartTotals(subtotal, refusal ? null : code, delivery);
+  const demoCode =
+    demo && !applied && codeRefusal(demo, subtotal, now) === null
+      ? demo.code
+      : null;
 
   return (
     <div data-cart={lines.length > 0 ? "lines" : "empty"}>
@@ -215,15 +217,165 @@ async function CartContents({
               </li>
             ))}
           </ul>
-          <p className="mt-6 text-xl">
-            {dictionary.cartSubtotal}:{" "}
-            <strong data-cart-subtotal>
-              {formatPrice(subtotalCents(lines), locale)}
-            </strong>
-          </p>
+          <Totals
+            totals={totals}
+            code={refusal ? null : code}
+            locale={locale}
+            dictionary={dictionary}
+          />
+          <CodeForm
+            applied={applied}
+            refusal={refusal}
+            demoCode={demoCode}
+            locale={locale}
+            dictionary={dictionary}
+          />
+          <Suggestions
+            suggestions={suggestions}
+            locale={locale}
+            dictionary={dictionary}
+          />
         </>
       )}
     </div>
+  );
+}
+
+function Totals({
+  totals,
+  code,
+  locale,
+  dictionary,
+}: {
+  totals: CartTotals;
+  code: PromotionCode | null;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  const price = (cents: number) => formatPrice(cents, locale);
+  return (
+    <section aria-labelledby="cart-totals-title" className="cart-totals mt-6">
+      <h2 id="cart-totals-title" className="sr-only">
+        {dictionary.cartSummary}
+      </h2>
+      <dl>
+        <dt>{dictionary.cartSubtotal}</dt>
+        <dd data-cart-subtotal>{price(totals.subtotalCents)}</dd>
+        {code && totals.discountCents > 0 && (
+          <>
+            <dt>{fill(dictionary.cartDiscount, { code: code.code })}</dt>
+            <dd data-cart-discount>−{price(totals.discountCents)}</dd>
+          </>
+        )}
+        <dt>{dictionary.cartDelivery}</dt>
+        <dd data-cart-delivery={totals.deliveryCents}>
+          {totals.deliveryCents === 0
+            ? dictionary.cartDeliveryFree
+            : price(totals.deliveryCents)}
+        </dd>
+        <dt className="cart-total">{dictionary.cartTotal}</dt>
+        <dd className="cart-total" data-cart-total>
+          {price(totals.totalCents)}
+        </dd>
+      </dl>
+      {totals.subtotalCents > 0 && (
+        <p
+          data-free-delivery-left={totals.leftForFreeDeliveryCents}
+          className="mt-2"
+        >
+          {totals.leftForFreeDeliveryCents > 0
+            ? fill(dictionary.cartFreeDeliveryLeft, {
+                amount: price(totals.leftForFreeDeliveryCents),
+              })
+            : dictionary.cartFreeDeliveryReached}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function CodeForm({
+  applied,
+  refusal,
+  demoCode,
+  locale,
+  dictionary,
+}: {
+  applied: string | null;
+  refusal: CodeRefusal | null;
+  demoCode: string | null;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  if (applied)
+    return (
+      <div data-cart-code={applied} className="cart-code mt-4">
+        <p data-code-refusal={refusal ?? ""}>
+          {refusal
+            ? `${fill(dictionary.cartCodeNotApplied, { code: applied })} ${codeRefusalText(dictionary, refusal)}`
+            : fill(dictionary.cartCodeApplied, { code: applied })}
+        </p>
+        <form method="post" action={CART_ROUTE}>
+          <input type="hidden" name="lang" value={locale} />
+          <input type="hidden" name="intent" value="code-remove" />
+          <button type="submit">{dictionary.cartCodeRemove}</button>
+        </form>
+      </div>
+    );
+  return (
+    <form method="post" action={CART_ROUTE} className="cart-code mt-4">
+      <input type="hidden" name="lang" value={locale} />
+      <input type="hidden" name="intent" value="code" />
+      <label htmlFor="cart-code">{dictionary.cartCodeLabel}</label>
+      <input
+        id="cart-code"
+        name="code"
+        type="text"
+        autoComplete="off"
+        autoCapitalize="characters"
+        spellCheck={false}
+        maxLength={CODE_LENGTH}
+        required
+      />
+      <button type="submit">{dictionary.cartCodeApply}</button>
+      {demoCode && (
+        <p data-demo-code className="w-full text-slate">
+          {fill(dictionary.cartCodeHint, { code: demoCode })}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function Suggestions({
+  suggestions,
+  locale,
+  dictionary,
+}: {
+  suggestions: readonly Suggestion[];
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  if (suggestions.length === 0) return null;
+  return (
+    <section aria-labelledby="suggestions-title" className="mt-10">
+      <h2 id="suggestions-title" className="mb-4 text-2xl font-bold">
+        {dictionary.cartSuggestions}
+      </h2>
+      <ul data-list="suggestions" className="product-list">
+        {suggestions.map(({ route, price }, index) => (
+          <ProductCard
+            key={route.id}
+            route={route}
+            price={price}
+            locale={locale}
+            index={index}
+            lazy
+            plainPost
+          />
+        ))}
+      </ul>
+    </section>
   );
 }
 

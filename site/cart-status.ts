@@ -7,7 +7,12 @@
  * - updated: a quantity changed or a line was removed;
  * - full: the cart already holds its 50 products, so a new one was refused;
  * - unavailable: the product is out of stock or no longer in the catalog;
- * - invalid: the form's fields were not ones a page of the site sends.
+ * - invalid: the form's fields were not ones a page of the site sends;
+ * - code-applied, code-removed: a promotion code was applied or removed
+ *   (issue #169);
+ * - code-unknown, code-expired, code-minimum: a code was refused, because
+ *   there is no such code, it has ended, or the subtotal is below its
+ *   minimum (site/cart-pricing.ts).
  */
 export const CART_STATUSES = [
   "added",
@@ -15,6 +20,11 @@ export const CART_STATUSES = [
   "full",
   "unavailable",
   "invalid",
+  "code-applied",
+  "code-removed",
+  "code-unknown",
+  "code-expired",
+  "code-minimum",
 ] as const;
 
 export type CartStatus = (typeof CART_STATUSES)[number];
@@ -23,10 +33,26 @@ export type CartStatus = (typeof CART_STATUSES)[number];
 export const CART_NOTICE_PARAM = "notice";
 
 /** The refusals the cart page explains. */
-export type CartRefusalStatus = Exclude<CartStatus, "added" | "updated">;
+export type CartRefusalStatus = Exclude<
+  CartStatus,
+  "added" | "updated" | "code-applied" | "code-removed"
+>;
+
+const REFUSALS: readonly string[] = [
+  "full",
+  "unavailable",
+  "invalid",
+  "code-unknown",
+  "code-expired",
+  "code-minimum",
+] satisfies CartRefusalStatus[];
 
 export const isCartRefusal = (value: unknown): value is CartRefusalStatus =>
-  value === "full" || value === "unavailable" || value === "invalid";
+  typeof value === "string" && REFUSALS.includes(value);
+
+/** Whether a status is a change made as the visitor asked. */
+export const isCartSuccess = (status: CartStatus): boolean =>
+  !REFUSALS.includes(status);
 
 /**
  * The marker of the forms site/cart-forms.tsx sends. Here rather than in that

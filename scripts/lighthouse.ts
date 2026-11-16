@@ -49,6 +49,7 @@ import {
   gateText,
   linkedAddress,
   mainTemplate,
+  NOINDEX_TEMPLATES,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
   pageArguments,
@@ -451,6 +452,7 @@ try {
           report,
           !entry.blockedByRobots,
           robotsUrl,
+          NOINDEX_TEMPLATES.includes(entry.page),
         );
         if (mismatch) throw new Error(`${path}: ${mismatch}`);
       }

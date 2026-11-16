@@ -123,5 +123,22 @@
   "cartUpdate": "Aktualisieren",
   "cartRemove": "Entfernen",
   "cartSubtotal": "Zwischensumme",
-  "cartNotCounted": "Nicht vorrätig: nicht in der Zwischensumme enthalten."
+  "cartNotCounted": "Nicht vorrätig: nicht in der Zwischensumme enthalten.",
+  "cartSummary": "Übersicht",
+  "cartDiscount": "Rabatt ({code})",
+  "cartDelivery": "Versand",
+  "cartDeliveryFree": "Kostenlos",
+  "cartTotal": "Gesamt",
+  "cartFreeDeliveryLeft": "Nur noch {amount} bis zum kostenlosen Versand.",
+  "cartFreeDeliveryReached": "Ihr Versand ist kostenlos.",
+  "cartCodeLabel": "Gutscheincode",
+  "cartCodeApply": "Einlösen",
+  "cartCodeRemove": "Code entfernen",
+  "cartCodeApplied": "Der Code {code} ist eingelöst.",
+  "cartCodeNotApplied": "Der Code {code} ist nicht eingelöst.",
+  "cartCodeUnknown": "Diesen Gutscheincode gibt es nicht.",
+  "cartCodeExpired": "Dieser Gutscheincode ist abgelaufen.",
+  "cartCodeMinimum": "Dieser Gutscheincode erfordert eine höhere Zwischensumme.",
+  "cartCodeHint": "Für die Demo probieren Sie den Code {code}.",
+  "cartSuggestions": "Vervollständigen Sie Ihre Reparatur"
 }
