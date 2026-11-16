@@ -31,6 +31,17 @@ async function opened(page: Page, address: string) {
 /** Opens the product, then the first `count` products of its related list. */
 async function browse(page: Page, address: string, count: number) {
   await page.goto(address);
+  // Every caller starts with an empty history: wait until the page's script
+  // has stored this product too, or opening the next one can win the race
+  // and leave one entry fewer (PR #179's first run).
+  await expect
+    .poll(() =>
+      page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key) ?? "[]").length,
+        HISTORY_KEY,
+      ),
+    )
+    .toBe(1);
   const links = await page
     .locator(RELATED)
     .evaluateAll((anchors) => anchors.map((a) => a.getAttribute("href") ?? ""));
