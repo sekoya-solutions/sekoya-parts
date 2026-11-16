@@ -19,13 +19,10 @@ import config from "@payload-config";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
-  AuthenticationError,
   createLocalReq,
   getPayload,
-  LockedAuth,
   logoutOperation,
   type Payload,
-  ValidationError,
 } from "payload";
 import { CUSTOMER_COLLECTION } from "../../../../cms/collections/customers.ts";
 import {
@@ -37,6 +34,7 @@ import {
   passwordProblem,
   SESSION_COOKIE,
   SIGNED_IN_COOKIE,
+  signInRefusal,
   usernameProblem,
 } from "../../../../site/account-rules.ts";
 import { signedInCustomer } from "../../../../site/account-session.ts";
@@ -89,12 +87,9 @@ async function signIn(
     if (!result.token) return { page, notice: "error" };
     return { page: "account", token: result.token };
   } catch (error) {
-    if (error instanceof LockedAuth) return { page, notice: "locked" };
-    if (
-      error instanceof AuthenticationError ||
-      error instanceof ValidationError
-    )
-      return { page, notice: "wrong" };
+    // By name, not instanceof: see signInRefusal.
+    const notice = signInRefusal(error);
+    if (notice) return { page, notice };
     throw error;
   }
 }

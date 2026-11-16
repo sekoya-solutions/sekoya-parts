@@ -99,3 +99,23 @@ export type AccountNotice = (typeof ACCOUNT_NOTICES)[number];
 export const isAccountNotice = (value: unknown): value is AccountNotice =>
   typeof value === "string" &&
   (ACCOUNT_NOTICES as readonly string[]).includes(value);
+
+/**
+ * The notice for an error Payload's sign-in threw, or null for any other
+ * error. Read from the error's name, which Payload sets on each of its error
+ * classes, never with instanceof: Payload keeps one instance per process on
+ * `global`, shared by every copy of its module, and Next.js can load the
+ * module twice (for pages and for route handlers), so an error may come from
+ * the other copy's class. CI's run on PR #180 showed it: a wrong password
+ * reached the route as an AuthenticationError that instanceof refused.
+ */
+export function signInRefusal(error: unknown): AccountNotice | null {
+  const name =
+    typeof error === "object" && error !== null && "name" in error
+      ? (error as { name: unknown }).name
+      : null;
+  if (name === "LockedAuth") return "locked";
+  if (name === "AuthenticationError" || name === "ValidationError")
+    return "wrong";
+  return null;
+}

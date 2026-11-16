@@ -15,6 +15,7 @@ import {
   PASSWORD_MIN,
   passwordProblem,
   signedInFromCookies,
+  signInRefusal,
   USERNAME_MAX,
   usernameProblem,
 } from "../site/account-rules.ts";
@@ -165,5 +166,25 @@ describe("the purge", () => {
 
   it("keeps the cap of ADR 0014", () => {
     expect(MAX_ACCOUNTS).toBe(10_000);
+  });
+});
+
+describe("sign-in refusals", () => {
+  // Errors from another copy of Payload's classes, as Next.js can load the
+  // module twice: only their names match Payload's own.
+  const named = (name: string) =>
+    Object.assign(new Error("from another copy"), { name });
+
+  it("are read from the error's name, whatever class threw it", () => {
+    expect(signInRefusal(named("AuthenticationError"))).toBe("wrong");
+    expect(signInRefusal(named("ValidationError"))).toBe("wrong");
+    expect(signInRefusal(named("LockedAuth"))).toBe("locked");
+  });
+
+  it("leave any other error to the route's own handling", () => {
+    expect(signInRefusal(new Error("database down"))).toBeNull();
+    expect(signInRefusal(named("APIError"))).toBeNull();
+    expect(signInRefusal("AuthenticationError")).toBeNull();
+    expect(signInRefusal(null)).toBeNull();
   });
 });
