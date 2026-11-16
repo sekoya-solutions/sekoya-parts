@@ -25,7 +25,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createServer } from "node:net";
+import { availableParallelism } from "node:os";
 import { join, resolve } from "node:path";
+import { localMaxConnections } from "./local-db.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const tools = join(root, ".tools");
@@ -215,7 +217,7 @@ try {
       "-l",
       join(work, "postgres.log"),
       "-o",
-      `-p ${port} -h 127.0.0.1`,
+      `-p ${port} -h 127.0.0.1 -c max_connections=${localMaxConnections(availableParallelism())}`,
     ],
     env,
   );
