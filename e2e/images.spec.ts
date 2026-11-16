@@ -62,7 +62,8 @@ test("a category page shows each product's image, described by its name", async 
   page,
 }) => {
   await page.goto("/fr");
-  await page.getByRole("main").locator("li a").first().click();
+  // The home page's category list, after the promotions (issue #155).
+  await page.locator('main ul[data-list="categories"] a').first().click();
   const images = await mainImages(page);
   expect(images).toHaveLength(48);
   expectDescribed(images);
@@ -108,9 +109,10 @@ test("every image address on a category page answers with its format and a year 
   request,
 }) => {
   const home = await (await request.get("/fr")).text();
-  // The first link in <main>: the bar and the menu come before it (#144).
+  // The category list's first link, by its marker: the bar and the menu come
+  // before <main> (#144), the promotions before the list (#155).
   const category = home
-    .slice(home.indexOf("<main"))
+    .slice(home.indexOf('data-list="categories"'))
     .match(/<a href="(\/fr\/[a-z-]+)"/)?.[1] as string;
   const html = await (await request.get(category)).text();
   const urls = [

@@ -5,9 +5,9 @@
 import type { Locale } from "../cms/locales.ts";
 import {
   IMAGE_FORMATS,
-  IMAGE_SIZE,
   type ImageKey,
   imagePath,
+  imageSet,
   productImage,
   srcSet,
 } from "./images.ts";
@@ -109,8 +109,8 @@ export function Picture({
         src={imagePath(image, 640, fallback.ext)}
         srcSet={srcSet(image, fallback.ext)}
         sizes={sizes}
-        width={IMAGE_SIZE}
-        height={IMAGE_SIZE}
+        width={imageSet(image.folder).width}
+        height={imageSet(image.folder).height}
         alt={alt}
         loading={priority || eager ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : undefined}

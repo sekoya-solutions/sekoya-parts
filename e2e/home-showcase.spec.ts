@@ -37,7 +37,8 @@ test.describe("the home page's showcase", () => {
     const lists = await page
       .locator("main ul[data-list]")
       .evaluateAll((uls) => uls.map((ul) => ul.getAttribute("data-list")));
-    expect(lists).toEqual(["categories", "showcase"]);
+    // The promotion tiles come first (issue #155).
+    expect(lists).toEqual(["tiles", "categories", "showcase"]);
   });
 
   for (const locale of ["fr", "en"] as const)

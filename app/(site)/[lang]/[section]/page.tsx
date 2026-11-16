@@ -6,16 +6,20 @@
 // - the search results page, at /<lang>/<search word>?q=<query>
 //   (docs/adr/0010-search.md, issue #113);
 // - the information pages, at /<lang>/<page slug> (issue #143);
-// - the brand index, at /<lang>/<brand word> (issue #147).
+// - the brand index, at /<lang>/<brand word> (issue #147);
+// - the part finder, at /<lang>/<finder word>?make=…&appliance=…&q=… (issue
+//   #155).
 // Payload refuses a category slug equal to a search word, a brand word or a
 // page slug, in any language.
 import type { Metadata } from "next";
 import {
   BRAND_WORDS,
+  FINDER_PARAMS,
   INFO_PAGES,
   INFO_SLUGS,
   infoPageOf,
   isBrandWord,
+  isFinderWord,
   isSearchWord,
 } from "../../../../site/addresses.ts";
 import {
@@ -29,6 +33,7 @@ import {
   requestedPath,
 } from "../../../../site/category-page.tsx";
 import { getDictionary } from "../../../../site/dictionary.ts";
+import { FinderPage } from "../../../../site/finder.tsx";
 import { InfoPageView, infoMetadata } from "../../../../site/info-page.tsx";
 import { localeOf } from "../../../../site/resolve.ts";
 import { SearchPage } from "../../../../site/search.tsx";
@@ -72,6 +77,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${getDictionary(locale).searchTitle} | Sekoya Parts`,
       robots: { index: false },
     };
+  // The finder's steps stay out of indexes too, like the search page.
+  if (isFinderWord(section))
+    return {
+      title: `${getDictionary(locale).finderTitle} | Sekoya Parts`,
+      robots: { index: false },
+    };
   if (infoPageOf(section)) return infoMetadata(locale, section);
   if (isBrandWord(section)) return brandIndexMetadata(locale, section);
   return categoryMetadata(locale, section, 1, requestedPath(lang, section));
@@ -88,6 +99,21 @@ export default async function SectionPage({ params, searchParams }: Props) {
     // 200, and results pages are kept out of search engines anyway.
     const query = queryOf((await searchParams).q);
     return <SearchPage locale={locale} query={query} />;
+  }
+  if (isFinderWord(section)) {
+    const query = await searchParams;
+    const one = (value: string | string[] | undefined) =>
+      typeof value === "string" ? value : undefined;
+    return (
+      <FinderPage
+        locale={locale}
+        choice={{
+          brand: one(query[FINDER_PARAMS.brand]),
+          type: one(query[FINDER_PARAMS.type]),
+          q: one(query.q),
+        }}
+      />
+    );
   }
   if (infoPageOf(section))
     return <InfoPageView locale={locale} section={section} />;

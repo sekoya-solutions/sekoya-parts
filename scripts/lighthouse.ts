@@ -46,6 +46,8 @@ import {
   type Figures,
   firstMainLink,
   gateText,
+  linkedAddress,
+  mainTemplate,
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
   pageArguments,
@@ -99,6 +101,7 @@ if (!environment || !deploymentUrl || pageArgv.length === 0) {
 let pages: ReturnType<typeof pageArguments>;
 try {
   pages = pageArguments(pageArgv);
+  for (const { address } of pages) linkedAddress(address);
 } catch (error) {
   console.error((error as Error).message);
   process.exit(2);
@@ -167,7 +170,10 @@ async function request(path: string): Promise<Response> {
 // after one more request, so its words never need to be known here.
 // An address may also be first-link:<page>:<prefix>, the first link in that
 // page's <main> whose address starts with the prefix, such as a model page linked from
-// a product page (issue #79): one more request reads the page first.
+// a product page (issue #79), or first-link:<page>:<list>:<prefix>, the first
+// such link in the list marked data-list="<list>" (issue #155): one more
+// request reads the page first. Either way the measured page must be the
+// template its check names, read from data-template on its <main>.
 async function follow(requested: string) {
   let path = requested;
   let response = await request(path);
@@ -190,17 +196,21 @@ async function follow(requested: string) {
   return { path, response };
 }
 
-async function firstLink(page: string, prefix: string): Promise<string> {
+async function firstLink(
+  page: string,
+  prefix: string,
+  list: string | undefined,
+): Promise<string> {
   const { path, response } = await follow(page);
   const html = await response.text();
   if (response.status !== 200) {
     console.error(`Stopped: ${path} answered ${response.status}.`);
     process.exit(1);
   }
-  const href = firstMainLink(html, prefix);
+  const href = firstMainLink(html, prefix, list);
   if (!href) {
     console.error(
-      `Stopped: ${path} has no link starting with ${prefix} in <main>.`,
+      `Stopped: ${path} has no link starting with ${prefix} in <main>${list ? `'s ${list} list` : ""}.`,
     );
     process.exit(1);
   }
@@ -210,14 +220,24 @@ async function firstLink(page: string, prefix: string): Promise<string> {
 
 const figures: Figures[] = [];
 for (const { page, address } of pages) {
-  const linked = /^first-link:([^:]+):(.+)$/.exec(address);
+  const linked = linkedAddress(address);
   const requested = linked
-    ? await firstLink(linked[1] as string, linked[2] as string)
+    ? await firstLink(linked.page, linked.prefix, linked.list)
     : address;
   const { path, response } = await follow(requested);
   const html = await response.text();
   if (response.status !== 200) {
     console.error(`Stopped: ${path} answered ${response.status}.`);
+    process.exit(1);
+  }
+  // The page measured must be the template its check is named after: a link
+  // that leads elsewhere, as the home page's first link did twice (issues
+  // #144 and #155), stops the run rather than scoring the wrong page.
+  const template = mainTemplate(html);
+  if (template !== page) {
+    console.error(
+      `::error title=Lighthouse::Stopped: ${path} is a ${template ?? "unmarked"} page, not the ${page} page its check measures.`,
+    );
     process.exit(1);
   }
   // Production: the public address must serve the deployed commit. No wait

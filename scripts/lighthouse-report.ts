@@ -5,6 +5,11 @@
 // request comment.
 // No input or output here, so Vitest tests it directly.
 import { ReportGenerator } from "lighthouse/report/generator/report-generator.js";
+import {
+  isTemplate,
+  TEMPLATE_ATTRIBUTE,
+  TEMPLATES,
+} from "../site/templates.ts";
 
 /**
  * The bypass header every run sends: it reaches a protected preview, and on
@@ -286,26 +291,75 @@ export function splitWarmUp<
  * check (issue #96), and the address is what scripts/lighthouse.ts measures.
  */
 export function pageArgument(argument: string) {
-  const match = /^([a-z]+)=(.+)$/.exec(argument);
+  const match = /^([a-z-]+)=(.+)$/.exec(argument);
   if (!match)
     throw new Error(
       `${argument}: expected <page>=<address>, such as home=/fr.`,
     );
-  return { page: match[1] as string, address: match[2] as string };
+  const page = match[1] as string;
+  // The page names the template its address must lead to, which is checked
+  // on the measured HTML (mainTemplate).
+  if (!isTemplate(page))
+    throw new Error(
+      `${argument}: ${page} is not a page template (${TEMPLATES.join(", ")}).`,
+    );
+  return { page, address: match[2] as string };
+}
+
+/**
+ * An address of the form first-link:<page>:<prefix>, or
+ * first-link:<page>:<list>:<prefix>, parsed; null for a plain address. The
+ * list names the data-list marker of the list the link is read from, such as
+ * the home page's categories, whatever comes before it in <main>.
+ */
+export function linkedAddress(address: string) {
+  const match = /^first-link:([^:]+):(?:([a-z-]+):)?(\/.*)$/.exec(address);
+  if (!match) {
+    if (address.startsWith("first-link:"))
+      throw new Error(
+        `${address}: expected first-link:<page>:[<list>:]<prefix>, the prefix starting with /.`,
+      );
+    return null;
+  }
+  return {
+    page: match[1] as string,
+    list: match[2],
+    prefix: match[3] as string,
+  };
 }
 
 /**
  * The first link in a page's main content whose address starts with the
  * prefix, or null. Links before <main>, such as the facts bar's and the
- * header's menus (issue #144), are skipped: the measured page must be the
- * one the content lists first, such as the home page's first category.
+ * header's menus (issue #144), are skipped. With a list, the link is read
+ * from the list marked data-list="<list>" in <main>, so a section placed
+ * before it, such as the home page's promotions (issue #155), cannot change
+ * which page is measured; null when that list is missing.
  */
-export function firstMainLink(html: string, prefix: string): string | null {
+export function firstMainLink(
+  html: string,
+  prefix: string,
+  list?: string,
+): string | null {
   const main = html.indexOf("<main");
   if (main < 0) return null;
+  let start = main;
+  if (list) {
+    start = html.indexOf(`data-list="${list}"`, main);
+    if (start < 0) return null;
+  }
   const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return (
-    new RegExp(`href="(${escaped}[^"]*)"`).exec(html.slice(main))?.[1] ?? null
+    new RegExp(`href="(${escaped}[^"]*)"`).exec(html.slice(start))?.[1] ?? null
+  );
+}
+
+/** The template a page's <main> names (site/templates.ts), or null. */
+export function mainTemplate(html: string): string | null {
+  const main = /<main\b[^>]*>/.exec(html)?.[0];
+  if (!main) return null;
+  return (
+    new RegExp(`\\s${TEMPLATE_ATTRIBUTE}="([^"]*)"`).exec(main)?.[1] ?? null
   );
 }
 

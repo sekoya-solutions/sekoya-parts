@@ -5,6 +5,7 @@ import { buildConfig } from "payload";
 import { Brands } from "./cms/collections/brands";
 import { Categories } from "./cms/collections/categories";
 import { Products } from "./cms/collections/products";
+import { Promotions } from "./cms/collections/promotions";
 import { Users } from "./cms/collections/users";
 import { locales } from "./cms/locales";
 import { salesRunEndpoint } from "./cms/sales/endpoint";
@@ -26,7 +27,7 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: dirname },
   },
-  collections: [Categories, Brands, Products, Users],
+  collections: [Categories, Brands, Products, Promotions, Users],
   // The translation sweep (issue #104), the search index run (issue #115)
   // and the sale rotation (issue #151), each run by a daily cron or a
   // signed-in user.

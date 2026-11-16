@@ -174,7 +174,7 @@ export default async function ReferencePage({ params }: Props) {
   });
 
   return (
-    <SiteFrame locale={locale} paths={paths}>
+    <SiteFrame locale={locale} template="references" paths={paths}>
       <Breadcrumbs
         locale={locale}
         crumbs={[

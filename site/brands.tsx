@@ -188,7 +188,7 @@ export async function BrandIndexPage({
   const [brands, counts] = await Promise.all([getBrands(), getBrandCounts()]);
   const format = new Intl.NumberFormat(locale);
   return (
-    <SiteFrame locale={locale} paths={brandIndexPaths()}>
+    <SiteFrame locale={locale} template="brands" paths={brandIndexPaths()}>
       <Breadcrumbs locale={locale} crumbs={[indexCrumb(locale)]} />
       <h1 className="text-3xl font-bold">{dictionary.brands}</h1>
       {/* The first screen's largest element, painted with the HTML (#87). */}
@@ -256,7 +256,7 @@ export async function BrandPage({
   const dictionary = getDictionary(locale);
   const { rows, computedAt } = await getBrandRows(brand.id, page);
   return (
-    <SiteFrame locale={locale} paths={brandPaths(brand, page)}>
+    <SiteFrame locale={locale} template="brand" paths={brandPaths(brand, page)}>
       <Breadcrumbs
         locale={locale}
         crumbs={[

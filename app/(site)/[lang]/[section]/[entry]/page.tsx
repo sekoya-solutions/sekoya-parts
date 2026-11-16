@@ -151,7 +151,7 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
   const category = categories.find((c) => c.id === route.categoryId);
 
   return (
-    <SiteFrame locale={locale} paths={route.paths}>
+    <SiteFrame locale={locale} template="product" paths={route.paths}>
       <Breadcrumbs
         locale={locale}
         crumbs={[
@@ -221,7 +221,7 @@ async function ModelPage(locale: Locale, section: string, entry: string) {
   const dictionary = getDictionary(locale);
 
   return (
-    <SiteFrame locale={locale} paths={model.paths}>
+    <SiteFrame locale={locale} template="model" paths={model.paths}>
       <Breadcrumbs
         locale={locale}
         crumbs={[

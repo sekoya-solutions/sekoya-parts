@@ -11,9 +11,11 @@ import {
   allImages,
   categoryFolder,
   categoryImage,
+  IMAGE_SETS,
   IMAGE_WIDTHS,
   IMAGES_PER_CATEGORY,
   imagePath,
+  imageSet,
   ORIGINALS_DIR,
   outputName,
   productImage,
@@ -24,26 +26,45 @@ const sha = (path: string) =>
   createHash("sha256").update(readFileSync(path)).digest("hex").slice(0, 16);
 
 describe("the originals", () => {
-  it("match the manifest, four per folder", () => {
+  it("match the manifest, as many per folder as its set holds", () => {
     const folders = readdirSync(ORIGINALS_DIR, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
     expect(folders).toEqual(Object.keys(manifest).sort());
     for (const folder of folders) {
-      expect(readdirSync(join(ORIGINALS_DIR, folder)).sort()).toEqual([
-        "1.jpg",
-        "2.jpg",
-        "3.jpg",
-        "4.jpg",
-      ]);
+      const { count } = imageSet(folder);
+      expect(readdirSync(join(ORIGINALS_DIR, folder)).sort()).toEqual(
+        Array.from({ length: count }, (_, i) => `${i + 1}.jpg`),
+      );
       const hashes = (manifest as Record<string, string[]>)[folder];
-      for (let n = 1; n <= IMAGES_PER_CATEGORY; n++)
+      for (let n = 1; n <= count; n++)
         expect(sha(join(ORIGINALS_DIR, folder, `${n}.jpg`))).toBe(
           hashes?.[n - 1],
         );
     }
-    expect(allImages()).toHaveLength(48);
+    // Four per category, then the promotions' three slides and three tiles
+    // (issue #155).
+    expect(allImages()).toHaveLength(48 + 6);
+  });
+
+  it("give the promotion sets their own sizes and widths", () => {
+    expect(Object.keys(IMAGE_SETS).sort()).toEqual([
+      "promotion-slides",
+      "promotion-tiles",
+    ]);
+    expect(imageSet("promotion-slides")).toMatchObject({
+      width: 2400,
+      height: 900,
+      count: 3,
+    });
+    expect(imageSet("belt").count).toBe(IMAGES_PER_CATEGORY);
+    expect(
+      srcSet({ folder: "promotion-slides", n: 1 }, "avif").split(", "),
+    ).toHaveLength(4);
+    expect(srcSet({ folder: "promotion-slides", n: 1 }, "avif")).toContain(
+      " 1920w",
+    );
   });
 
   it("cover each of the generator's twelve categories", () => {

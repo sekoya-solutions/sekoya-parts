@@ -152,6 +152,7 @@ export async function SearchPage({
   return (
     <SiteFrame
       locale={locale}
+      template="search"
       paths={perLocale((other) => searchPath(other, query))}
       query={query}
     >

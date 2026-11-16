@@ -127,6 +127,7 @@ export async function CategoryPage({
   return (
     <SiteFrame
       locale={locale}
+      template="category"
       paths={perLocale((l) =>
         categoryViewPath(l, category.slugs[l], page, view),
       )}

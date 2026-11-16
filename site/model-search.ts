@@ -18,6 +18,9 @@ export type ModelMatch = ModelKey & {
 
 type Database = PostgresAdapter["drizzle"];
 
+/** A brand and an appliance type, which the part finder searches within. */
+export type ModelPair = { brandId: number; type: string };
+
 /**
  * The query for the models whose search key starts with `key`, in search key
  * order, then by id: at most `limit`. A key equal to the query sorts before
@@ -27,14 +30,22 @@ type Database = PostgresAdapter["drizzle"];
  * must come from searchKey: ASCII letters and digits only, so it carries no
  * LIKE wildcard.
  */
-export function modelSearchQuery(key: string, limit: number) {
+export function modelSearchQuery(
+  key: string,
+  limit: number,
+  within?: ModelPair,
+) {
   const expression = sql.raw(MODEL_SEARCH_KEY);
+  // The part finder searches one brand and appliance type only (issue #155).
+  const pair = within
+    ? sql`AND m.brand_id = ${within.brandId} AND m.appliance_type = ${within.type}`
+    : sql``;
   return sql`
     SELECT m.reference, b.name AS brand, b.slug AS brand_slug,
            ${expression} = ${key} AS exact
       FROM appliance_models m
       JOIN brands b ON b.id = m.brand_id
-     WHERE ${expression} LIKE ${`${key}%`}
+     WHERE ${expression} LIKE ${`${key}%`} ${pair}
      ORDER BY ${expression} USING ~<~, m.id
      LIMIT ${limit}
   `;
@@ -45,6 +56,7 @@ export async function findModels(
   db: Database,
   key: string,
   limit: number,
+  within?: ModelPair,
 ): Promise<ModelMatch[]> {
   if (!/^[A-Z0-9]+$/.test(key)) throw new Error(`Not a search key: "${key}".`);
   const { rows } = await db.execute<{
@@ -52,7 +64,7 @@ export async function findModels(
     brand: string;
     brand_slug: string;
     exact: boolean;
-  }>(modelSearchQuery(key, limit));
+  }>(modelSearchQuery(key, limit, within));
   return rows.map((row) => ({
     reference: row.reference,
     brandSlug: row.brand_slug,
