@@ -12,7 +12,7 @@
 // each language's flag beside its name (issue #191). Following one of its
 // links, a small browser script remembers the language for the bare domain
 // (site/language-pick.tsx).
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 import { AccountState } from "./account-state.tsx";
@@ -177,22 +177,53 @@ export async function CategoryMenu({ locale }: { locale: Locale }) {
  * The bar above the header, outside its banner landmark (issue #144): true facts about the demo, where a
  * real shop puts its promises (owner decision, 2026-11-15). The model count is
  * the same at every catalog scale (ADR 0007).
+ *
+ * On a phone the facts hold one line that scrolls in a loop, with CSS only
+ * (issue #194, `.facts-bar` in site.css). The list is rendered twice so the
+ * loop has no gap; the copy is hidden from screen readers and the keyboard.
+ * The loop's duration follows the text's length, so every language scrolls at
+ * the same pace.
  */
 export function FactsBar({ locale }: { locale: Locale }) {
   const dictionary = getDictionary(locale);
+  const facts = [
+    fill(dictionary.factsModels, {
+      models: new Intl.NumberFormat(locale).format(MODEL_COUNT),
+    }),
+    dictionary.factsLanguages,
+    dictionary.factsDemo,
+  ];
+  const characters = facts.reduce((sum, fact) => sum + fact.length, 0);
+  const list = (copy: boolean) => (
+    <ul
+      className="facts-list"
+      {...(copy ? { "aria-hidden": true, "data-facts-copy": "" } : {})}
+    >
+      <li>{facts[0]}</li>
+      <li>{facts[1]}</li>
+      <li>
+        <a
+          href={infoPagePath(locale, "terms")}
+          {...(copy ? { tabIndex: -1 } : {})}
+        >
+          {facts[2]}
+        </a>
+      </li>
+    </ul>
+  );
   return (
-    <div data-facts-bar className="on-navy border-b border-slate">
-      <ul className="mx-auto flex max-w-page flex-wrap justify-center gap-x-6 gap-y-1 px-4 py-1.5 text-xs">
-        <li>
-          {fill(dictionary.factsModels, {
-            models: new Intl.NumberFormat(locale).format(MODEL_COUNT),
-          })}
-        </li>
-        <li>{dictionary.factsLanguages}</li>
-        <li>
-          <a href={infoPagePath(locale, "terms")}>{dictionary.factsDemo}</a>
-        </li>
-      </ul>
+    // tabIndex -1: a tap focuses the bar, which pauses the loop until the
+    // visitor taps elsewhere, with no stop added to the keyboard's order.
+    <div
+      data-facts-bar
+      tabIndex={-1}
+      className="facts-bar on-navy border-b border-slate text-xs"
+      style={{ "--facts-characters": characters } as CSSProperties}
+    >
+      <div className="facts-track">
+        {list(false)}
+        {list(true)}
+      </div>
     </div>
   );
 }

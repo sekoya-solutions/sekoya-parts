@@ -86,6 +86,70 @@
     outline-color: var(--color-leaf);
   }
 
+  /* The facts bar (issues #144 and #194). From 40rem the facts sit centred
+     and may wrap; the loop's copy is not shown. */
+  .facts-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 1.5rem;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding: 0.375rem 1rem;
+  }
+  .facts-list[data-facts-copy] {
+    display: none;
+  }
+  /* On a phone the facts hold one line. With motion allowed, the track holds
+     the list twice and slides by one list's width in a loop, on `transform`
+     only, so the compositor runs it with no layout work. Hover, or a tap on the
+     bar, which focuses it until the next tap elsewhere, pauses it. A keyboard's focus on the
+     link, or a visitor asking for reduced motion, gets a still line to
+     scroll by hand, so the browser can bring the link into view. */
+  @media (width < 40rem) {
+    .facts-bar {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .facts-bar:focus {
+      outline: none;
+    }
+    .facts-track {
+      display: flex;
+      width: max-content;
+    }
+    .facts-list {
+      flex-wrap: nowrap;
+      margin-inline: 0;
+      padding-inline: 1rem 0.5rem;
+      white-space: nowrap;
+    }
+  }
+  @media (width < 40rem) and (prefers-reduced-motion: no-preference) {
+    .facts-bar:not(:has(a:focus-visible)) {
+      overflow-x: clip;
+    }
+    .facts-bar:not(:has(a:focus-visible)) .facts-list[data-facts-copy] {
+      display: flex;
+    }
+    .facts-bar:not(:has(a:focus-visible)) .facts-track {
+      animation: facts-scroll calc(var(--facts-characters) * 0.2s) linear
+        infinite;
+    }
+    /* As specific as the rule above and more, or its `animation` shorthand
+       would set the play state back to running. */
+    /* Not :active: after a tap, Chromium keeps it on the bar when the next
+       tap lands elsewhere, so the loop would never start again. */
+    .facts-bar:not(:has(a:focus-visible)):is(:hover, :focus) .facts-track {
+      animation-play-state: paused;
+    }
+  }
+  @keyframes facts-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   /* The header's search box (issue #113): a white field with navy text and
      a slate placeholder, beside a button in the action colour. */
   .search-input {
