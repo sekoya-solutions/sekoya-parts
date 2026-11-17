@@ -111,6 +111,19 @@ describe("splitWarmUp", () => {
     expect(split.get("/")?.warmUp.fetchTime).toContain("17:06");
     expect(split.get("/")?.runs).toHaveLength(1);
   });
+  it("keeps an address with a query apart from the same path without it (issue #188)", () => {
+    const split = splitWarmUp([
+      run("/fr/mon-compte", 1),
+      run("/fr/mon-compte?order=SP-000001", 2),
+      run("/fr/mon-compte", 3),
+      run("/fr/mon-compte?order=SP-000001", 4),
+    ]);
+    expect(split.get("/fr/mon-compte")?.runs).toHaveLength(1);
+    expect(
+      split.get("/fr/mon-compte?order=SP-000001")?.warmUp.fetchTime,
+    ).toContain("17:02");
+    expect(split.get("/fr/mon-compte?order=SP-000001")?.runs).toHaveLength(1);
+  });
   it("leaves a single run as the warm-up, with no measured run", () => {
     expect(splitWarmUp([run("/", 1)]).get("/")?.runs).toEqual([]);
     expect(splitWarmUp([]).size).toBe(0);

@@ -326,7 +326,9 @@ const categoryName = (id: CategoryId): string =>
  * of each address is the warm-up, which is not counted. Lighthouse CI starts a
  * new Chrome for every run, and the first one on a fresh runner is slower: in
  * run 43272369772 it scored 92 against 100, with the same requests and a
- * benchmark index of 1,996 against about 2,950 (issue #61).
+ * benchmark index of 1,996 against about 2,950 (issue #61). An address is its
+ * path and its query, so the account page and an order's page at
+ * ?order=<number> are two (issue #188).
  */
 export function splitWarmUp<
   T extends { requestedUrl: string; fetchTime: string },
@@ -335,7 +337,8 @@ export function splitWarmUp<
   for (const report of [...reports].sort((a, b) =>
     a.fetchTime.localeCompare(b.fetchTime),
   )) {
-    const path = new URL(report.requestedUrl).pathname;
+    const { pathname, search } = new URL(report.requestedUrl);
+    const path = `${pathname}${search}`;
     byPath.set(path, [...(byPath.get(path) ?? []), report]);
   }
   const split = new Map<string, { warmUp: T; runs: T[] }>();
