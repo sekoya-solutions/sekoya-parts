@@ -5,38 +5,13 @@
 // route's parameters through useParams, which also works while the server
 // renders the page: the 404 arrives in its language with no wait for
 // browser code. Next.js embeds the not-found tree in every page under its
-// segment, so its texts live in this module's script, loaded once and
-// cached, rather than in each page's HTML.
+// segment, and loads this module's script with each of them, so it holds
+// only the 404's own labels (site/not-found-texts.ts, issue #209), never
+// the dictionaries.
 import { useParams } from "next/navigation";
 import { type Locale, locales } from "../cms/locales.ts";
-import da from "./dictionaries/da.json" with { type: "json" };
-import de from "./dictionaries/de.json" with { type: "json" };
-import en from "./dictionaries/en.json" with { type: "json" };
-import es from "./dictionaries/es.json" with { type: "json" };
-import fr from "./dictionaries/fr.json" with { type: "json" };
-import it from "./dictionaries/it.json" with { type: "json" };
-import nl from "./dictionaries/nl.json" with { type: "json" };
-import pl from "./dictionaries/pl.json" with { type: "json" };
-import pt from "./dictionaries/pt.json" with { type: "json" };
-import sv from "./dictionaries/sv.json" with { type: "json" };
+import { NOT_FOUND_TEXTS } from "./not-found-texts.ts";
 import { Wordmark } from "./wordmark.tsx";
-
-const all = { fr, en, de, es, it, nl, pt, pl, sv, da };
-
-/** The labels the 404 page shows. */
-const TEXTS = Object.fromEntries(
-  locales.map((locale) => {
-    const { notFoundTitle, notFoundText, notFoundHome, footerNote } =
-      all[locale];
-    return [locale, { notFoundTitle, notFoundText, notFoundHome, footerNote }];
-  }),
-) as Record<
-  Locale,
-  Pick<
-    typeof fr,
-    "notFoundTitle" | "notFoundText" | "notFoundHome" | "footerNote"
-  >
->;
 
 /**
  * The whole 404 page: the header with the wordmark, the message and the
@@ -47,7 +22,7 @@ export function NotFoundPage() {
   const locale: Locale = locales.includes(lang as Locale)
     ? (lang as Locale)
     : "fr";
-  const text = TEXTS[locale];
+  const text = NOT_FOUND_TEXTS[locale];
   const home = `/${locale}`;
   return (
     <>
