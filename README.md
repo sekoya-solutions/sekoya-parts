@@ -4,7 +4,7 @@ A spare-parts e-commerce site built to show that a very large catalog can stay f
 
 **Live:** [sekoya-parts.vercel.app](https://sekoya-parts.vercel.app). It is a portfolio project and a demonstration shop: the catalog, a cart, customer accounts and a mock checkout work, but nothing is paid, no email is sent and no order is delivered. Twelve showcase products, one per category, have real descriptions; the others have generated names and placeholder text.
 
-**Built by Fabrice Reynaud,** freelance Tech Lead (Sekoya Solutions), available for missions: [Malt profile](https://www.malt.fr/profile/fabricereynaud).
+Built by Fabrice Reynaud, tech lead, as a personal portfolio project.
 
 | Phone | Desktop |
 | --- | --- |
