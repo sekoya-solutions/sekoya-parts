@@ -159,8 +159,8 @@
       {
         "heading": "Konto demonstracyjne",
         "paragraphs": [
-          "Jeśli założysz konto demonstracyjne, witryna zapisuje w swojej bazie danych, hostowanej w Europie, jego nazwę użytkownika, skrót hasła (nigdy samo hasło), datę ostatniego logowania, otwarte sesje (identyfikator i czas wygaśnięcia) oraz adresy, które w nim zapiszesz, w liczbie najwyżej pięciu (imię i nazwisko, adres pocztowy i kraj). Nie prosi o adres e-mail. Codzienne zadanie usuwa każde konto, którego ostatnie logowanie miało miejsce ponad 30 dni temu, razem z jego adresami.",
-          "Na stronie „Moje konto” możesz edytować lub usuwać każdy adres, a przycisk „Usuń moje konto” natychmiast i bezpowrotnie usuwa konto, jego adresy i sesje.",
+          "Jeśli założysz konto demonstracyjne, witryna zapisuje w swojej bazie danych, hostowanej w Europie, jego nazwę użytkownika, skrót hasła (nigdy samo hasło), datę ostatniego logowania, otwarte sesje (identyfikator i czas wygaśnięcia) oraz adresy, które w nim zapiszesz, w liczbie najwyżej pięciu (imię i nazwisko, adres pocztowy i kraj). Nie prosi o adres e-mail. Codzienne zadanie usuwa każde konto, którego ostatnie logowanie miało miejsce ponad 30 dni temu, razem z jego adresami i zamówieniami.",
+          "Na stronie „Moje konto” znajdziesz swoje zamówienia i możesz edytować lub usuwać każdy adres, a przycisk „Usuń moje konto” natychmiast i bezpowrotnie usuwa konto, jego adresy, zamówienia i sesje.",
           "Gdy jesteś zalogowany, witryna zapisuje dwa pliki cookie na 2 godziny: payload-token, który może odczytać tylko serwer i który przenosi Twoją sesję, oraz account_v1, który informuje jedynie, że sesja jest otwarta, aby nagłówek mógł to pokazać. Są niezbędne do działania konta. Wylogowanie usuwa oba; Twój koszyk zostaje zachowany."
         ]
       },
@@ -169,7 +169,7 @@
         "paragraphs": [
           "Gdy składasz zamówienie demonstracyjne, witryna zapisuje w swojej bazie danych adres i sposób dostawy podane już w pierwszym kroku, a po złożeniu zamówienia zamówione części, ich ceny, kwoty i datę. Nic nie jest pobierane ani dostarczane i nie jest wymagana żadna metoda płatności.",
           "Podczas zamówienia witryna zapisuje na 2 godziny plik cookie checkout_v1, który może odczytać tylko serwer i który zawiera jedynie losowy numer wskazujący Twoje rozpoczęte zamówienie. Jest on niezbędny do złożenia zamówienia.",
-          "Codzienne zadanie usuwa zamówienie, które nigdy nie zostało złożone, 24 godziny po jego ostatnim kroku, a zamówienie złożone bez konta 30 dni po złożeniu. Zamówienie złożone po zalogowaniu jest powiązane z Twoim kontem; jeśli konto zostanie usunięte, zamówienie zostanie usunięte 30 dni po złożeniu."
+          "Codzienne zadanie usuwa zamówienie, które nigdy nie zostało złożone, 24 godziny po jego ostatnim kroku, a zamówienie złożone bez konta 30 dni po złożeniu. Zamówienie złożone po zalogowaniu jest powiązane z Twoim kontem, które jako jedyne je pokazuje, i zostaje usunięte razem z nim."
         ]
       },
       {

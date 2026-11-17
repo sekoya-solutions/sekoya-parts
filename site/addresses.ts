@@ -9,6 +9,7 @@ import {
 } from "../catalog/generator.ts";
 import { productName } from "../catalog/text.ts";
 import { type Locale, locales } from "../cms/locales.ts";
+import { ORDER_PARAM } from "./account-rules.ts";
 import { FIT_PARAMS } from "./fit-params.ts";
 import { PRODUCT_REFERENCE } from "./product-reference.ts";
 
@@ -358,6 +359,10 @@ export const accountPagePath = (locale: Locale, page: AccountPage): string =>
 /** The account address in one language, the header's link. */
 export const accountPath = (locale: Locale): string =>
   accountPagePath(locale, "account");
+
+/** One of the customer's orders in one language (issue #188). */
+export const orderPath = (locale: Locale, number: string): string =>
+  `${accountPath(locale)}?${ORDER_PARAM}=${encodeURIComponent(number)}`;
 
 /**
  * The checkout pages in each language (issue #187): the delivery step at the

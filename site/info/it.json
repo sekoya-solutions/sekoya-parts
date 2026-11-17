@@ -159,8 +159,8 @@
       {
         "heading": "Account dimostrativo",
         "paragraphs": [
-          "Se crei un account dimostrativo, il sito conserva nel suo database, ospitato in Europa, il nome utente, un hash della password (mai la password stessa), la data dell’ultimo accesso, le sessioni aperte (un identificativo e un’ora di scadenza) e gli indirizzi che vi salvi, cinque al massimo (un nome, un indirizzo postale e un paese). Non chiede alcun indirizzo e-mail. Un’attività quotidiana elimina ogni account il cui ultimo accesso risale a più di 30 giorni prima, insieme ai suoi indirizzi.",
-          "Nella pagina «Il mio account» puoi modificare o rimuovere ogni indirizzo, e «Elimina il mio account» elimina subito e in modo definitivo l’account, i suoi indirizzi e le sue sessioni.",
+          "Se crei un account dimostrativo, il sito conserva nel suo database, ospitato in Europa, il nome utente, un hash della password (mai la password stessa), la data dell’ultimo accesso, le sessioni aperte (un identificativo e un’ora di scadenza) e gli indirizzi che vi salvi, cinque al massimo (un nome, un indirizzo postale e un paese). Non chiede alcun indirizzo e-mail. Un’attività quotidiana elimina ogni account il cui ultimo accesso risale a più di 30 giorni prima, insieme ai suoi indirizzi e ai suoi ordini.",
+          "Nella pagina «Il mio account» trovi i tuoi ordini e puoi modificare o rimuovere ogni indirizzo, e «Elimina il mio account» elimina subito e in modo definitivo l’account, i suoi indirizzi, i suoi ordini e le sue sessioni.",
           "Mentre hai effettuato l’accesso, il sito imposta due cookie per 2 ore: payload-token, leggibile solo dal server, che porta la tua sessione, e account_v1, che indica solo che una sessione è aperta, perché l’intestazione possa mostrarlo. Sono strettamente necessari all’account. Uscire li elimina entrambi; il carrello viene conservato."
         ]
       },
@@ -169,7 +169,7 @@
         "paragraphs": [
           "Quando effettui un ordine dimostrativo, il sito salva nel suo database l’indirizzo e la modalità di consegna che indichi fin dal primo passaggio, poi, alla conferma, i ricambi ordinati, i loro prezzi, gli importi e la data. Nulla viene addebitato o consegnato e non viene chiesto alcun metodo di pagamento.",
           "Durante l’ordine, il sito imposta per 2 ore un cookie, checkout_v1, leggibile solo dal server, che contiene soltanto un numero casuale che indica il tuo ordine in corso. È strettamente necessario all’ordine.",
-          "Un’attività quotidiana elimina un ordine mai confermato 24 ore dopo il suo ultimo passaggio, e un ordine effettuato senza account 30 giorni dopo la conferma. Un ordine effettuato con l’accesso è collegato al tuo account; se l’account viene eliminato, l’ordine viene eliminato 30 giorni dopo la conferma."
+          "Un’attività quotidiana elimina un ordine mai confermato 24 ore dopo il suo ultimo passaggio, e un ordine effettuato senza account 30 giorni dopo la conferma. Un ordine effettuato con l’accesso è collegato al tuo account, che da solo lo mostra, e viene eliminato insieme ad esso."
         ]
       },
       {

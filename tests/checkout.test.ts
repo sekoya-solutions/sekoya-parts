@@ -6,8 +6,10 @@ import { describe, expect, it } from "vitest";
 import { categoryLocaleRows } from "../catalog/generator.ts";
 import { locales } from "../cms/locales.ts";
 import { orderCutoffs } from "../cms/orders/purge.ts";
+import { ORDER_PARAM } from "../site/account-rules.ts";
 import {
   ACCOUNT_WORDS,
+  accountPath,
   BRAND_WORDS,
   CART_WORDS,
   CATEGORY_SLUG,
@@ -21,6 +23,7 @@ import {
   INFO_SLUGS,
   isReservedWord,
   MODEL_WORDS,
+  orderPath,
   PAYMENT_WORDS,
   SEARCH_WORDS,
   SIGN_OUT_WORDS,
@@ -32,8 +35,10 @@ import {
   deliveryFor,
   isCheckoutNotice,
   newCheckoutToken,
+  orderDate,
   orderNumber,
   parseDelivery,
+  parseOrderNumber,
   tokenHash,
 } from "../site/checkout-rules.ts";
 import {
@@ -252,5 +257,37 @@ describe("the purge", () => {
       draft: new Date("2026-11-16T12:00:00Z"),
       placed: new Date("2026-10-18T12:00:00Z"),
     });
+  });
+});
+
+describe("order history (issue #188)", () => {
+  it("reads an order number from an address, and nothing else", () => {
+    expect(parseOrderNumber(orderNumber(42))).toBe("SP-000042");
+    expect(parseOrderNumber("SP-1234567")).toBe("SP-1234567");
+    for (const value of [
+      "SP-42",
+      "sp-000042",
+      "SP-000042 ",
+      "1",
+      "",
+      null,
+      ["SP-000042"],
+    ])
+      expect(parseOrderNumber(value)).toBeNull();
+  });
+
+  it("links an order on the account address in each language", () => {
+    for (const locale of locales)
+      expect(orderPath(locale, "SP-000042")).toBe(
+        `${accountPath(locale)}?${ORDER_PARAM}=SP-000042`,
+      );
+  });
+
+  it("dates an order in the shop's time zone, whatever the server's", () => {
+    // 23:30 UTC on 31 December is already 1 January in Paris.
+    expect(orderDate("2026-12-31T23:30:00.000Z", "fr")).toBe("1 janvier 2027");
+    expect(orderDate("2026-11-17T08:00:00.000Z", "en")).toBe(
+      "November 17, 2026",
+    );
   });
 });

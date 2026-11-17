@@ -16,6 +16,7 @@ export const TEMPLATES = [
   "account",
   "sign-up",
   "sign-out",
+  "order",
   "checkout",
   "payment",
   "confirmation",

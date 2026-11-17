@@ -147,3 +147,13 @@ export function signInRefusal(error: unknown): AccountNotice | null {
 
 /** Where every account form posts: app/(site)/api/account/route.ts. */
 export const ACCOUNT_ROUTE = "/api/account";
+
+/**
+ * The account page's query parameter naming one of the customer's orders,
+ * shown in place of the account page (issue #188): /<lang>/<account
+ * word>?order=SP-000042.
+ */
+export const ORDER_PARAM = "order";
+
+/** The most recent placed orders the account page lists (issue #188). */
+export const ORDER_LIST_MAX = 20;

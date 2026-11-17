@@ -164,14 +164,19 @@ export function categoryScore(
 
 /**
  * The templates meant to carry noindex, which robots.txt also disallows: the
- * cart page (issue #168, ADR 0013) and the account pages (issue #177). Their
- * pages fail is-crawlable from both.
+ * cart page (issue #168, ADR 0013), the account pages (issue #177), the
+ * checkout's delivery and payment steps (issue #187, missing here until
+ * issue #188: production's run for 9a5b93f stopped on them) and an order's
+ * page (issue #188). Their pages fail is-crawlable from both.
  */
 export const NOINDEX_TEMPLATES: readonly string[] = [
   "cart",
   "account",
   "sign-up",
   "sign-out",
+  "checkout",
+  "payment",
+  "order",
 ];
 
 /** The robots meta tag with noindex, as Lighthouse quotes it (is-crawlable.js). */

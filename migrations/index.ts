@@ -17,6 +17,7 @@ import * as migration_20261116_175520_cart_pricing from "./20261116_175520_cart_
 import * as migration_20261116_201311_customers from "./20261116_201311_customers";
 import * as migration_20261116_225211_customer_addresses from "./20261116_225211_customer_addresses";
 import * as migration_20261117_075041_orders from "./20261117_075041_orders";
+import * as migration_20261117_120000_customer_orders from "./20261117_120000_customer_orders";
 
 export const migrations = [
   {
@@ -113,5 +114,10 @@ export const migrations = [
     up: migration_20261117_075041_orders.up,
     down: migration_20261117_075041_orders.down,
     name: "20261117_075041_orders",
+  },
+  {
+    up: migration_20261117_120000_customer_orders.up,
+    down: migration_20261117_120000_customer_orders.down,
+    name: "20261117_120000_customer_orders",
   },
 ];

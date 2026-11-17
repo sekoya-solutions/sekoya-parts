@@ -283,7 +283,8 @@ async function deleteAccount(
   );
   if (refused) return { page: "account", notice: refused };
   // The saved addresses and the sessions go with the row, through their
-  // foreign keys' ON DELETE CASCADE.
+  // foreign keys' ON DELETE CASCADE, and its orders through the
+  // customer_orders_delete trigger (issue #188).
   await payload.delete({
     collection: CUSTOMER_COLLECTION,
     id: customer.id,

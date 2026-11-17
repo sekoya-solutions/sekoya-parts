@@ -351,7 +351,12 @@ Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approv
       - the daily purge, `/api/accounts/purge`, also deletes a draft never placed 24 hours after its last step and a guest's order 30 days after it was placed;
       - the privacy page says what an order stores, what its cookie holds and when it is deleted, in the ten languages;
       - Lighthouse measures the delivery step with the cart's cookie and the payment step with a draft of its own run, never placed, whose token is checked out of every saved report.
-    - **Order history** ([#188](https://github.com/sekoya-solutions/sekoya-parts/issues/188)): the account page lists the customer's orders, and an account's orders are deleted with it.
+    - **Order history** ([#188](https://github.com/sekoya-solutions/sekoya-parts/issues/188)), for a signed-in customer:
+      - the account page lists the customer's placed orders, newest first, each with its number, date (in the page's language, in the Europe/Paris time zone) and total; the 20 most recent are shown, and the page says so when there are more. Drafts are not listed;
+      - each number leads to the order's page, at the account address with `?order=<number>` (owner decision, 2026-11-17): its address, delivery method, lines and totals as placed, with the template name `order` and `noindex`. A visitor who is not signed in gets the sign-in form; another customer, or a number no order of this customer has, gets the not-found page. A signed-in customer's confirmation links to it;
+      - a `BEFORE DELETE` trigger on `customers` deletes an account's orders, drafts included, with their lines, so "Delete my account", the daily purge and an editor's deletion in the admin all take them (owner decision, 2026-11-17). Payload's foreign key keeps its `ON DELETE SET NULL`;
+      - the privacy page and the account deletion's text say so, in the ten languages;
+      - Lighthouse's own account places one demo order through the checkout before the first requests, so the account page is measured with it in its list, and the order's page, reached from that list's link, with the same session. The order goes with the account when the run deletes it. Production's run also expects the `noindex` tag of the checkout's delivery and payment steps, missing from its list since #187, and a test checks every measured page's tag against that list on each CI run (owner decision, 2026-11-17).
 
 ## Decisions open for the owner
 

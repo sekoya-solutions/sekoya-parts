@@ -159,8 +159,8 @@
       {
         "heading": "Conta de demonstração",
         "paragraphs": [
-          "Se criar uma conta de demonstração, o site guarda na sua base de dados, alojada na Europa, o nome de utilizador, um hash da palavra-passe (nunca a palavra-passe em si), a data do último início de sessão, as sessões abertas (um identificador e uma hora de expiração) e as moradas que nela guardar, cinco no máximo (um nome, uma morada postal e um país). Não pede nenhum endereço de e-mail. Uma tarefa diária elimina cada conta cujo último início de sessão tenha mais de 30 dias, com as suas moradas.",
-          "Na página «A minha conta», pode editar ou eliminar cada morada, e «Eliminar a minha conta» apaga de imediato e de forma definitiva a conta, as suas moradas e as suas sessões.",
+          "Se criar uma conta de demonstração, o site guarda na sua base de dados, alojada na Europa, o nome de utilizador, um hash da palavra-passe (nunca a palavra-passe em si), a data do último início de sessão, as sessões abertas (um identificador e uma hora de expiração) e as moradas que nela guardar, cinco no máximo (um nome, uma morada postal e um país). Não pede nenhum endereço de e-mail. Uma tarefa diária elimina cada conta cujo último início de sessão tenha mais de 30 dias, com as suas moradas e as suas encomendas.",
+          "Na página «A minha conta», encontra as suas encomendas e pode editar ou eliminar cada morada, e «Eliminar a minha conta» apaga de imediato e de forma definitiva a conta, as suas moradas, as suas encomendas e as suas sessões.",
           "Enquanto tem sessão iniciada, o site define dois cookies durante 2 horas: payload-token, que só o servidor consegue ler e que transporta a sua sessão, e account_v1, que apenas indica que há uma sessão aberta, para que o cabeçalho o mostre. São estritamente necessários para a conta. Terminar a sessão elimina os dois; o seu carrinho é mantido."
         ]
       },
@@ -169,7 +169,7 @@
         "paragraphs": [
           "Quando faz uma encomenda de demonstração, o site guarda na sua base de dados a morada e o modo de entrega que indica logo no primeiro passo e, ao confirmar, as peças encomendadas, os seus preços, os montantes e a data. Nada é cobrado nem entregue, e não é pedido nenhum meio de pagamento.",
           "Durante a encomenda, o site define durante 2 horas um cookie, checkout_v1, que só o servidor consegue ler e que contém apenas um número aleatório que designa a sua encomenda em curso. É estritamente necessário para a encomenda.",
-          "Uma tarefa diária apaga uma encomenda nunca confirmada 24 horas após o seu último passo, e uma encomenda feita sem conta 30 dias após a confirmação. Uma encomenda feita com sessão iniciada fica associada à sua conta; se a conta for apagada, a encomenda é apagada 30 dias após a confirmação."
+          "Uma tarefa diária apaga uma encomenda nunca confirmada 24 horas após o seu último passo, e uma encomenda feita sem conta 30 dias após a confirmação. Uma encomenda feita com sessão iniciada fica associada à sua conta, que é a única a mostrá-la, e é apagada com ela."
         ]
       },
       {

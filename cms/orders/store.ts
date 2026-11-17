@@ -345,3 +345,56 @@ export async function placeOrder(
   client.release();
   return outcome.result;
 }
+
+/** A placed order as the account page lists it (issue #188). */
+export type OrderListItem = {
+  number: string;
+  placedAt: string;
+  totalCents: number;
+};
+
+/**
+ * A customer's placed orders, newest first, at most `limit`; drafts are not
+ * listed. Read by the account's id only, so a customer never lists another's.
+ */
+export async function customerOrders(
+  db: Queryable,
+  customerId: number,
+  limit: number,
+): Promise<OrderListItem[]> {
+  const { rows } = await db.query<{
+    number: string;
+    placed_at: Date;
+    total_cents: string;
+  }>(
+    `SELECT number, placed_at, total_cents FROM orders
+      WHERE customer_id = $1 AND status = 'placed'
+      ORDER BY placed_at DESC, id DESC
+      LIMIT $2`,
+    [customerId, limit],
+  );
+  return rows.map((row) => ({
+    number: row.number,
+    placedAt: row.placed_at.toISOString(),
+    totalCents: Number(row.total_cents),
+  }));
+}
+
+/**
+ * One of a customer's placed orders, by its number, or null when no placed
+ * order of this customer has it: another customer's order reads as none.
+ */
+export async function customerOrder(
+  db: Queryable,
+  customerId: number,
+  number: string,
+): Promise<StoredCheckout | null> {
+  const { rows } = await db.query<Row>(
+    `SELECT ${COLUMNS} FROM orders
+      WHERE customer_id = $1 AND number = $2 AND status = 'placed'`,
+    [customerId, number],
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return toStored(row, await readLines(db, row.id));
+}
