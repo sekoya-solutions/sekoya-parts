@@ -1,8 +1,8 @@
 // The sale rotation's SQL on the loaded catalog (issue #151), inside a
 // transaction that is rolled back, so the catalog is left as loaded. It runs
-// only in CI, on the job's own PostgreSQL: locally DATABASE_URL is the owner's
-// Neon dev branch (vitest.config.ts), whose products it would all rewrite
-// inside the transaction.
+// only on a local database, CI's or npm run test:local's (issue #185): with
+// npm test, DATABASE_URL is the owner's Neon dev branch (vitest.config.ts),
+// whose products it would all rewrite inside the transaction.
 import pg from "pg";
 import {
   afterAll,
@@ -14,10 +14,9 @@ import {
   it,
 } from "vitest";
 import { rotateSales, SALE_SHARE } from "../cms/sales/rotation.ts";
+import { isLocalDatabase } from "./local-database.ts";
 
-const inCi = process.env.CI === "true";
-
-describe.runIf(inCi)("rotateSales", () => {
+describe.runIf(isLocalDatabase())("rotateSales", () => {
   let client: pg.Client;
 
   beforeAll(async () => {

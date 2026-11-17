@@ -1,21 +1,16 @@
 // Runs scripts/seed-automation-user.ts as a Preview build does, twice, and
 // checks that the key it sets is the one Payload accepts (issue #55).
-// It writes a user, so it runs only against a local database, as in CI: never
-// against a Neon branch from a developer's .env.local.
+// It writes a user, so it runs only against a local database, as in CI and
+// npm run test:local: never against a Neon branch from a developer's
+// .env.local.
 import { spawnSync } from "node:child_process";
 import { getPayload, type Payload } from "payload";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AUTOMATION_EMAIL } from "../cms/automation-user.ts";
 import config from "../payload.config.ts";
+import { isLocalDatabase } from "./local-database.ts";
 
-const host = (() => {
-  try {
-    return new URL(process.env.DATABASE_URL ?? "").hostname;
-  } catch {
-    return "";
-  }
-})();
-const localDatabase = host === "localhost" || host === "127.0.0.1";
+const localDatabase = isLocalDatabase();
 
 function seed(apiKey: string): string {
   const result = spawnSync(
