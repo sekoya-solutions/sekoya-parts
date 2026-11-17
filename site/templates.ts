@@ -22,7 +22,6 @@ export const TEMPLATES = [
   "confirmation",
   "search",
   "info",
-  "languages",
   "not-found",
 ] as const;
 

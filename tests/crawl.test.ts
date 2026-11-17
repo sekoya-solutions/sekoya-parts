@@ -11,7 +11,12 @@ import {
   referencePagePath,
   searchPath,
 } from "../site/addresses.ts";
-import { crawlPaths, robotsRules, SITEMAP_PATH } from "../site/crawl.ts";
+import {
+  BARE_DOMAIN,
+  crawlPaths,
+  robotsRules,
+  SITEMAP_PATH,
+} from "../site/crawl.ts";
 
 const fridge = {
   id: 1,
@@ -52,10 +57,11 @@ const toRules = ({ allow, disallow }: ReturnType<typeof robotsRules>) => [
 const rules = toRules(robotsRules(paths));
 
 describe("crawlPaths", () => {
-  it("lists the bare domain, then each home, first category, showcase product and sampled model page in ten languages, once each", () => {
-    expect(paths).toHaveLength(1 + 10 + 2 * 10 + 10 + 10);
+  it("lists each home, first category, showcase product and sampled model page in ten languages, once each, but not the bare domain", () => {
+    expect(paths).toHaveLength(10 + 2 * 10 + 10 + 10);
     expect(new Set(paths).size).toBe(paths.length);
-    expect(paths[0]).toBe("/");
+    expect(paths[0]).toBe("/fr");
+    expect(paths).not.toContain(BARE_DOMAIN);
     for (const locale of locales) {
       expect(paths).toContain(`/${locale}`);
       expect(paths).toContain(categoryPath(locale, fridge.slugs[locale]));
@@ -82,13 +88,14 @@ describe("crawlPaths", () => {
 });
 
 describe("robotsRules", () => {
-  it("allows every showcase address, the assets and the sitemap", () => {
+  it("allows every showcase address, the bare domain, the assets and the sitemap", () => {
     for (const path of paths) expect(isAllowed(rules, path), path).toBe(true);
     for (const path of [
       "/_next/static/chunks/main.js",
       "/_next/static/media/manrope.woff2",
       "/images/abc-320.avif",
       SITEMAP_PATH,
+      BARE_DOMAIN,
     ])
       expect(isAllowed(rules, path), path).toBe(true);
   });

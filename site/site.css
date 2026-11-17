@@ -680,6 +680,12 @@
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--color-slate);
   }
+  /* A language's flag beside its name (issue #191). */
+  .mobile-menu-panel a[data-language-pick] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
   .mobile-menu-backdrop {
     position: fixed;
     inset: 0;

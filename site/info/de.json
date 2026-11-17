@@ -176,6 +176,7 @@
         "heading": "Cookies",
         "paragraphs": [
           "Beim Durchsuchen des Katalogs setzt die Website selbst kein Cookie.",
+          "Wenn Sie im Sprachmenü eine Sprache wählen, setzt die Website ein Cookie, lang_v1, das nur den Code dieser Sprache enthält und ein Jahr lang gespeichert bleibt, damit ihre Hauptadresse bei Ihrem nächsten Besuch direkt in dieser Sprache öffnet. Ohne dieses Cookie folgt die Hauptadresse der Sprache Ihres Browsers.",
           "Wenn Sie ein Teil in den Warenkorb legen, setzt die Website ein Cookie, cart_v1, das nur die Nummern der Produkte und ihre Mengen enthält. Wenn Sie einen Gutscheincode einlösen, setzt sie ein zweites, promo_v1, das nur diesen Code enthält. Die Website behält jedes 30 Tage nach seiner letzten Änderung. Sie sind für den Warenkorb unbedingt erforderlich: Deshalb zeigt die Website kein Einwilligungsbanner.",
           "Um ihn zu leeren, entfernen Sie die Teile auf der Warenkorbseite oder löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers."
         ]

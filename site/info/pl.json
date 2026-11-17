@@ -176,6 +176,7 @@
         "heading": "Pliki cookie",
         "paragraphs": [
           "Przeglądanie katalogu nie zapisuje żadnego własnego pliku cookie witryny.",
+          "Gdy wybierzesz język w menu języków, witryna zapisuje plik cookie lang_v1, który zawiera tylko kod tego języka i jest przechowywany przez rok, aby przy następnej wizycie jej główny adres otworzył się od razu w tym języku. Bez niego główny adres podąża za językiem Twojej przeglądarki.",
           "Gdy dodajesz część do koszyka, witryna zapisuje plik cookie, cart_v1, zawierający tylko numery produktów i ich ilości. Gdy stosujesz kod rabatowy, zapisuje drugi, promo_v1, zawierający tylko ten kod. Witryna przechowuje każdy z nich przez 30 dni od ostatniej zmiany. Są one niezbędne do działania koszyka: dlatego witryna nie wyświetla baneru zgody.",
           "Aby go opróżnić, usuń części na stronie koszyka lub usuń dane tej witryny w ustawieniach przeglądarki."
         ]
