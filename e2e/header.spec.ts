@@ -276,6 +276,130 @@ test("the count and the signed-in mark keep the phone header on one row", async 
   expect(await noSidewaysScroll(page)).toBe(true);
 });
 
+// On a phone the facts bar holds one line that scrolls in a loop, with CSS
+// only (issue #194).
+const facts = (page: Page) => {
+  const bar = page.locator("[data-facts-bar]");
+  return {
+    bar,
+    track: bar.locator(".facts-track"),
+    lists: bar.locator(".facts-list"),
+    copy: bar.locator("[data-facts-copy]"),
+  };
+};
+
+/** The loop's animation on the track: its name and play state. */
+const animation = (track: ReturnType<typeof facts>["track"]) =>
+  track.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { name: style.animationName, state: style.animationPlayState };
+  });
+
+test.describe("the facts bar on a phone", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+
+  for (const locale of locales)
+    test(`one scrolling line, read once, in ${locale}`, async ({ page }) => {
+      const dictionary = getDictionary(locale);
+      await page.goto(`/${locale}`);
+      const { bar, track, lists, copy } = facts(page);
+      expect((await bar.boundingBox())?.height).toBeLessThan(32);
+      expect(await animation(track)).toEqual({
+        name: "facts-scroll",
+        state: "running",
+      });
+      // The two lists are as wide as each other and the track holds both, so
+      // sliding it by half its width ends where it began.
+      const widths = await lists.evaluateAll((uls) =>
+        uls.map((ul) => ul.getBoundingClientRect().width),
+      );
+      expect(widths).toHaveLength(2);
+      expect(widths[0]).toBeGreaterThan(360);
+      expect(widths[0]).toBeCloseTo(widths[1] as number, 0);
+      expect(
+        await track.evaluate((element) => element.scrollWidth),
+      ).toBeCloseTo((widths[0] as number) * 2, -1);
+      // The copy is hidden from screen readers and the keyboard.
+      await expect(copy).toHaveAttribute("aria-hidden", "true");
+      await expect(copy.locator("a")).toHaveAttribute("tabindex", "-1");
+      await expect(
+        bar.getByRole("link", { name: dictionary.factsDemo }),
+      ).toHaveCount(1);
+      await expect(bar.getByRole("listitem")).toHaveCount(3);
+      expect(await noSidewaysScroll(page)).toBe(true);
+    });
+
+  test("hovering and a tap pause the loop", async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 360, height: 740 },
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    await page.goto("/en");
+    const { bar, track } = facts(page);
+    // A tap on the bar's padding, beside the link: it focuses the bar.
+    await page.touchscreen.tap(4, 4);
+    await expect(bar).toBeFocused();
+    expect((await animation(track)).state).toBe("paused");
+    await page.touchscreen.tap(180, 500);
+    await expect(bar).not.toBeFocused();
+    expect((await animation(track)).state).toBe("running");
+    await context.close();
+  });
+
+  test("hovering pauses the loop", async ({ page }) => {
+    await page.goto("/en");
+    const { bar, track } = facts(page);
+    await bar.hover({ position: { x: 4, y: 4 } });
+    expect((await animation(track)).state).toBe("paused");
+    await page.mouse.move(180, 500);
+    expect((await animation(track)).state).toBe("running");
+  });
+
+  test("the keyboard's focus on the link stops the loop and shows the link", async ({
+    page,
+  }) => {
+    await page.goto("/en");
+    const { bar, track, copy } = facts(page);
+    const link = bar.getByRole("link", { name: "Demonstration shop" });
+    for (let tab = 0; tab < 5 && !(await isFocused(link)); tab++)
+      await page.keyboard.press("Tab");
+    await expect(link).toBeFocused();
+    expect((await animation(track)).name).toBe("none");
+    await expect(copy).toBeHidden();
+    await expect(link).toBeInViewport({ ratio: 1 });
+  });
+
+  test("with reduced motion, a still line scrolled by hand", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/en");
+    const { bar, track, copy } = facts(page);
+    expect((await animation(track)).name).toBe("none");
+    await expect(copy).toBeHidden();
+    expect((await bar.boundingBox())?.height).toBeLessThan(32);
+    const scroll = await bar.evaluate((element) => ({
+      overflow: getComputedStyle(element).overflowX,
+      overflows: element.scrollWidth > element.clientWidth,
+    }));
+    expect(scroll).toEqual({ overflow: "auto", overflows: true });
+    expect(await noSidewaysScroll(page)).toBe(true);
+  });
+});
+
+const isFocused = (locator: ReturnType<Page["locator"]>) =>
+  locator.evaluate((element) => element === document.activeElement);
+
+test("on a wide screen the facts bar stays still, its copy not shown", async ({
+  page,
+}) => {
+  await page.goto("/fr");
+  const { track, copy } = facts(page);
+  expect((await animation(track)).name).toBe("none");
+  await expect(copy).toBeHidden();
+});
+
 test.describe("the phone menu by keyboard", () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
