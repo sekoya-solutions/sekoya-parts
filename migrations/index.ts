@@ -18,6 +18,7 @@ import * as migration_20261116_201311_customers from "./20261116_201311_customer
 import * as migration_20261116_225211_customer_addresses from "./20261116_225211_customer_addresses";
 import * as migration_20261117_075041_orders from "./20261117_075041_orders";
 import * as migration_20261117_120000_customer_orders from "./20261117_120000_customer_orders";
+import * as migration_20261117_124829_home_finder_promotions from "./20261117_124829_home_finder_promotions";
 
 export const migrations = [
   {
@@ -119,5 +120,10 @@ export const migrations = [
     up: migration_20261117_120000_customer_orders.up,
     down: migration_20261117_120000_customer_orders.down,
     name: "20261117_120000_customer_orders",
+  },
+  {
+    up: migration_20261117_124829_home_finder_promotions.up,
+    down: migration_20261117_124829_home_finder_promotions.down,
+    name: "20261117_124829_home_finder_promotions",
   },
 ];

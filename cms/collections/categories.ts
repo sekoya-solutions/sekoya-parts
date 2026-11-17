@@ -30,10 +30,10 @@ export const Categories: CollectionConfig = {
       // A custom validate replaces Payload's own, so it checks both rules.
       validate: (value: string | null | undefined) => {
         if (!value) return "A slug is required.";
-        // The model, search, brand, part finder and information page sections take the category slug's place in
-        // addresses, in every language.
+        // The model, search, brand, shop and information page sections take
+        // the category slug's place in addresses, in every language.
         if (isReservedWord(value))
-          return "This word starts model, search, brand, part finder or information page addresses; choose another slug.";
+          return "This word starts model, search, brand, shop or information page addresses; choose another slug.";
         return CATEGORY_SLUG.test(value)
           ? true
           : "Use lowercase letters, digits and single hyphens, such as joint-de-porte.";

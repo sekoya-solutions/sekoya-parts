@@ -10,7 +10,6 @@ export const TEMPLATES = [
   "model",
   "brand",
   "brands",
-  "finder",
   "fit",
   "cart",
   "account",

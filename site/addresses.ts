@@ -196,31 +196,6 @@ export function searchPath(locale: Locale, query?: string): string {
 }
 
 /**
- * The part finder's page in each language (issue #155): brand, then
- * appliance type, then the model, as query parameters of one page, like the
- * search page. Each is a valid category slug's form, and Payload refuses a
- * category slug equal to any of them.
- */
-export const FINDER_WORDS: Record<Locale, string> = {
-  fr: "trouver-une-piece",
-  en: "find-a-part",
-  de: "teil-finden",
-  es: "buscar-una-pieza",
-  it: "trova-un-ricambio",
-  nl: "onderdeel-vinden",
-  pt: "encontrar-uma-peca",
-  pl: "znajdz-czesc",
-  sv: "hitta-en-reservdel",
-  da: "find-en-reservedel",
-};
-
-const finderWords = new Set(Object.values(FINDER_WORDS));
-
-/** Whether a section is the part finder's, in any language. */
-export const isFinderWord = (section: string): boolean =>
-  finderWords.has(section.toLowerCase());
-
-/**
  * The fit check's result page in each language (issue #161):
  * /<lang>/<fit word>?part=<product reference>&q=<model reference>, where the
  * product page's "Does it fit my appliance?" form leads without JavaScript.
@@ -435,38 +410,15 @@ export const checkoutPageOf = (section: string): CheckoutPage | null =>
 export const checkoutPagePath = (locale: Locale, page: CheckoutPage): string =>
   `/${locale}/${CHECKOUT_PAGE_WORDS[page][locale]}`;
 
-/** How many of a pair's models the finder's third step lists (owner decision). */
+/**
+ * How many of a brand and appliance type's most popular models the home
+ * page's finder lists before anything is typed in its model field.
+ */
 export const POPULAR_MODELS = 24;
 
 /** Whether a value is one of the generator's appliance types. */
 export const isApplianceType = (value: string): value is ApplianceType =>
   (applianceTypes as readonly string[]).includes(value);
-
-/**
- * The finder's query parameters. Not brand or sort: the query rewrites of
- * category pages (site/listing-rewrites.ts) serve any section's ?brand= or
- * ?sort= as a filtered category view, which would take the finder's page
- * away; they never rewrite a query with q.
- */
-export const FINDER_PARAMS = {
-  brand: "make",
-  type: "appliance",
-  q: "q",
-} as const;
-
-/** What the finder has been told so far. */
-export type FinderChoice = { brand?: string; type?: string; q?: string };
-
-/** The finder's page in one language, with the choices made so far. */
-export function finderPath(locale: Locale, choice: FinderChoice = {}): string {
-  const params = new URLSearchParams();
-  for (const key of ["brand", "type", "q"] as const) {
-    const value = choice[key];
-    if (value) params.set(FINDER_PARAMS[key], value);
-  }
-  const query = params.toString();
-  return `/${locale}/${FINDER_WORDS[locale]}${query ? `?${query}` : ""}`;
-}
 
 /**
  * The section word of brand addresses in each language (issue #147): the
@@ -629,7 +581,6 @@ export const isReservedWord = (section: string): boolean =>
   isModelWord(section) ||
   isSearchWord(section) ||
   isBrandWord(section) ||
-  isFinderWord(section) ||
   isFitWord(section) ||
   isCartWord(section) ||
   accountPageOf(section) !== null ||

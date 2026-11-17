@@ -84,6 +84,21 @@ jobs:
       # if any, such as the home page's categories (issue #155). Each address
       # follows its page's name, which names its check (issue #96) and the
       # template the measured page must be, or the run stops.
+      # Paused (owner decision, 2026-11-17, PR #197): only the home, category
+      # and product pages are measured for now. Each "# paused:" line is a
+      # page argument to move back to the end of the command below;
+      # e2e/lighthouse-pages.spec.ts still checks that their addresses lead
+      # to their templates.
+      # paused: references=/fr/p/sp000001/1
+      # paused: model=first-link:/fr/p/sp000001:/fr/appareil/
+      # paused: brand=first-link:/fr/marques:/fr/marques/
+      # paused: cart=/fr/mon-panier
+      # paused: account=/fr/mon-compte
+      # paused: order=first-link:/fr/mon-compte:orders:/fr/mon-compte
+      # paused: sign-up=/fr/inscription
+      # paused: sign-out=/fr/deconnexion
+      # paused: checkout=/fr/commande
+      # paused: payment=/fr/paiement
       - name: Measure the deployment
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -93,16 +108,6 @@ jobs:
         run: >-
           node scripts/lighthouse.ts "$DEPLOY_ENVIRONMENT" "$DEPLOY_URL"
           home=/fr category=first-link:/fr:categories:/fr/ product=/fr/p/sp000001
-          references=/fr/p/sp000001/1
-          model=first-link:/fr/p/sp000001:/fr/appareil/
-          brand=first-link:/fr/marques:/fr/marques/
-          cart=/fr/mon-panier
-          account=/fr/mon-compte
-          order=first-link:/fr/mon-compte:orders:/fr/mon-compte
-          sign-up=/fr/inscription
-          sign-out=/fr/deconnexion
-          checkout=/fr/commande
-          payment=/fr/paiement
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

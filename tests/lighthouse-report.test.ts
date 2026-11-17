@@ -755,14 +755,15 @@ describe("firstMainLink", () => {
   });
 
   // The promotions came first on the home page (issue #155), so the
-  // "category" check measured the part finder (PR #158's run).
+  // "category" check measured the page a slide led to (PR #158's run: the
+  // part finder's, removed since by issue #196).
   const home = `<main data-template="home">
-<ul class="slider"><li><a href="/fr/trouver-une-piece">Trouver</a></li></ul>
+<ul class="slider"><li><a href="/fr/marques">Marques</a></li></ul>
 <ul data-list="categories"><li><a href="/fr/courroie">Courroie</a></li></ul>
 </main>`;
 
   it("reads the link from the list it names, whatever comes before it", () => {
-    expect(firstMainLink(home, "/fr/")).toBe("/fr/trouver-une-piece");
+    expect(firstMainLink(home, "/fr/")).toBe("/fr/marques");
     expect(firstMainLink(home, "/fr/", "categories")).toBe("/fr/courroie");
     expect(firstMainLink(home, "/fr/", "showcase")).toBeNull();
   });

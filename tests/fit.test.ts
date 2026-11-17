@@ -6,7 +6,6 @@ import { locales } from "../cms/locales.ts";
 import {
   BRAND_WORDS,
   CATEGORY_SLUG,
-  FINDER_WORDS,
   FIT_WORDS,
   fitPath,
   INFO_PAGES,
@@ -23,7 +22,6 @@ describe("fit words", () => {
   it("are valid category slug forms, reserved, and never another section's word or a generated category slug", () => {
     const others = new Set([
       ...Object.values(BRAND_WORDS),
-      ...Object.values(FINDER_WORDS),
       ...INFO_PAGES.flatMap((page) => Object.values(INFO_SLUGS[page])),
     ]);
     for (const locale of locales) {

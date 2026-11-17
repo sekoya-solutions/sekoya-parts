@@ -6,14 +6,16 @@ import {
   brandIndexPath,
   type CategoryNaming,
   categoryPath,
-  finderPath,
 } from "./addresses.ts";
 
 export const PROMOTION_KINDS = ["slide", "tile"] as const;
 export type PromotionKind = (typeof PROMOTION_KINDS)[number];
 
-/** Where a promotion leads: a category, the brand index or the part finder. */
-export const PROMOTION_LINKS = ["category", "brands", "finder"] as const;
+/**
+ * Where a promotion leads: a category or the brand index. The part finder
+ * is on the home page itself (issue #196), so no promotion leads to it.
+ */
+export const PROMOTION_LINKS = ["category", "brands"] as const;
 
 /**
  * The categories a promotion can link to: the generator's, by English slug,
@@ -52,7 +54,7 @@ export function nextPromotionChange(
 
 /**
  * Where a promotion leads in a language. A category the catalog no longer
- * has, by its English slug, leads to the part finder instead.
+ * has, by its English slug, leads to the brand index instead (issue #196).
  */
 export function promotionPath(
   locale: Locale,
@@ -64,5 +66,5 @@ export function promotionPath(
     const category = categories.find((c) => c.slugs.en === promotion.category);
     if (category) return categoryPath(locale, category.slugs[locale]);
   }
-  return finderPath(locale);
+  return brandIndexPath(locale);
 }

@@ -286,6 +286,117 @@
     background-color: var(--color-action-hover);
   }
 
+  /* The home page's part finder (issue #196): brand, type and model, each
+     under its label, then the button, stacked on a phone and on one row from
+     48rem, styled as the category pages' controls. A locked field is
+     dimmed; an open list lies over the page below it, so nothing moves. */
+  .home-finder {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  @media (min-width: 48rem) {
+    .home-finder {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      align-items: end;
+    }
+  }
+  .home-finder-field label {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+  }
+  .home-finder-combo {
+    position: relative;
+    margin-top: 0.25rem;
+  }
+  .home-finder-field input,
+  .home-finder-field select {
+    display: block;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+    background-color: var(--color-white);
+    color: var(--color-navy);
+  }
+  .home-finder-field select {
+    margin-top: 0.25rem;
+  }
+  .home-finder-field input {
+    padding-right: 2.5rem;
+  }
+  .home-finder-field input::placeholder {
+    color: var(--color-slate);
+  }
+  .home-finder-field input:disabled,
+  .home-finder-field select:disabled {
+    border-color: var(--color-line);
+    background-color: var(--color-sand);
+    color: var(--color-slate);
+    cursor: not-allowed;
+  }
+  .home-finder-chevron {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .home-finder-popup {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    right: 0;
+    max-height: min(18rem, 50vh);
+    overflow-y: auto;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background-color: var(--color-white);
+    box-shadow: 0 0.5rem 1rem rgb(11 28 41 / 0.15);
+  }
+  .home-finder-popup[hidden] {
+    display: none;
+  }
+  .home-finder-popup [role="option"] {
+    padding: 0.625rem 0.75rem;
+    cursor: pointer;
+  }
+  .home-finder-popup [role="option"][aria-selected="true"] {
+    background-color: var(--color-sand);
+    font-weight: 600;
+  }
+  .home-finder-heading,
+  .home-finder-status {
+    padding: 0.5rem 0.75rem;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-slate);
+  }
+  .home-finder-heading {
+    font-weight: 600;
+  }
+  .home-finder > button {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-action);
+    color: var(--color-white);
+    font-weight: 600;
+  }
+  .home-finder > button:hover:enabled {
+    background-color: var(--color-action-hover);
+  }
+  .home-finder > button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   /* "Does it fit my appliance?" (issue #161): a sand panel, and each answer
      with a bar in leaf (yes) or slate (no), so colour is never the only
      signal: the sentence says yes or no. */

@@ -1,19 +1,37 @@
-// The home page in each language (issue #81): the tagline and the categories,
+// The home page in each language (issue #81): the part finder, whose title is
+// the page's <h1> (issue #196), the promotions (issue #155), the categories,
 // each with its number of products and a link to its first page, then the
 // showcase products (issue #111), whose images all load lazily so the first
-// screen is unchanged. Built from the shared entries of site/categories.tsx
-// and site/showcase.tsx; the page itself is not cached.
+// screen is unchanged, and last, before the footer, the site's name, tagline
+// and introduction, as a text for search engines (issue #196). Built from the
+// shared entries of site/categories.tsx, site/showcase.tsx and
+// site/finder-data.ts; the page itself is not cached.
 
 import type { Metadata } from "next";
-import { categoryPath, homePath, perLocale } from "../../../site/addresses.ts";
+import {
+  categoryPath,
+  homePath,
+  isApplianceType,
+  perLocale,
+} from "../../../site/addresses.ts";
 import { getBrands } from "../../../site/brands.tsx";
 import { getCategories, getCategoryCounts } from "../../../site/categories.tsx";
-import { fill, getDictionary } from "../../../site/dictionary.ts";
-import { BrandStep } from "../../../site/finder.tsx";
+import {
+  applianceTypeName,
+  type Dictionary,
+  fill,
+  getDictionary,
+} from "../../../site/dictionary.ts";
+import { getTypesByBrand } from "../../../site/finder-data.ts";
 import { SiteFrame } from "../../../site/frame.tsx";
 import { homeAlternates } from "../../../site/home.ts";
+import {
+  type FinderBrand,
+  type FinderLabels,
+  HomeFinder,
+} from "../../../site/home-finder.tsx";
 import { categoryImage } from "../../../site/images.ts";
-import { CARD_SIZES, cardLoading, Picture } from "../../../site/picture.tsx";
+import { CARD_SIZES, Picture } from "../../../site/picture.tsx";
 import { ProductCard } from "../../../site/product-card.tsx";
 import { HomePromotions } from "../../../site/promotions.tsx";
 import { localeOf } from "../../../site/resolve.ts";
@@ -30,12 +48,14 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   const locale = localeOf(lang);
   const dictionary = getDictionary(locale);
-  const [categories, counts, showcase, brands] = await Promise.all([
-    getCategories(),
-    getCategoryCounts(),
-    getShowcaseRows(),
-    getBrands(),
-  ]);
+  const [categories, counts, showcase, brands, typesByBrand] =
+    await Promise.all([
+      getCategories(),
+      getCategoryCounts(),
+      getShowcaseRows(),
+      getBrands(),
+      getTypesByBrand(),
+    ]);
   const format = new Intl.NumberFormat(locale);
   const collator = new Intl.Collator(locale);
   const sorted = [...categories].sort((a, b) =>
@@ -51,35 +71,27 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
   return (
     <SiteFrame locale={locale} template="home" paths={perLocale(homePath)}>
-      <h1 className="text-3xl font-bold sm:text-4xl">Sekoya Parts</h1>
-      <p className="mt-2 text-lg text-slate">{dictionary.homeTagline}</p>
-      {/* The first screen's largest element, painted with the HTML rather
-          than after the card images (issue #87); e2e/intro.spec.ts checks it. */}
-      <p data-intro className="mt-4 max-w-prose text-lg">
-        {fill(dictionary.homeIntro, {
-          products: format.format(
-            Object.values(counts).reduce((sum, count) => sum + count, 0),
-          ),
-          categories: format.format(categories.length),
-        })}
-      </p>
+      {/* The part finder (issue #196): brand, appliance type and model in one
+          form, rendered here at its final size and brought to life by its
+          browser component. */}
+      <section aria-labelledby="finder">
+        <h1 id="finder" className="text-3xl font-bold sm:text-4xl">
+          {dictionary.finderHomeTitle}
+        </h1>
+        <HomeFinder
+          locale={locale}
+          brands={finderBrands(brands, typesByBrand, dictionary, collator)}
+          labels={finderLabels(dictionary)}
+        />
+      </section>
       {/* Promotions (issue #155): a slider and tiles, no script. */}
       <HomePromotions locale={locale} />
-      {/* The part finder's first step (issue #155): a GET form, no script. */}
-      <section className="mt-8" aria-labelledby="finder">
-        <h2 id="finder" className="text-2xl font-bold">
-          {dictionary.finderHomeTitle}
-        </h2>
-        <div className="mt-3">
-          <BrandStep locale={locale} brands={brands} />
-        </div>
-      </section>
       <h2 className="mt-10 text-2xl font-bold">{dictionary.categories}</h2>
       <ul
         data-list="categories"
         className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] sm:gap-4"
       >
-        {sorted.map((category, index) => {
+        {sorted.map((category) => {
           const image = categoryImage(category.id);
           return (
             <li
@@ -91,7 +103,9 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
                   image={image}
                   alt={category.names[locale]}
                   sizes={CARD_SIZES}
-                  {...cardLoading(index)}
+                  // Below the finder and the promotions, off the first
+                  // screen: lazily, so the first slide's image comes first
+                  // (issue #196).
                   className="mb-3 aspect-square h-auto w-full rounded-md"
                 />
               )}
@@ -137,6 +151,66 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           </ul>
         </>
       )}
+      {/* The site's name and introduction, last, as a text for search
+          engines (issue #196). */}
+      <section className="mt-12" aria-labelledby="about" data-about>
+        <h2 id="about" className="text-2xl font-bold">
+          Sekoya Parts
+        </h2>
+        <p className="mt-2 text-lg text-slate">{dictionary.homeTagline}</p>
+        <p data-intro className="mt-4 max-w-prose text-lg">
+          {fill(dictionary.homeIntro, {
+            products: format.format(
+              Object.values(counts).reduce((sum, count) => sum + count, 0),
+            ),
+            categories: format.format(categories.length),
+          })}
+        </p>
+      </section>
     </SiteFrame>
   );
 }
+
+/**
+ * The finder's brands, each with the appliance types it has models of, named
+ * and sorted in the page's language. A brand with no model yet is left out.
+ */
+function finderBrands(
+  brands: { slug: string; name: string; id: number }[],
+  typesByBrand: Record<number, string[]>,
+  dictionary: Dictionary,
+  collator: Intl.Collator,
+): FinderBrand[] {
+  return brands.flatMap((brand) => {
+    const types = (typesByBrand[brand.id] ?? []).filter(isApplianceType);
+    if (types.length === 0) return [];
+    return [
+      {
+        slug: brand.slug,
+        name: brand.name,
+        types: types
+          .map((value) => ({
+            value,
+            name: applianceTypeName(dictionary, value),
+          }))
+          .sort((a, b) => collator.compare(a.name, b.name)),
+      },
+    ];
+  });
+}
+
+/** The finder's labels, so the browser loads no dictionary. */
+const finderLabels = (dictionary: Dictionary): FinderLabels => ({
+  brand: dictionary.finderBrand,
+  chooseBrand: dictionary.finderChooseBrand,
+  noBrand: dictionary.finderNoBrand,
+  type: dictionary.finderType,
+  chooseType: dictionary.finderChooseType,
+  model: dictionary.finderModel,
+  chooseModel: dictionary.finderChooseModel,
+  popular: dictionary.finderPopular,
+  noModel: dictionary.finderNoMatch,
+  searching: dictionary.finderSearching,
+  error: dictionary.finderError,
+  submit: dictionary.finderNext,
+});

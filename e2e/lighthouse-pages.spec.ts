@@ -1,9 +1,10 @@
 // The pages the Lighthouse check measures are the templates its checks are
 // named after (AGENTS.md, section 3). Twice a section placed first in <main>
 // sent the "category" check elsewhere: the terms page (issue #144), then the
-// part finder (issue #155). This reads the addresses from the workflow itself
-// and resolves them as scripts/lighthouse.ts does, on the build CI tests, so
-// a wrong page fails here, before any deployment is measured. The account
+// part finder's former page (issue #155, removed by issue #196). This reads
+// the addresses from the workflow itself and resolves them as
+// scripts/lighthouse.ts does, on the build CI tests, so a wrong page fails
+// here, before any deployment is measured. The account
 // and order pages are read signed in, with a demo order placed through the
 // checkout, as the script's own account does (issue #188). Each page's
 // noindex tag must match the templates production's run expects to carry one.
@@ -69,9 +70,10 @@ async function signedInWithOrder(request: APIRequestContext) {
   return () => post({ intent: "delete", password }, "/api/account");
 }
 
+const workflow = readFileSync(".github/workflows/lighthouse.yml", "utf8");
+
 /** The <page>=<address> arguments of the workflow's measuring step. */
-function workflowPages() {
-  const workflow = readFileSync(".github/workflows/lighthouse.yml", "utf8");
+function measuredPages() {
   const command =
     /node scripts\/lighthouse\.ts "\$DEPLOY_ENVIRONMENT" "\$DEPLOY_URL"([\s\S]*?)\n\s*#/.exec(
       workflow,
@@ -80,9 +82,33 @@ function workflowPages() {
   return pageArguments(command.trim().split(/\s+/));
 }
 
-const pages = workflowPages();
+/**
+ * The pages whose measure is paused (owner decision, 2026-11-17, PR #197):
+ * one "# paused: <page>=<address>" line each above the measuring step. Their
+ * addresses are still checked here, so moving one back measures a page that
+ * leads to its template.
+ */
+const pausedPages = () =>
+  pageArguments(
+    [...workflow.matchAll(/^\s*# paused: (\S+)\s*$/gm)].map(
+      (match) => match[1] as string,
+    ),
+  );
 
-test("the workflow measures the thirteen templates", () => {
+const measured = measuredPages();
+const pages = pageArguments(
+  [...measured, ...pausedPages()].map((p) => `${p.page}=${p.address}`),
+);
+
+test("the workflow measures the home, category and product pages, the others paused", () => {
+  expect(measured.map((p) => p.page).sort()).toEqual([
+    "category",
+    "home",
+    "product",
+  ]);
+});
+
+test("the workflow names the thirteen templates, measured or paused", () => {
   expect(pages.map((p) => p.page).sort()).toEqual([
     "account",
     "brand",
