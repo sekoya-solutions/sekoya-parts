@@ -11,6 +11,7 @@ import {
   allImages,
   categoryFolder,
   categoryImage,
+  GALLERY_IMAGES,
   IMAGE_SETS,
   IMAGE_WIDTHS,
   IMAGES_PER_CATEGORY,
@@ -18,6 +19,7 @@ import {
   imageSet,
   ORIGINALS_DIR,
   outputName,
+  productGallery,
   productImage,
   srcSet,
 } from "../site/images.ts";
@@ -98,6 +100,35 @@ describe("productImage", () => {
 
   it("gives a category its first image", () => {
     expect(categoryImage(11)).toEqual({ folder: "lamp", n: 1 });
+  });
+});
+
+describe("productGallery", () => {
+  it("starts with the product's own image, then the next of its category, going round", () => {
+    expect(GALLERY_IMAGES).toBe(2);
+    expect(productGallery(1, 1)).toEqual([
+      { folder: "belt", n: 1 },
+      { folder: "belt", n: 2 },
+    ]);
+    expect(productGallery(1, 4)).toEqual([
+      { folder: "belt", n: 4 },
+      { folder: "belt", n: 1 },
+    ]);
+    for (let id = 1; id <= 20; id++) {
+      const gallery = productGallery(7, id);
+      expect(gallery[0]).toEqual(productImage(7, id));
+      expect(new Set(gallery.map((image) => image.n)).size).toBe(
+        GALLERY_IMAGES,
+      );
+    }
+  });
+
+  it("is the same on every call, so a cached page never changes", () => {
+    expect(productGallery(11, 100_000)).toEqual(productGallery(11, 100_000));
+  });
+
+  it("is empty for a category without images", () => {
+    expect(productGallery(999, 1)).toEqual([]);
   });
 });
 

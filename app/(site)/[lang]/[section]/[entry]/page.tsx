@@ -38,19 +38,19 @@ import {
 import { FitCheck } from "../../../../../site/fit-check.tsx";
 import { fitCheckLabels } from "../../../../../site/fit-labels.ts";
 import { SiteFrame } from "../../../../../site/frame.tsx";
-import { productImage } from "../../../../../site/images.ts";
+import { productGallery } from "../../../../../site/images.ts";
 import {
   getReferenceRows,
   getReferenceTotal,
   ModelProducts,
   ReferenceList,
 } from "../../../../../site/models.tsx";
-import { MAIN_SIZES, Picture } from "../../../../../site/picture.tsx";
 import {
   ProductAvailability,
   ProductDescription,
   ProductPrice,
 } from "../../../../../site/product.tsx";
+import { ProductGallery } from "../../../../../site/product-gallery.tsx";
 import { RecentlyViewed } from "../../../../../site/recently-viewed.tsx";
 import { PRODUCT_PAGE_REFERENCES } from "../../../../../site/references.ts";
 import { RelatedProducts } from "../../../../../site/related.tsx";
@@ -147,7 +147,10 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
   const route = await resolveProduct(locale, section, entry);
   const { id } = route;
   const dictionary = getDictionary(locale);
-  const image = productImage(route.categoryId, id);
+  const gallery = productGallery(route.categoryId, id);
+  const hasGallery = gallery.length > 0;
+  // The text's column from 48rem: beside the gallery, or the only one.
+  const beside = hasGallery ? "md:col-start-2" : "";
   const [references, total, categories] = await Promise.all([
     getReferenceRows(id, 1, PRODUCT_PAGE_REFERENCES),
     getReferenceTotal(id),
@@ -171,36 +174,38 @@ async function ProductPage(locale: Locale, section: string, entry: string) {
           { name: route.names[locale], path: route.paths[locale] },
         ]}
       />
-      {/* Text first on phones (issue #85): the image sits small beside the
-          name and price, so the text stays the page's largest element and
-          appears with the first paint, where an image would wait for the
-          font and scripts on a slow connection. From 48rem, the image takes
-          its 28rem column beside all the text. */}
-      <div className="grid grid-cols-[7rem_1fr] gap-x-4 gap-y-4 md:grid-cols-[28rem_1fr] md:grid-rows-[auto_1fr] md:gap-x-8">
-        {image && (
-          <div className="md:row-span-2">
-            <Picture
-              image={image}
-              alt={route.names[locale]}
-              sizes={MAIN_SIZES}
-              priority
-              className="aspect-square h-auto w-full rounded-md border border-line"
-            />
-          </div>
+      {/* The picture leads on phones (issue #200): the name, then the
+          gallery at the page's full width, its first picture the page's
+          largest element, then the price, the availability and the
+          description. From 48rem, the gallery takes its 28rem column beside
+          all the text. A product without pictures keeps its text at the
+          full width. */}
+      <div
+        className={
+          hasGallery
+            ? "grid grid-cols-1 gap-y-4 md:grid-cols-[28rem_1fr] md:grid-rows-[auto_auto_1fr] md:gap-x-8"
+            : "grid grid-cols-1 gap-y-4"
+        }
+      >
+        <h1
+          data-computed-at={route.computedAt}
+          className={`text-2xl font-bold sm:text-4xl ${beside} md:row-start-1`}
+        >
+          {route.names[locale]}
+        </h1>
+        {hasGallery && (
+          <ProductGallery
+            images={gallery}
+            name={route.names[locale]}
+            locale={locale}
+            className="min-w-0 md:col-start-1 md:row-span-3 md:row-start-1"
+          />
         )}
-        <div className={image ? undefined : "col-span-2"}>
-          <h1
-            data-computed-at={route.computedAt}
-            className="text-2xl font-bold sm:text-4xl"
-          >
-            {route.names[locale]}
-          </h1>
-          <div className="mt-2 md:mt-4">
-            <ProductPrice id={id} locale={locale} />
-            <ProductAvailability id={id} locale={locale} />
-          </div>
+        <div className={`${beside} md:row-start-2`}>
+          <ProductPrice id={id} locale={locale} />
+          <ProductAvailability id={id} locale={locale} />
         </div>
-        <div className="col-span-2 md:col-span-1 md:col-start-2">
+        <div className={`${beside} md:row-start-3`}>
           <ProductDescription id={id} locale={locale} />
         </div>
       </div>

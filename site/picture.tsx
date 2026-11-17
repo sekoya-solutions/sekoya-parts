@@ -55,11 +55,16 @@ export const CARD_SIZES =
   "(min-width: 72rem) 17rem, (min-width: 40rem) 50vw, calc(50vw - 3rem)";
 
 /**
- * The width of the product page's main image: 28rem beside the text from
- * 48rem up, and a 7rem thumbnail beside the name and price on a phone, which
- * picks the 320 width at Lighthouse's 1.75x (text first, issue #85).
+ * The width of the product page's gallery pictures (issue #200): 28rem beside
+ * the text from 48rem up, and the page's full width less its 1rem margins on
+ * a phone, where the first picture is the page's largest element. On a phone
+ * 412 pixels wide at 1.75x, as Lighthouse emulates, it is 380 pixels wide and
+ * this picks the 960 width.
  */
-export const MAIN_SIZES = "(min-width: 48rem) 28rem, 7rem";
+export const MAIN_SIZES = "(min-width: 48rem) 28rem, calc(100vw - 2rem)";
+
+/** The width of a gallery thumbnail: 3.5rem, the 320 width at any ratio up to 5x. */
+export const THUMB_SIZES = "3.5rem";
 
 /**
  * How many card images at the top of a list load at once rather than lazily:

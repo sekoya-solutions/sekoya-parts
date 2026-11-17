@@ -4,7 +4,7 @@
 // answers with its format and a year of caching.
 import { expect, type Page, test } from "@playwright/test";
 import { MILLION_PRODUCT_ID } from "../catalog/generator.ts";
-import { IMAGE_FORMATS, IMAGE_WIDTHS } from "../site/images.ts";
+import { GALLERY_IMAGES, IMAGE_FORMATS, IMAGE_WIDTHS } from "../site/images.ts";
 import { IMAGE_CACHE_CONTROL } from "../site/images-headers.ts";
 import { EAGER_IMAGES } from "../site/picture.tsx";
 import { productAddress } from "./addresses.ts";
@@ -85,21 +85,30 @@ test("the product page's main image loads first, described by the product's name
 }) => {
   await page.goto(await productAddress(request, "de", MILLION_PRODUCT_ID));
   const images = await mainImages(page);
-  // The product's own image first, then the related products' cards (issue
-  // #161), which load lazily, as the page's later images.
+  // The gallery's pictures first (issue #200), then its thumbnails, then the
+  // related products' cards (issue #161): only the first picture loads at
+  // once, with high priority.
+  const gallery = await mainImages(page, 'main ul[data-list="gallery"]');
+  const thumbs = await mainImages(page, "main .gallery-thumbs");
   const related = await mainImages(page, 'main ul[data-list="related"]');
+  expect(gallery).toHaveLength(GALLERY_IMAGES);
+  expect(thumbs).toHaveLength(GALLERY_IMAGES);
   expect(related.length).toBeGreaterThan(0);
-  expect(images).toHaveLength(1 + related.length);
-  expectDescribed(images);
+  expect(images).toEqual([...gallery, ...thumbs, ...related]);
+  expectDescribed([...gallery, ...related]);
   expect(images.map((i) => i.loading)).toEqual(
     images.map((_, i) => (i === 0 ? "eager" : "lazy")),
   );
   expect(images.map((i) => i.priority)).toEqual(
     images.map((_, i) => (i === 0 ? "high" : null)),
   );
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    images[0]?.alt as string,
-  );
+  // Every picture is described by the product's name; a thumbnail is
+  // decorative, its button labelled.
+  for (const image of gallery)
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      image.alt as string,
+    );
+  for (const image of thumbs) expect(image.alt).toBe("");
   // The image is drawn, not only referenced.
   const drawn = await page
     .getByRole("main")

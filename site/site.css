@@ -601,6 +601,87 @@
     text-decoration-line: underline;
   }
 
+  /* The product page's gallery (issue #200): a scroll-snap strip, one
+     square picture per view, with arrows over it and thumbnails under it.
+     Its scroll bar is hidden: the arrows, the thumbnails, swiping and the
+     keyboard move it. */
+  .gallery-view {
+    position: relative;
+  }
+  .gallery-strip {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    border-radius: var(--radius-md);
+  }
+  .gallery-strip::-webkit-scrollbar {
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .gallery-strip {
+      scroll-behavior: smooth;
+    }
+  }
+  .gallery-strip > li {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+  .gallery-strip img,
+  .gallery-thumbs img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .gallery-strip img {
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+  .gallery-arrow {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    transform: translateY(-50%);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background-color: var(--color-white);
+    color: var(--color-navy);
+    cursor: pointer;
+  }
+  .gallery-arrow:hover {
+    color: var(--color-action-hover);
+  }
+  .gallery-arrow[data-direction="previous"] {
+    left: 0.5rem;
+  }
+  .gallery-arrow[data-direction="next"] {
+    right: 0.5rem;
+  }
+  .gallery-thumbs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .gallery-thumbs button {
+    display: block;
+    width: 3.5rem;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background-color: var(--color-white);
+    cursor: pointer;
+  }
+  .gallery-thumbs button[aria-current="true"] {
+    border-color: var(--color-action);
+  }
+
   /* Previous and next links on numbered pages. */
   .pager {
     display: flex;

@@ -1,7 +1,9 @@
 // The first screen of the image-led pages (issue #87): on the phone Lighthouse
 // emulates, the largest element is the introduction, which paints with the
-// HTML, rather than a card image, which waits for its download. And each card
-// image is fetched at the width it is shown at, not wider.
+// HTML, rather than a card image, which waits for its download; the home
+// page's is its first slide (issue #196), and the product page's its first
+// picture (issue #200). And each card image is fetched at the width it is
+// shown at, not wider.
 import { expect, type Page, test } from "@playwright/test";
 import { MILLION_PRODUCT_ID } from "../catalog/generator.ts";
 import { locales } from "../cms/locales.ts";
@@ -29,21 +31,28 @@ async function largestElement(page: Page) {
   );
   return page.evaluate(
     () =>
-      new Promise<{ intro: boolean; firstSlide: boolean; tag: string }>(
-        (resolve) => {
-          new PerformanceObserver((list) => {
-            const last = list.getEntries().at(-1) as
-              | (PerformanceEntry & { element: Element | null })
-              | undefined;
-            resolve({
-              intro: last?.element?.hasAttribute("data-intro") ?? false,
-              firstSlide:
-                last?.element?.matches(".slider > li:first-child img") ?? false,
-              tag: last?.element?.outerHTML.slice(0, 120) ?? "none",
-            });
-          }).observe({ type: "largest-contentful-paint", buffered: true });
-        },
-      ),
+      new Promise<{
+        intro: boolean;
+        firstSlide: boolean;
+        firstPicture: boolean;
+        tag: string;
+      }>((resolve) => {
+        new PerformanceObserver((list) => {
+          const last = list.getEntries().at(-1) as
+            | (PerformanceEntry & { element: Element | null })
+            | undefined;
+          resolve({
+            intro: last?.element?.hasAttribute("data-intro") ?? false,
+            firstSlide:
+              last?.element?.matches(".slider > li:first-child img") ?? false,
+            firstPicture:
+              last?.element?.matches(
+                'ul[data-list="gallery"] > li:first-child img',
+              ) ?? false,
+            tag: last?.element?.outerHTML.slice(0, 120) ?? "none",
+          });
+        }).observe({ type: "largest-contentful-paint", buffered: true });
+      }),
   );
 }
 
@@ -98,6 +107,23 @@ for (const locale of locales) {
     await expect(page.locator("[data-intro]")).toHaveCount(1);
     const largest = await largestElement(page);
     expect(largest.intro, largest.tag).toBe(true);
+  });
+
+  // The product page leads with its picture (issue #200), fetched first and
+  // never lazily.
+  test(`the ${locale} product page's largest element is its first picture, fetched first`, async ({
+    page,
+    request,
+  }) => {
+    await page.goto(await productAddress(request, locale, MILLION_PRODUCT_ID));
+    const largest = await largestElement(page);
+    expect(largest.firstPicture, largest.tag).toBe(true);
+    const image = page
+      .locator('main ul[data-list="gallery"] > li')
+      .first()
+      .locator("img");
+    await expect(image).toHaveAttribute("loading", "eager");
+    await expect(image).toHaveAttribute("fetchpriority", "high");
   });
 
   // The model Lighthouse measures: the first one product 1's page links to.
