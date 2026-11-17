@@ -19,6 +19,8 @@
   --color-sand: #f6f1e8;
   --color-slate: #4f6170;
   --color-line: #c9d3d9;
+  /* The brands' group in the menus, on navy (issue #198). */
+  --color-sky: #6cb4ee;
 
   --radius-*: initial;
   --radius-sm: 0.25rem;
@@ -769,14 +771,67 @@
     color: inherit;
   }
 
-  /* The account and cart icons (issue #177): shown on phones only, where
-     the links' names are kept for screen readers alone. */
+  /* The header's signed-in mark (issue #177): a space of fixed width, so
+     nothing moves when the dot appears once the page's script has run. */
+  .account-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    height: 1.25rem;
+  }
+  .account-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-leaf);
+  }
+  /* The account and cart links (issues #177 and #198): an icon, with the
+     cart's count and the signed-in mark as badges on its corner. On a phone
+     the icon stands alone, 40px square to tap, its name kept for screen
+     readers; from 40rem the name sits under a larger icon. Placed out of the
+     flow, the badges move nothing when they appear. */
+  .header-badge-link {
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-md);
+    padding: 0.625rem;
+    font-size: var(--text-sm);
+  }
+  .header-icon-box {
+    position: relative;
+    display: inline-flex;
+  }
   .header-icon {
     flex: none;
   }
+  .header-badge-link .cart-count {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.75rem;
+    min-width: 1.125rem;
+    min-height: 1.125rem;
+    padding-inline: 0.25rem;
+    font-size: 0.6875rem;
+    line-height: 1.125rem;
+  }
+  .header-badge-link .account-state {
+    position: absolute;
+    top: -0.125rem;
+    right: -0.25rem;
+    width: 0.5rem;
+    height: 0.5rem;
+  }
   @media (width >= 40rem) {
+    .header-badge-link {
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      line-height: 1.25;
+    }
     .header-icon {
-      display: none;
+      width: 1.625rem;
+      height: 1.625rem;
     }
   }
   /* The phone menu (issue #181): a <details> element whose button keeps a
@@ -861,6 +916,128 @@
     align-items: center;
     gap: 0.5rem;
   }
+  /* The phone menu's appliance groups (issue #198): each a <details>
+     element, folded until tapped, its button a row with a chevron; inside,
+     each appliance type's name and its categories, indented. The brands
+     are a group of their own, a link in blue. */
+  .menu-group > summary,
+  .menu-group-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--color-slate);
+    font-weight: 700;
+    color: var(--color-cream);
+    cursor: pointer;
+    list-style: none;
+  }
+  .menu-group > summary::-webkit-details-marker {
+    display: none;
+  }
+  .menu-group > summary::after,
+  .appliance-menu summary::after {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-inline: 0.5rem 0.125rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform 150ms;
+  }
+  .menu-group[open] > summary::after,
+  .appliance-menu details[open] > summary::after {
+    transform: translateY(25%) rotate(225deg);
+  }
+  .mobile-menu-panel a.menu-group-link {
+    display: flex;
+    padding: 0.875rem 1rem;
+    color: var(--color-sky);
+  }
+  .menu-group-link::after {
+    content: "›";
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  .menu-group section {
+    padding-left: 0.75rem;
+  }
+
+  /* The menu by appliance from 40rem (issue #198): a row under the
+     header's top row, each group a <details> element whose panel spans the
+     page's width under the row, one column per appliance type. */
+  .appliance-menu {
+    display: none;
+    position: relative;
+    border-top: 1px solid var(--color-slate);
+  }
+  @media (width >= 40rem) {
+    .appliance-menu {
+      display: block;
+    }
+  }
+  .appliance-menu-row {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: 0.5rem;
+  }
+  .appliance-menu summary,
+  .appliance-menu-brands {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: var(--color-cream);
+    cursor: pointer;
+    list-style: none;
+  }
+  .appliance-menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .appliance-menu summary:hover,
+  .appliance-menu details[open] > summary {
+    background-color: var(--color-slate);
+    color: var(--color-white);
+  }
+  .appliance-menu-brands {
+    color: var(--color-sky);
+  }
+  .appliance-menu-brands:hover {
+    color: var(--color-white);
+  }
+  .appliance-menu-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    border-top: 3px solid var(--color-slate);
+    background-color: var(--color-navy);
+    box-shadow: 0 12px 24px rgb(0 0 0 / 0.35);
+  }
+  .appliance-menu-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1.5rem 2rem;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding: 1.5rem 1rem 2rem;
+  }
+  .appliance-menu-columns h2 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: var(--color-leaf);
+  }
+  .appliance-menu-columns a {
+    display: block;
+    padding-block: 0.25rem;
+    font-size: var(--text-base);
+  }
+
   .mobile-menu-backdrop {
     position: fixed;
     inset: 0;
@@ -871,44 +1048,6 @@
     body:has(.mobile-menu[open]) {
       overflow: hidden;
     }
-  }
-  /* On a phone the account and cart links show their icons alone, 40px
-     square to tap, and the cart's count and the signed-in mark become
-     badges on the icons' corner, so the header keeps one row (issue #181).
-     Placed out of the flow, they still move nothing when they appear. */
-  @media (width < 40rem) {
-    .header-badge-link .cart-count {
-      position: absolute;
-      top: 0.125rem;
-      right: 0;
-      min-width: 1.125rem;
-      min-height: 1.125rem;
-      padding-inline: 0.25rem;
-      font-size: 0.6875rem;
-      line-height: 1.125rem;
-    }
-    .header-badge-link .account-state {
-      position: absolute;
-      top: 0.25rem;
-      right: 0.25rem;
-      width: 0.5rem;
-      height: 0.5rem;
-    }
-  }
-  /* The header's signed-in mark (issue #177): a space of fixed width, so
-     nothing moves when the dot appears once the page's script has run. */
-  .account-state {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 0.75rem;
-    height: 1.25rem;
-  }
-  .account-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 9999px;
-    background-color: var(--color-leaf);
   }
   /* The account forms (issue #177): each field under its label, as tall as
      the cart's to tap, then the button. */

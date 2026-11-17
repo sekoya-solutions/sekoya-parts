@@ -59,6 +59,10 @@ const TEXT_PAIRS: [string, string][] = [
   // The discount badge (issue #151): navy text on leaf.
   ["navy", "leaf"],
   ["white", "navy"],
+  // The menus by appliance (issue #198): the brands in sky on navy, an
+  // open group's button in white on slate.
+  ["sky", "navy"],
+  ["white", "slate"],
 ];
 
 // [element, background]: focus rings and form field borders.
@@ -83,6 +87,7 @@ describe("theme colours", () => {
         "mist",
         "navy",
         "sand",
+        "sky",
         "slate",
         "white",
       ].sort(),

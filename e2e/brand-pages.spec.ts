@@ -92,9 +92,9 @@ test.describe("the brand index", () => {
         ].sort(),
       );
       // The header links to it on every page, the home page included, and
-      // so does the phone menu (issue #181).
+      // so does the phone menu (issues #181 and #198).
       await page.goto(`/${locale}`);
-      for (const links of ["[data-wide-links]", "[data-mobile-menu]"])
+      for (const links of ["[data-appliance-menu]", "[data-mobile-menu]"])
         await expect(
           page.getByRole("banner").locator(`${links} a[href="${path}"]`),
         ).toHaveCount(1);
