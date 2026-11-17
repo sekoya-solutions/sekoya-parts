@@ -70,9 +70,10 @@ async function signedInWithOrder(request: APIRequestContext) {
   return () => post({ intent: "delete", password }, "/api/account");
 }
 
+const workflow = readFileSync(".github/workflows/lighthouse.yml", "utf8");
+
 /** The <page>=<address> arguments of the workflow's measuring step. */
-function workflowPages() {
-  const workflow = readFileSync(".github/workflows/lighthouse.yml", "utf8");
+function measuredPages() {
   const command =
     /node scripts\/lighthouse\.ts "\$DEPLOY_ENVIRONMENT" "\$DEPLOY_URL"([\s\S]*?)\n\s*#/.exec(
       workflow,
@@ -81,9 +82,33 @@ function workflowPages() {
   return pageArguments(command.trim().split(/\s+/));
 }
 
-const pages = workflowPages();
+/**
+ * The pages whose measure is paused (owner decision, 2026-11-17, PR #197):
+ * one "# paused: <page>=<address>" line each above the measuring step. Their
+ * addresses are still checked here, so moving one back measures a page that
+ * leads to its template.
+ */
+const pausedPages = () =>
+  pageArguments(
+    [...workflow.matchAll(/^\s*# paused: (\S+)\s*$/gm)].map(
+      (match) => match[1] as string,
+    ),
+  );
 
-test("the workflow measures the thirteen templates", () => {
+const measured = measuredPages();
+const pages = pageArguments(
+  [...measured, ...pausedPages()].map((p) => `${p.page}=${p.address}`),
+);
+
+test("the workflow measures the home, category and product pages, the others paused", () => {
+  expect(measured.map((p) => p.page).sort()).toEqual([
+    "category",
+    "home",
+    "product",
+  ]);
+});
+
+test("the workflow names the thirteen templates, measured or paused", () => {
   expect(pages.map((p) => p.page).sort()).toEqual([
     "account",
     "brand",
