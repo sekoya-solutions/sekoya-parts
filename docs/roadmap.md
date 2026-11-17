@@ -370,7 +370,7 @@ Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approv
 ## Working notes for a new session
 
 - **Where decisions live:** `AGENTS.md` for the standing rules, the ADRs for technical decisions, this file for the plan. The latest chat-history entries arrive with the session-start context; older ones are in `docs/chat-history/`, which only exists locally.
-- **Branches and parallel sessions:** `AGENTS.md`, sections 3 and 5: rebase before re-running CI, branch from `origin/main`, and one git worktree per session ([#174](https://github.com/sekoya-solutions/sekoya-parts/issues/174)).
+- **Branches and parallel sessions:** `AGENTS.md`, sections 3 and 5: rebase before re-running CI, branch from `origin/main`, and one git worktree per session ([#174](https://github.com/sekoya-solutions/sekoya-parts/issues/174)). A worktree session opens its own branch in the built-in browser: `npm run preview:add` adds its `next-dev-<worktree>` entry, on its own port, to the main checkout's `.claude/launch.json` and drops the entries of removed worktrees, and `npm run test:e2e:local` stops while a development server of the same checkout holds `.next` ([#193](https://github.com/sekoya-solutions/sekoya-parts/issues/193)).
 - **Each pull request:**
   - write its body to a file without a byte-order mark and pass it with `--body-file`;
   - after each edit, fetch the saved body back and compare it with the file;

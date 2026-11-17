@@ -27,6 +27,7 @@ import {
 import { createServer } from "node:net";
 import { availableParallelism } from "node:os";
 import { join, resolve } from "node:path";
+import { runningDevServer } from "./dev-server.ts";
 import { localMaxConnections } from "./local-db.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -137,6 +138,18 @@ const missing = missingTools();
 if (missing.length > 0) {
   console.error(
     `Missing tools; nothing was downloaded:\n- ${missing.join("\n- ")}`,
+  );
+  process.exit(2);
+}
+
+// On Windows the build folder is deleted before the build (see
+// caseSensitiveBuildFolder), which fails while this checkout's development
+// server, a preview, holds it (issue #193).
+const server =
+  process.platform === "win32" ? runningDevServer(root) : undefined;
+if (server) {
+  console.error(
+    `A development server of this checkout${server.appUrl ? ` (${server.appUrl})` : ""} holds .next, which this run deletes: stop it (preview_stop for a preview), then run again.`,
   );
   process.exit(2);
 }
