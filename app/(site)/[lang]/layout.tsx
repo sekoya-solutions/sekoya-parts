@@ -1,6 +1,9 @@
 // The root layout of every page in a language, under app/[lang], Next.js's
 // own pattern (docs/adr/0011-languages-and-seo.md). Any first segment that is
 // not one of the ten languages is a 404.
+// Issue #137, measurement only: this branch is never merged.
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { locales } from "../../../cms/locales.ts";
@@ -40,6 +43,8 @@ export default async function LanguageLayout({
       <body>
         <SkipLink locale={lang} />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
