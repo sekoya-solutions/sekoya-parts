@@ -4,7 +4,7 @@
 /** "Sekoya Parts", with the o of Sekoya in leaf green (owner decision, issue #83). */
 export function Wordmark() {
   return (
-    <span className="text-xl font-bold tracking-wide">
+    <span className="text-xl font-bold tracking-wide lg:text-2xl">
       Sek<span className="text-leaf">o</span>ya{" "}
       <span className="font-normal text-mist">Parts</span>
     </span>

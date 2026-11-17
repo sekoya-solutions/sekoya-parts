@@ -26,7 +26,7 @@ const alternates = (page: Page) =>
  * closed its links are hidden, and role locators skip hidden elements.
  */
 // The language switch, the wide header's details element with language
-// links; the category menu is the other one (issue #144), and the phone
+// links (the menu by appliance, issue #198, is outside it), and the phone
 // menu (issue #181) holds the same language links.
 const switchMenu = (page: Page) =>
   page.locator("header [data-wide-links] details:has(a[hreflang]) nav");
@@ -159,7 +159,7 @@ test("a language picked in the switch is remembered, and the bare domain opens i
   // Following a link of the phone menu replaces the pick.
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(ready).toHaveCount(1);
-  await page.locator("header [data-mobile-menu] summary").click();
+  await page.locator("header [data-mobile-menu] > summary").click();
   await page.locator('header [data-mobile-menu] nav a[hreflang="da"]').click();
   await expect(page).toHaveURL(/\/da$/);
   await page.goto("/");

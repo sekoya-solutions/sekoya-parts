@@ -1,40 +1,48 @@
 // The site layout around every page in a language (issue #83): a bar of facts
 // about the demo (issue #144), a navy header with the wordmark, the search box
-// (issue #113), the category menu (issue #144) and the language switch, the
-// page's main content, and a footer with the information pages' links (issue
-// #143). The skip link sits in the root layout, before it.
+// (issue #113), the language switch and, under them, the menu by appliance
+// (issue #198), the page's main content, and a footer with the information
+// pages' links (issue #143). The skip link sits in the root layout, before it.
 //
-// The language switch and the category menu are plain links, with no browser
-// code (docs/adr/0012-front-end-assets.md): a native <details> element folds
-// each list without any script. On a phone they make way for one menu
+// The language switch and the menu by appliance are plain links (docs/adr/
+// 0012-front-end-assets.md): a native <details> element folds each list
+// without any script. On a phone they make way for one menu
 // (issue #181), a <details> element too, so the header keeps one row. The language switch takes each page's own
 // addresses in every language, the same ones as its hreflang tags, and shows
 // each language's flag beside its name (issue #191). Following one of its
 // links, a small browser script remembers the language for the bare domain
 // (site/language-pick.tsx).
 import type { CSSProperties, ReactNode } from "react";
-import { MODEL_COUNT } from "../catalog/generator.ts";
+import { type ApplianceType, MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
 import { AccountState } from "./account-state.tsx";
 import {
   accountPath,
   brandIndexPath,
+  type CategoryNaming,
   cartPath,
   categoryPath,
   homePath,
   type InfoPage,
   infoPagePath,
 } from "./addresses.ts";
+import { MENU_GROUPS, menuGroupKey, typeCategories } from "./appliance-menu.ts";
 import { CartCount } from "./cart-count.tsx";
 import { CartForms } from "./cart-forms.tsx";
 import { getCategories } from "./categories.tsx";
-import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
+import {
+  applianceTypeName,
+  type Dictionary,
+  fill,
+  getDictionary,
+} from "./dictionary.ts";
 import { Flag } from "./flags.tsx";
 import { AccountIcon, CartIcon, CloseIcon, MenuIcon } from "./header-icons.tsx";
 import { getInfoText } from "./info-texts.ts";
 import { LANGUAGE_PICK } from "./language-choice.ts";
 import { LanguagePick } from "./language-pick.tsx";
 import { MenuBackdrop } from "./menu-backdrop.tsx";
+import { MenuCloser } from "./menu-closer.tsx";
 import { MAX_QUERY_LENGTH } from "./search-key.ts";
 import type { Template } from "./templates.ts";
 import { Wordmark } from "./wordmark.tsx";
@@ -55,7 +63,7 @@ export function LanguageSwitch({
   const dictionary = getDictionary(locale);
   return (
     <details className="relative">
-      <summary className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-sm text-cream uppercase">
+      <summary className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-sm text-cream uppercase sm:text-base">
         <Flag locale={locale} />
         <span className="sr-only">{dictionary.languageMenu}: </span>
         {locale}
@@ -101,12 +109,8 @@ export function SearchBox({
 }) {
   const dictionary = getDictionary(locale);
   return (
-    <search className="order-last w-full sm:order-none sm:w-auto sm:flex-1">
-      <form
-        action={SEARCH_ROUTE}
-        method="get"
-        className="flex gap-2 sm:justify-end"
-      >
+    <search className="order-last w-full sm:order-none">
+      <form action={SEARCH_ROUTE} method="get" className="flex gap-2">
         <input type="hidden" name="lang" value={locale} />
         <label htmlFor="search-query" className="sr-only">
           {dictionary.searchLabel}
@@ -119,9 +123,12 @@ export function SearchBox({
           maxLength={MAX_QUERY_LENGTH}
           required
           placeholder={dictionary.searchPlaceholder}
-          className="search-input min-w-0 flex-1 rounded-md px-3 py-1.5 sm:max-w-80"
+          className="search-input min-w-0 flex-1 rounded-md px-3 py-1.5 sm:py-2 sm:text-base"
         />
-        <button type="submit" className="search-button rounded-md px-3 py-1.5">
+        <button
+          type="submit"
+          className="search-button rounded-md px-3 py-1.5 sm:px-4 sm:py-2 sm:text-base"
+        >
           {dictionary.searchButton}
         </button>
       </form>
@@ -129,47 +136,84 @@ export function SearchBox({
   );
 }
 
-/**
- * The 12 categories in one language, sorted by name. One cached read, shared
- * by every page (site/categories.tsx), so a renamed category refreshes the
- * menus with the pages that show them.
- */
-async function sortedCategories(locale: Locale) {
-  return [...(await getCategories())].sort((a, b) =>
-    a.names[locale].localeCompare(b.names[locale], locale),
+/** One appliance type's heading and category links, in a menu (issue #198). */
+function ApplianceTypeLinks({
+  locale,
+  type,
+  categories,
+}: {
+  locale: Locale;
+  type: ApplianceType;
+  categories: readonly CategoryNaming[];
+}) {
+  return (
+    <section>
+      <h2>{applianceTypeName(getDictionary(locale), type)}</h2>
+      <ul data-list={`menu-${type}`}>
+        {typeCategories(type, categories, locale).map((category) => (
+          <li key={category.id}>
+            <a href={categoryPath(locale, category.slugs[locale])}>
+              {category.names[locale]}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
 /**
- * The category menu (issue #144): the 12 categories in the page's language,
- * sorted by name, each linking to its first page.
+ * The menu by appliance (issue #198), from 40rem: a row under the header's
+ * top row with the three appliance groups, then the brand index. Each group
+ * is a native <details> element opening a panel the page's width, with one
+ * column per appliance type and its categories (site/appliance-menu.ts). The
+ * groups share a name, so the browser keeps one open at a time; a small
+ * script closes it on Escape, a click outside or focus leaving it
+ * (site/menu-closer.tsx). The category names come from one cached read,
+ * shared by every page (site/categories.tsx), so a renamed category refreshes
+ * the menus with the pages that show it.
  */
-export async function CategoryMenu({ locale }: { locale: Locale }) {
+export async function ApplianceMenu({ locale }: { locale: Locale }) {
   const dictionary = getDictionary(locale);
-  const categories = await sortedCategories(locale);
+  const categories = await getCategories();
   return (
-    <details className="relative">
-      <summary className="cursor-pointer rounded-md px-2 py-1 text-sm text-cream">
-        {dictionary.categoriesMenu}
-      </summary>
-      <nav
-        aria-label={dictionary.categoriesMenu}
-        className="absolute right-0 z-10 mt-2 w-64 rounded-md bg-navy p-2 shadow-lg ring-1 ring-slate"
-      >
-        <ul>
-          {categories.map((category) => (
-            <li key={category.id}>
-              <a
-                href={categoryPath(locale, category.slugs[locale])}
-                className="block rounded-sm px-2 py-1"
-              >
-                {category.names[locale]}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </details>
+    <nav
+      aria-label={dictionary.applianceMenu}
+      data-appliance-menu
+      className="appliance-menu"
+    >
+      <ul className="appliance-menu-row">
+        {MENU_GROUPS.map(({ group, types }) => (
+          <li key={group}>
+            <details name="appliance-menu" data-menu-group={group}>
+              <summary>{dictionary[menuGroupKey(group)]}</summary>
+              <MenuCloser />
+              <div className="appliance-menu-panel">
+                <div className="appliance-menu-columns">
+                  {types.map((type) => (
+                    <ApplianceTypeLinks
+                      key={type}
+                      locale={locale}
+                      type={type}
+                      categories={categories}
+                    />
+                  ))}
+                </div>
+              </div>
+            </details>
+          </li>
+        ))}
+        <li>
+          <a
+            href={brandIndexPath(locale)}
+            data-menu-brands
+            className="appliance-menu-brands"
+          >
+            {dictionary.brands}
+          </a>
+        </li>
+      </ul>
+    </nav>
   );
 }
 
@@ -239,10 +283,10 @@ export function SiteHeader({
 }) {
   return (
     <header className="on-navy">
-      <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3">
+      <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-x-6 sm:py-4 lg:grid-cols-[1fr_minmax(0,36rem)_1fr]">
         <div className="flex items-center gap-2">
           <MobileMenu locale={locale} paths={paths} />
-          <a href={homePath(locale)}>
+          <a href={homePath(locale)} className="whitespace-nowrap">
             <Wordmark />
           </a>
         </div>
@@ -250,21 +294,15 @@ export function SiteHeader({
         {/* On a phone the menu above holds these links but the account and
             the cart, which show icons, so the header keeps one row (issue
             #181). */}
-        <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+        <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:flex-nowrap sm:justify-self-end sm:gap-x-3">
           <div data-wide-links className="hidden sm:contents">
-            <CategoryMenu locale={locale} />
-            <a
-              href={brandIndexPath(locale)}
-              className="rounded-md px-2 py-1 text-sm"
-            >
-              {getDictionary(locale).brands}
-            </a>
             {paths && <LanguageSwitch locale={locale} paths={paths} />}
           </div>
           <AccountLink locale={locale} />
           <CartLink locale={locale} />
         </div>
       </div>
+      <ApplianceMenu locale={locale} />
       {paths && <LanguagePick />}
     </header>
   );
@@ -272,8 +310,10 @@ export function SiteHeader({
 
 /**
  * The phone menu (issue #181): a button with three lines, then the menu, a
- * panel from the left side of the screen with the categories, the brands
- * and the languages; the account and the cart keep their icons in the
+ * panel from the left side of the screen with the three appliance groups,
+ * each folded in its own <details> element until tapped, the brands as a
+ * group of their own, and the languages (issue #198); the account and the
+ * cart keep their icons in the
  * header's row. A native <details> element, so it opens and closes without
  * any script; its button becomes the panel's top bar, "Close" with a cross,
  * while it is open. Hidden from 40rem on, where the header's own links fit. The backdrop's script adds Escape, a tap beside
@@ -287,7 +327,7 @@ export async function MobileMenu({
   paths?: Record<Locale, string>;
 }) {
   const dictionary = getDictionary(locale);
-  const categories = await sortedCategories(locale);
+  const categories = await getCategories();
   return (
     <details data-mobile-menu className="mobile-menu sm:hidden">
       <summary className="mobile-menu-button">
@@ -304,21 +344,26 @@ export async function MobileMenu({
       </summary>
       <MenuBackdrop />
       <nav aria-label={dictionary.menu} className="mobile-menu-panel">
-        <h2>{dictionary.categoriesMenu}</h2>
-        <ul data-list="menu-categories">
-          {categories.map((category) => (
-            <li key={category.id}>
-              <a href={categoryPath(locale, category.slugs[locale])}>
-                {category.names[locale]}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <ul>
-          <li>
-            <a href={brandIndexPath(locale)}>{dictionary.brands}</a>
-          </li>
-        </ul>
+        {MENU_GROUPS.map(({ group, types }) => (
+          <details key={group} data-menu-group={group} className="menu-group">
+            <summary>{dictionary[menuGroupKey(group)]}</summary>
+            {types.map((type) => (
+              <ApplianceTypeLinks
+                key={type}
+                locale={locale}
+                type={type}
+                categories={categories}
+              />
+            ))}
+          </details>
+        ))}
+        <a
+          href={brandIndexPath(locale)}
+          data-menu-brands
+          className="menu-group-link"
+        >
+          {dictionary.brands}
+        </a>
         {paths && (
           <>
             <h2>{dictionary.languageMenu}</h2>
@@ -349,8 +394,8 @@ export async function MobileMenu({
 /**
  * The account link (issue #177): the same for every visitor, to the account
  * address, which shows the sign-in form to a visitor who is not signed in.
- * On a phone it shows an icon, its name kept for screen readers (owner
- * decision, 2026-11-16). Whether the visitor is signed in is shown in the browser
+ * It shows an icon, with its name under it from 40rem and kept for screen
+ * readers alone on a phone (owner decisions, 2026-11-16 and 2026-11-17). Whether the visitor is signed in is shown in the browser
  * (site/account-state.tsx, ADR 0013), in a space reserved so nothing shifts.
  */
 export function AccountLink({ locale }: { locale: Locale }) {
@@ -359,11 +404,13 @@ export function AccountLink({ locale }: { locale: Locale }) {
     <a
       href={accountPath(locale)}
       data-account-link
-      className="header-badge-link relative flex items-center rounded-md p-2.5 text-sm sm:gap-1 sm:px-2 sm:py-1"
+      className="header-badge-link"
     >
-      <AccountIcon />
+      <span className="header-icon-box">
+        <AccountIcon />
+        <AccountState label={dictionary.accountSignedIn} />
+      </span>
       <span className="sr-only sm:not-sr-only">{dictionary.account}</span>
-      <AccountState label={dictionary.accountSignedIn} />
     </a>
   );
 }
@@ -376,14 +423,12 @@ export function AccountLink({ locale }: { locale: Locale }) {
 export function CartLink({ locale }: { locale: Locale }) {
   const dictionary = getDictionary(locale);
   return (
-    <a
-      href={cartPath(locale)}
-      data-cart-link
-      className="header-badge-link relative flex items-center rounded-md p-2.5 text-sm sm:gap-1 sm:px-2 sm:py-1"
-    >
-      <CartIcon />
+    <a href={cartPath(locale)} data-cart-link className="header-badge-link">
+      <span className="header-icon-box">
+        <CartIcon />
+        <CartCount label={dictionary.cartCount} />
+      </span>
       <span className="sr-only sm:not-sr-only">{dictionary.cart}</span>
-      <CartCount label={dictionary.cartCount} />
     </a>
   );
 }

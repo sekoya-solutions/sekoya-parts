@@ -1,7 +1,9 @@
-// The facts bar, the category menu and the breadcrumbs (issue #144), as the
-// built site serves them.
+// The facts bar and the breadcrumbs (issue #144), the menu by appliance
+// (issue #198) and the phone menu (issue #181), as the built site serves
+// them.
 import { expect, type Page, test } from "@playwright/test";
 import {
+  type ApplianceType,
   categories,
   MILLION_PRODUCT_ID,
   MODEL_COUNT,
@@ -10,18 +12,39 @@ import {
 import { type Locale, locales } from "../cms/locales.ts";
 import { SIGNED_IN_COOKIE } from "../site/account-rules.ts";
 import { brandIndexPath, infoPagePath } from "../site/addresses.ts";
+import {
+  MENU_GROUPS,
+  menuGroupKey,
+  TYPE_CATEGORIES,
+} from "../site/appliance-menu.ts";
 import { CART_COOKIE } from "../site/cart.ts";
-import { fill, getDictionary } from "../site/dictionary.ts";
+import { applianceTypeName, fill, getDictionary } from "../site/dictionary.ts";
 import { productAddress } from "./addresses.ts";
 
-/** The categories in one language, sorted by name, as the menu lists them. */
-const menuEntries = (locale: Locale) =>
-  categories()
-    .map((category) => ({
-      name: category.names[locale],
-      href: `/${locale}/${slugify(category.names[locale])}`,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, locale));
+/** A category's name and address in one language. */
+const categoryLink = (locale: Locale, names: Record<Locale, string>) =>
+  [names[locale], `/${locale}/${slugify(names[locale])}`] as [string, string];
+
+/** An appliance type's category links in one language, sorted by name. */
+const typeLinks = (locale: Locale, type: ApplianceType) =>
+  TYPE_CATEGORIES[type]
+    .map((id) => {
+      const category = categories().find((c) => c.id === id);
+      if (!category) throw new Error(`No category ${id}.`);
+      return categoryLink(locale, category.names);
+    })
+    .sort(([a], [b]) => a.localeCompare(b, locale));
+
+/**
+ * The menu by appliance's links in one language, in order: each group's
+ * types' categories, then the brand index.
+ */
+const applianceMenuLinks = (locale: Locale) => [
+  ...MENU_GROUPS.flatMap(({ types }) =>
+    types.flatMap((type) => typeLinks(locale, type)),
+  ),
+  [getDictionary(locale).brands, brandIndexPath(locale)],
+];
 
 for (const locale of locales) {
   test(`the facts bar and the category menu in ${locale}`, async ({ page }) => {
@@ -38,35 +61,76 @@ for (const locale of locales) {
       bar.getByRole("link", { name: dictionary.factsDemo }),
     ).toHaveAttribute("href", infoPagePath(locale, "terms"));
 
-    // Closed, so outside the accessibility tree: found by its label.
-    const menu = page.locator(
-      `header nav[aria-label="${dictionary.categoriesMenu}"]`,
+    // The menu by appliance (issue #198): its groups' buttons, then every
+    // link in order, the closed groups' included, and each type's heading.
+    const menu = page.locator("header [data-appliance-menu]");
+    await expect(menu).toHaveAccessibleName(dictionary.applianceMenu);
+    await expect(menu.locator("summary")).toHaveText(
+      MENU_GROUPS.map(({ group }) => dictionary[menuGroupKey(group)]),
     );
-    const links = await menu.locator("a").evaluateAll((anchors) =>
-      anchors.map((a) => ({
-        name: a.textContent,
-        href: a.getAttribute("href"),
-      })),
+    const links = await menu
+      .locator("a")
+      .evaluateAll((anchors) =>
+        anchors.map((a) => [a.textContent, a.getAttribute("href")]),
+      );
+    expect(links).toEqual(applianceMenuLinks(locale));
+    await expect(menu.locator("h2")).toHaveText(
+      MENU_GROUPS.flatMap(({ types }) =>
+        types.map((type) => applianceTypeName(dictionary, type)),
+      ),
     );
-    expect(links).toEqual(menuEntries(locale));
+    await expect(menu.locator("details[open]")).toHaveCount(0);
   });
 }
 
-test("the category menu opens by keyboard, with no script", async ({
+test("a group of the menu by appliance opens by keyboard, with no script", async ({
   browser,
 }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto("/en");
-  const menu = page.locator('header nav[aria-label="Categories"]');
-  await expect(menu).toBeHidden();
-  await page.locator("summary", { hasText: "Categories" }).focus();
+  const group = page.locator(
+    'header [data-appliance-menu] details[data-menu-group="cooking"]',
+  );
+  const oven = group.locator('[data-list="menu-oven"]');
+  await expect(oven).toBeHidden();
+  await group.locator("summary").focus();
   await page.keyboard.press("Enter");
-  await expect(menu).toBeVisible();
-  const [first] = menuEntries("en");
-  await menu.getByRole("link", { name: first?.name }).click();
-  await expect(page).toHaveURL(new RegExp(`${first?.href}$`));
+  await expect(oven).toBeVisible();
+  const [name, href] = typeLinks("en", "oven")[0] as [string, string];
+  await oven.getByRole("link", { name, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`${href}$`));
   await context.close();
+});
+
+test("one group of the menu by appliance is open at a time, and Escape or a click outside closes it", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const menu = page.locator("header [data-appliance-menu]");
+  const washing = menu.locator('details[data-menu-group="washing"]');
+  const cooling = menu.locator('details[data-menu-group="cooling"]');
+  await washing.locator("summary").click();
+  await expect(washing).toHaveAttribute("open");
+  await cooling.locator("summary").click();
+  await expect(cooling).toHaveAttribute("open");
+  await expect(washing).not.toHaveAttribute("open");
+
+  await page.keyboard.press("Escape");
+  await expect(cooling).not.toHaveAttribute("open");
+  await expect(cooling.locator("summary")).toBeFocused();
+
+  await washing.locator("summary").click();
+  await expect(washing).toHaveAttribute("open");
+  // Outside the panel, which covers the top of the page.
+  await page.locator("footer p").last().click();
+  await expect(washing).not.toHaveAttribute("open");
+
+  // Tabbing past the panel's last link closes it.
+  await washing.locator("summary").click();
+  await washing.locator("a").last().focus();
+  await page.keyboard.press("Tab");
+  await expect(washing).not.toHaveAttribute("open");
 });
 
 /** The visible trail and the structured data's, as [name, path] pairs. */
@@ -102,7 +166,15 @@ test("breadcrumbs on a category page, a product page, a reference page and a mod
 }) => {
   const home = getDictionary("fr").homeCrumb;
 
-  const category = menuEntries("fr")[0] as { name: string; href: string };
+  const [name, href] = categoryLink(
+    "fr",
+    (
+      categories()[0] as {
+        names: Record<Locale, string>;
+      }
+    ).names,
+  );
+  const category = { name, href };
   await page.goto(category.href);
   const onCategory = await crumbs(page, "fr");
   expect(onCategory.visible).toEqual([
@@ -165,10 +237,8 @@ const PHONE_WIDTHS = [320, 360];
 
 /** The menu's links, in order, as [name, href] pairs. */
 const menuLinks = (locale: Locale) => {
-  const dictionary = getDictionary(locale);
   return [
-    ...menuEntries(locale).map((entry) => [entry.name, entry.href]),
-    [dictionary.brands, brandIndexPath(locale)],
+    ...applianceMenuLinks(locale),
     ...locales
       .filter((other) => other !== locale)
       .map((other) => [getDictionary(other).languageName, `/${other}`]),
@@ -192,7 +262,7 @@ for (const javaScript of [true, false])
         await page.setViewportSize({ width: 360, height: 740 });
         await page.goto(`/${locale}`);
         const menu = page.locator("header [data-mobile-menu]");
-        const button = menu.locator("summary");
+        const button = menu.locator(":scope > summary");
         const panel = menu.getByRole("navigation", { name: dictionary.menu });
 
         for (const width of PHONE_WIDTHS) {
@@ -236,6 +306,23 @@ for (const javaScript of [true, false])
             anchors.map((a) => [a.textContent, a.getAttribute("href")]),
           );
         expect(links).toEqual(menuLinks(locale));
+        // The groups are folded until tapped; the brands are a group of
+        // their own, in sky blue (issue #198).
+        const groups = panel.locator("details[data-menu-group]");
+        await expect(groups.locator("summary")).toHaveText(
+          MENU_GROUPS.map(({ group }) => dictionary[menuGroupKey(group)]),
+        );
+        await expect(panel.locator("details[open]")).toHaveCount(0);
+        await expect(panel.locator('[data-list="menu-oven"]')).toBeHidden();
+        await groups.nth(1).locator("summary").click();
+        await expect(panel.locator('[data-list="menu-oven"]')).toBeVisible();
+        await expect(panel.locator("[data-menu-brands]")).toHaveCSS(
+          "color",
+          "rgb(108, 180, 238)",
+        );
+        await expect(panel.locator("h2").last()).toHaveText(
+          dictionary.languageMenu,
+        );
         const box = (await panel.boundingBox()) as { x: number; width: number };
         expect(box.x + box.width).toBeLessThanOrEqual(320);
         expect(await noSidewaysScroll(page)).toBe(true);
@@ -412,13 +499,13 @@ test.describe("the phone menu by keyboard", () => {
     page,
   }) => {
     await page.goto("/en");
-    const button = page.locator("header [data-mobile-menu] summary");
+    const button = page.locator("header [data-mobile-menu] > summary");
     const panel = page.getByRole("navigation", { name: "Menu" });
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(panel).toBeVisible();
     await page.keyboard.press("Tab");
-    await expect(panel.getByRole("link").first()).toBeFocused();
+    await expect(panel.locator("summary").first()).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(panel).toBeHidden();
     await expect(button).toBeFocused();
@@ -426,7 +513,7 @@ test.describe("the phone menu by keyboard", () => {
 
   test("focus leaving it or a tap beside it closes it", async ({ page }) => {
     await page.goto("/en");
-    const button = page.locator("header [data-mobile-menu] summary");
+    const button = page.locator("header [data-mobile-menu] > summary");
     const panel = page.getByRole("navigation", { name: "Menu" });
     await button.click();
     await panel.getByRole("link").last().focus();
@@ -449,13 +536,13 @@ test.describe("the phone menu by keyboard", () => {
     });
     const page = await context.newPage();
     await page.goto("/en");
-    const button = page.locator("header [data-mobile-menu] summary");
+    const button = page.locator("header [data-mobile-menu] > summary");
     const panel = page.getByRole("navigation", { name: "Menu" });
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(panel).toBeVisible();
     await page.keyboard.press("Tab");
-    await expect(panel.getByRole("link").first()).toBeFocused();
+    await expect(panel.locator("summary").first()).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(button).toBeFocused();
     await page.keyboard.press("Enter");
@@ -464,15 +551,34 @@ test.describe("the phone menu by keyboard", () => {
   });
 });
 
-test("on a wide screen the header keeps its links and shows no menu", async ({
+test("on a wide screen the header keeps its links, with icons, and shows no menu", async ({
   page,
 }) => {
   await page.goto("/fr");
   await expect(page.locator("header [data-mobile-menu]")).toBeHidden();
   await expect(page.locator("header [data-wide-links]")).toBeVisible();
-  for (const link of ["[data-account-link]", "[data-cart-link]"]) {
-    await expect(page.locator(`header ${link} svg.header-icon`)).toBeHidden();
+  await expect(page.locator("header [data-appliance-menu]")).toBeVisible();
+  // The account and the cart show their icon, their name under it (issue
+  // #198).
+  for (const [link, name] of [
+    ["[data-account-link]", "Compte"],
+    ["[data-cart-link]", "Panier"],
+  ] as const) {
+    const anchor = page.locator(`header ${link}`);
+    const icon = anchor.locator("svg.header-icon");
+    await expect(icon).toBeVisible();
+    await expect(anchor).toHaveText(new RegExp(name));
+    const iconBox = (await icon.boundingBox()) as { y: number; height: number };
+    const label = (await anchor
+      .getByText(name, { exact: true })
+      .boundingBox()) as { y: number };
+    expect(label.y).toBeGreaterThanOrEqual(iconBox.y + iconBox.height);
   }
-  await expect(page.locator("header [data-account-link]")).toHaveText(/Compte/);
-  await expect(page.locator("header [data-cart-link]")).toHaveText(/Panier/);
+  // The search box sits in the middle of the header from 64rem.
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const search = (await page.locator("header search").boundingBox()) as {
+    x: number;
+    width: number;
+  };
+  expect(Math.abs(search.x + search.width / 2 - 640)).toBeLessThan(2);
 });

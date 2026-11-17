@@ -35,6 +35,7 @@ The theme in `site/site.css` replaces Tailwind's palette with these tokens, draw
 | `leaf` | `#22C08A` | on navy only: the logo's "o", focus rings | 7.4:1 on navy |
 | `cream` | `#E8D8C0` | links on navy | 12.4:1 on navy |
 | `mist` | `#9DBDCC` | secondary text on navy | 8.7:1 on navy |
+| `sky` | `#6CB4EE` | on navy only: the brands in the menus | 7.8:1 on navy |
 | `sand` | `#F6F1E8` | soft surfaces | 15.4:1 with navy |
 | `slate` | `#4F6170` | secondary text, form field borders | 6.4:1 on white |
 | `line` | `#C9D3D9` | decorative card borders only | 1.5:1 on white |
