@@ -4,7 +4,7 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 ## 1. Project context
 
-- **Sekoya Parts:** a spare-parts e-commerce catalog, built as a portfolio project for the owner's Malt profile. It demonstrates the **feasibility** of a very large catalog and, since Phase 4, of a demo shop around it.
+- **Sekoya Parts:** a spare-parts e-commerce catalog, built as a personal portfolio project. It demonstrates the **feasibility** of a very large catalog and, since Phase 4, of a demo shop around it.
 - **Owner:** Tech Lead, 15+ years of experience, who decides every technical choice and reviews the code. AI coding agents write the code and documentation under the owner's direction, following the rules in this file.
 - **Owner decisions so far:**
   - **Catalog:** about 100,000 products. One product is compatible with up to 1,000,000 appliance models (500,000 or 200,000 if that proves a problem); the other products have few.
