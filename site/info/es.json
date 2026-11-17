@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Pedidos de demostración",
+        "paragraphs": [
+          "Cuando realiza un pedido de demostración, el sitio guarda en su base de datos la dirección y el modo de entrega que indica desde el primer paso y, al confirmarlo, las piezas pedidas, sus precios, los importes y la fecha. No se cobra ni se entrega nada, y no se pide ningún medio de pago.",
+          "Durante el pedido, el sitio instala durante 2 horas una cookie, checkout_v1, que solo puede leer el servidor y que solo contiene un número aleatorio que designa su pedido en curso. Es estrictamente necesaria para el pedido.",
+          "Una tarea diaria elimina un pedido nunca confirmado 24 horas después de su último paso, y un pedido realizado sin cuenta 30 días después de confirmarse. Un pedido realizado con la sesión iniciada queda vinculado a su cuenta; si la cuenta se elimina, el pedido se elimina 30 días después de confirmarse."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Consultar el catálogo no guarda ninguna cookie propia del sitio.",

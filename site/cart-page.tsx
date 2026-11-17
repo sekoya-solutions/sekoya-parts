@@ -18,7 +18,12 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import type { Locale } from "../cms/locales.ts";
 import { CART_ROUTE } from "./add-to-cart.tsx";
-import { cartPath, categoryPath, perLocale } from "./addresses.ts";
+import {
+  cartPath,
+  categoryPath,
+  checkoutPagePath,
+  perLocale,
+} from "./addresses.ts";
 import { CART_COOKIE, MAX_QUANTITY, PROMO_COOKIE, parseCart } from "./cart.ts";
 import {
   counted,
@@ -223,6 +228,17 @@ async function CartContents({
             locale={locale}
             dictionary={dictionary}
           />
+          {subtotal > 0 && (
+            <p className="mt-4">
+              <a
+                href={checkoutPagePath(locale, "checkout")}
+                data-checkout-link
+                className="cart-button inline-flex items-center"
+              >
+                {dictionary.checkoutStart}
+              </a>
+            </p>
+          )}
           <CodeForm
             applied={applied}
             refusal={refusal}

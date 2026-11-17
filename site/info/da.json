@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Demoordrer",
+        "paragraphs": [
+          "Når du afgiver en demoordre, gemmer webstedet i sin database den adresse og leveringsmåde, du angiver allerede i første trin, og når ordren afgives, de bestilte dele, deres priser, beløbene og datoen. Intet bliver opkrævet eller leveret, og der bedes ikke om nogen betalingsmetode.",
+          "Under bestillingen sætter webstedet en cookie i 2 timer, checkout_v1, som kun serveren kan læse, og som kun indeholder et tilfældigt nummer, der angiver din igangværende ordre. Den er strengt nødvendig for bestillingen.",
+          "En daglig opgave sletter en ordre, der aldrig blev afgivet, 24 timer efter dens sidste trin, og en ordre afgivet uden konto 30 dage efter, at den blev afgivet. En ordre afgivet, mens du er logget ind, er knyttet til din konto; hvis kontoen slettes, slettes ordren 30 dage efter, at den blev afgivet."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Når du gennemser kataloget, gemmer webstedet ingen egen cookie.",

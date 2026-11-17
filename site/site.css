@@ -779,6 +779,47 @@
     background-color: var(--color-navy);
     color: var(--color-white);
   }
+  /* The checkout's delivery step (issue #187): its fields like the account
+     forms', and each radio choice beside its label, the row as tall as the
+     other controls to tap. */
+  .checkout-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 32rem;
+  }
+  .checkout-form label {
+    display: block;
+    font-weight: 600;
+  }
+  .checkout-form input:not([type="radio"]),
+  .checkout-form select {
+    width: 100%;
+    min-height: 2.75rem;
+    margin-top: 0.25rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-md);
+  }
+  .checkout-form fieldset {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .checkout-choice {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+  }
+  .checkout-choice input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--color-action);
+  }
+  .checkout-form .checkout-choice label {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
   /* The saved addresses (issue #178): one card each, then its edit link and
      remove button, as tall as the other controls to tap. */
   .address-list {

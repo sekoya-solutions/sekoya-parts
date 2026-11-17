@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Demo-Bestellungen",
+        "paragraphs": [
+          "Wenn Sie eine Demo-Bestellung aufgeben, speichert die Website in ihrer Datenbank ab dem ersten Schritt die Adresse und die Versandart, die Sie angeben, und beim Abschicken die bestellten Teile, ihre Preise, die Beträge und das Datum. Es wird nichts berechnet oder geliefert, und es wird kein Zahlungsmittel abgefragt.",
+          "Während der Bestellung setzt die Website für 2 Stunden ein Cookie, checkout_v1, das nur der Server lesen kann und das nur eine Zufallsnummer enthält, die Ihre laufende Bestellung bezeichnet. Es ist für die Bestellung unbedingt erforderlich.",
+          "Eine tägliche Aufgabe löscht eine nie abgeschickte Bestellung 24 Stunden nach ihrem letzten Schritt und eine ohne Konto aufgegebene Bestellung 30 Tage nach dem Abschicken. Eine angemeldet aufgegebene Bestellung ist mit Ihrem Konto verknüpft; wird das Konto gelöscht, wird sie 30 Tage nach dem Abschicken gelöscht."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Beim Durchsuchen des Katalogs setzt die Website selbst kein Cookie.",

@@ -340,7 +340,18 @@ Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approv
      - "Delete my account", which asks for the password, deletes the account, its addresses and its sessions at once, and signs the browser out; the cart is kept. The addresses go with their account through their foreign key's `ON DELETE CASCADE`, so the daily purge deletes them too;
      - the privacy page lists the saved addresses and how to delete them, in the ten languages;
      - Lighthouse measures the account page signed in: each run signs up an account of its own, with a random username and password kept in memory only, sends its session as a cookie, checks the session token is in no saved report, and deletes the account when the runs end, on previews and on production (owner decision, 2026-11-16). If a run dies before that, the daily purge deletes the account 30 days later.
-10. **Mock checkout:** delivery address and method, a demo payment step with no card field, and a confirmation; orders stored in Payload, with prices read again from the catalog, and the order history on the account page.
+10. **Mock checkout,** in two issues (owner decision, 2026-11-17):
+    - **Delivery, demo payment and confirmation** ([#187](https://github.com/sekoya-solutions/sekoya-parts/issues/187)), as a guest or signed in, from the cart page's "Commander" button, as forms that work without JavaScript, posting to `/api/checkout`:
+      - three pages at their translated words (`commande`, `paiement`, `confirmation` in French), each saying it is a demo, read on each visit outside any `<Suspense>` boundary, with `noindex`;
+      - the delivery step: the address (a signed-in customer can pick a saved one), then home delivery at 6.90 € or a pickup point at 3.90 €, both free from 49 € and set in "Shop settings" (owner decision, 2026-11-17). The pickup point is one of five fictitious points per country, a fixed list in the code, and must be in the address's country;
+      - the answers are stored as a draft order in an `orders` collection (owner decision, 2026-11-17): a third cookie, `checkout_v1`, readable by the server alone for 2 hours, holds only a random token, whose SHA-256 names the draft, so no cookie holds an address (ADR 0013 amended). A refused pickup point keeps the other answers;
+      - the payment step reads the draft back, with its lines and totals read again from the catalog, the promotion code and "Shop settings", and a demo payment with no card field. "Place order" computes them again: a total different from the one the page showed sends the visitor back to it with the new total. Placing locks the draft's row, so a double click places it once, and the number comes from a sequence (`SP-000001`). The cart and its code are then emptied;
+      - the confirmation shows the order's number, lines, totals and address, from the checkout cookie only;
+      - editors see the orders in the admin; visitors never reach them through Payload's API. A database trigger caps the table at 20,000 rows, drafts included, past which the checkout closes with a message (owner decision, 2026-11-17);
+      - the daily purge, `/api/accounts/purge`, also deletes a draft never placed 24 hours after its last step and a guest's order 30 days after it was placed;
+      - the privacy page says what an order stores, what its cookie holds and when it is deleted, in the ten languages;
+      - Lighthouse measures the delivery step with the cart's cookie and the payment step with a draft of its own run, never placed, whose token is checked out of every saved report.
+    - **Order history** ([#188](https://github.com/sekoya-solutions/sekoya-parts/issues/188)): the account page lists the customer's orders, and an account's orders are deleted with it.
 
 ## Decisions open for the owner
 
