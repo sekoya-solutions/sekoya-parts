@@ -15,6 +15,7 @@ Sekoya Parts is hosted on Vercel, with automatic deployments for every branch an
 - **Open points from ADR 0001.** The Hobby limits for ISR, the Runtime Cache and functions, and the empty page cache at the start of each deployment.
 - **Public repository.** No secret is ever committed.
 - **Terms.** The Hobby plan is for non-commercial use. Whether a freelance portfolio fits is the owner's call; this record only states the terms.
+- **Decided (2026-11-17, [#204](https://github.com/sekoya-solutions/sekoya-parts/issues/204)):** the site stays a personal, non-commercial demonstration on Hobby; see `AGENTS.md`, section 1.
 
 ### Criteria
 
