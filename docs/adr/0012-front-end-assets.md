@@ -16,7 +16,7 @@ This Architecture Decision Record (ADR) chooses how pages are styled and what th
 - **Hosting.** Hobby includes 5,000 image transformations a month ([ADR 0002](0002-hosting-and-environments.md)).
 - **Tools.** Biome for lint and format, and npm with install scripts off ([ADR 0003](0003-toolchain.md)). Lighthouse runs on every preview ([ADR 0004](0004-testing-and-ci.md)).
 - **Page weight.** The product page lists 500 references, so every byte per element counts ([ADR 0009](0009-compatible-references.md)).
-- **Languages.** A language chooser at the bare domain and a language switch on every page ([ADR 0011](0011-languages-and-seo.md)).
+- **Languages.** A language switch on every page, and a bare domain that redirects to a home page ([ADR 0011](0011-languages-and-seo.md); a language chooser until issue #191).
 
 ### Criteria
 
@@ -60,8 +60,9 @@ Chosen:
   - Pages use `<picture>` with explicit width and height. The main product image loads with high priority, and the others lazily, except the first few cards of a list, which can be in the first screen (#85).
   - Next.js's on-demand optimisation and Vercel Blob are not used.
 - **No browser code for the language switch or the search:**
-  - The switch is a set of links to the page's translated addresses (ADR 0011).
-  - The bare domain lists the ten languages as plain links.
+  - The switch is a set of links to the page's translated addresses (ADR 0011), each with its language's flag as inline SVG (issue #191).
+  - The bare domain redirects on the server, with no page of its own (issue #191; it listed the ten languages as plain links until then).
+  - One exception, small and optional (issue #191, owner decision, 2026-11-17): a script remembers the language a visitor follows in the switch, in a cookie for the bare domain. Without it the links work the same, and only the pick is not remembered.
   - Search is the plain form of ADR 0010.
 - **Accessibility:** Lighthouse also checks the accessibility category on every preview, with the same minimum of 95.
 

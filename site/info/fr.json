@@ -176,6 +176,7 @@
         "heading": "Cookies",
         "paragraphs": [
           "Parcourir le catalogue ne dépose aucun cookie du site lui-même.",
+          "Lorsque vous choisissez une langue dans le menu des langues, le site dépose un cookie, lang_v1, qui ne contient que le code de cette langue et qu’il garde un an, pour ouvrir son adresse principale directement dans cette langue lors de votre prochaine visite. Sans lui, l’adresse principale suit la langue de votre navigateur.",
           "Lorsque vous ajoutez une pièce au panier, le site dépose un cookie, cart_v1, qui ne contient que les numéros des produits et leurs quantités. Lorsque vous appliquez un code promo, il en dépose un second, promo_v1, qui ne contient que ce code. Le site garde chacun 30 jours après sa dernière modification. Ils sont strictement nécessaires au panier : c’est pourquoi le site n’affiche aucun bandeau de consentement.",
           "Pour le vider, retirez les pièces depuis la page du panier, ou supprimez les données de ce site dans les réglages de votre navigateur."
         ]

@@ -92,6 +92,80 @@ test("the language switch opens without browser code and names each language in 
   }
 });
 
+test("the language switch and the phone menu show each language's flag, hidden from screen readers", async ({
+  page,
+}) => {
+  await page.goto("/de");
+  const summary = page
+    .getByRole("banner")
+    .locator("[data-wide-links] details:has(a[hreflang]) summary");
+  await expect(summary.locator("svg[data-flag]")).toHaveAttribute(
+    "data-flag",
+    "de",
+  );
+  const others = locales.filter((l) => l !== "de");
+  for (const menu of [
+    switchMenu(page),
+    page.locator("header [data-mobile-menu] nav"),
+  ])
+    for (const locale of others) {
+      const link = menu.locator(`a[hreflang="${locale}"]`);
+      // The attribute the browser script reads to remember the pick.
+      await expect(link).toHaveAttribute("data-language-pick", locale);
+      const flag = link.locator("svg[data-flag]");
+      await expect(flag).toHaveAttribute("data-flag", locale);
+      await expect(flag).toHaveAttribute("aria-hidden", "true");
+    }
+  // Drawn in place, with no request and the same box whatever the language.
+  const sizes = await page
+    .locator("header svg[data-flag]")
+    .evaluateAll((flags) =>
+      flags.map(
+        (flag) =>
+          `${flag.getAttribute("width")}x${flag.getAttribute("height")}`,
+      ),
+    );
+  expect(new Set(sizes)).toEqual(new Set(["21x14"]));
+});
+
+test("a language picked in the switch is remembered, and the bare domain opens it", async ({
+  page,
+}) => {
+  await page.goto("/fr");
+  // Without a pick, the bare domain would follow the browser, English here.
+  await page.setExtraHTTPHeaders({ "accept-language": "en-US,en;q=0.9" });
+  const ready = page.locator("html[data-language-pick-ready]");
+  await expect(ready).toHaveCount(1);
+  await page
+    .getByRole("banner")
+    .locator("[data-wide-links] details:has(a[hreflang]) summary")
+    .click();
+  await switchMenu(page).locator('a[hreflang="it"]').click();
+  await expect(page).toHaveURL(/\/it$/);
+  const cookie = (await page.context().cookies()).find(
+    (c) => c.name === "lang_v1",
+  );
+  expect(cookie?.value).toBe("it");
+  expect(cookie?.path).toBe("/");
+  expect(cookie?.sameSite).toBe("Lax");
+  // About a year from now, give or take a minute.
+  const year = Date.now() / 1000 + 365 * 24 * 60 * 60;
+  expect(Math.abs((cookie?.expires ?? 0) - year)).toBeLessThan(60);
+
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/it$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "it");
+
+  // Following a link of the phone menu replaces the pick.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(ready).toHaveCount(1);
+  await page.locator("header [data-mobile-menu] summary").click();
+  await page.locator('header [data-mobile-menu] nav a[hreflang="da"]').click();
+  await expect(page).toHaveURL(/\/da$/);
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/da$/);
+});
+
 test("on a product page, the switch links to the product in the other languages", async ({
   page,
   request,

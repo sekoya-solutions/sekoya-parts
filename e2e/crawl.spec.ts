@@ -40,17 +40,18 @@ test.describe("robots.txt and the sitemap", () => {
     const allowedExactly = robots.rules
       .filter((rule) => rule.allow && rule.pattern.endsWith("$"))
       .map((rule) => rule.pattern.slice(0, -1))
-      .filter((path) => path !== "/sitemap.xml");
+      .filter((path) => path !== "/sitemap.xml" && path !== "/");
     expect(new Set(allowedExactly)).toEqual(new Set(paths));
     expect(robots.rules).toContainEqual({ allow: false, pattern: "/" });
+    expect(robots.rules).toContainEqual({ allow: true, pattern: "/$" });
   });
 
-  test("list the bare domain, the home pages and every showcase product in ten languages", async ({
+  test("list the home pages and every showcase product in ten languages, but not the bare domain, a redirect", async ({
     request,
   }) => {
     const { locs } = await served(request);
     const paths = new Set(locs.map((loc) => loc.pathname));
-    expect(paths.has("/")).toBe(true);
+    expect(paths.has("/")).toBe(false);
     for (const locale of locales) expect(paths.has(`/${locale}`)).toBe(true);
     for (const locale of ["fr", "de"] as const)
       for (const { id } of showcaseProducts) {
@@ -94,7 +95,7 @@ test.describe("robots.txt and the sitemap", () => {
   }) => {
     test.setTimeout(180_000);
     const { locs } = await served(request);
-    // Every language of the bare domain, home and category pages, and one
+    // Every language of the home and category pages, and one
     // language of each product and model page, requested one at a time.
     const checked = locs.filter(
       (loc) =>

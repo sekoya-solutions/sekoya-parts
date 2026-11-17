@@ -176,6 +176,7 @@
         "heading": "Cookies",
         "paragraphs": [
           "Het bekijken van de catalogus plaatst geen eigen cookie van de site.",
+          "Wanneer u in het talenmenu een taal kiest, plaatst de site een cookie, lang_v1, dat alleen de code van die taal bevat en dat een jaar wordt bewaard, zodat het hoofdadres bij uw volgende bezoek meteen in die taal opent. Zonder dit cookie volgt het hoofdadres de taal van uw browser.",
           "Wanneer je een onderdeel aan de winkelwagen toevoegt, plaatst de site een cookie, cart_v1, met alleen de nummers van de producten en hun aantallen. Wanneer je een kortingscode toepast, plaatst hij een tweede, promo_v1, met alleen die code. De site bewaart elk 30 dagen na de laatste wijziging. Ze zijn strikt noodzakelijk voor de winkelwagen: daarom toont de site geen toestemmingsbanner.",
           "Om hem te legen, verwijder je de onderdelen op de winkelwagenpagina, of wis je de gegevens van deze site in de instellingen van je browser."
         ]

@@ -176,6 +176,7 @@
         "heading": "Cookie",
         "paragraphs": [
           "La consultazione del catalogo non imposta alcun cookie del sito stesso.",
+          "Quando scegli una lingua nel menu delle lingue, il sito imposta un cookie, lang_v1, che contiene solo il codice di quella lingua e che conserva per un anno, per aprire il suo indirizzo principale direttamente in quella lingua alla tua prossima visita. Senza di esso, l’indirizzo principale segue la lingua del tuo browser.",
           "Quando aggiungi un ricambio al carrello, il sito imposta un cookie, cart_v1, che contiene solo i numeri dei prodotti e le loro quantità. Quando applichi un codice promozionale, ne imposta un secondo, promo_v1, che contiene solo quel codice. Il sito conserva ciascuno per 30 giorni dall’ultima modifica. Sono strettamente necessari al carrello: per questo il sito non mostra alcun banner di consenso.",
           "Per svuotarlo, rimuovi i ricambi dalla pagina del carrello oppure elimina i dati di questo sito nelle impostazioni del browser."
         ]

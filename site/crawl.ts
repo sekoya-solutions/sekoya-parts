@@ -37,13 +37,14 @@ export type CrawlInput = {
 const PLAIN_PATH = /^\/(?:[a-z0-9-]+(?:\/[a-z0-9-]+)*)?$/;
 
 /**
- * The showcase's addresses, in a stable order: the bare domain, each home
- * page, each category's first page, each showcase product's page, then the
- * sampled model pages, every one in the ten languages and each listed once.
- * Later category pages and numbered reference pages stay out.
+ * The showcase's addresses, in a stable order: each home page, each
+ * category's first page, each showcase product's page, then the sampled
+ * model pages, every one in the ten languages and each listed once. Later
+ * category pages and numbered reference pages stay out, and so does the bare
+ * domain, a redirect (issue #191), which robotsRules allows on its own.
  */
 export function crawlPaths(input: CrawlInput): string[] {
-  const paths = new Set<string>(["/"]);
+  const paths = new Set<string>();
   for (const locale of locales) paths.add(homePath(locale));
   for (const category of input.categories)
     for (const locale of locales)
@@ -63,6 +64,12 @@ export function crawlPaths(input: CrawlInput): string[] {
   return [...paths];
 }
 
+/**
+ * The bare domain, which redirects to a home page (issue #191): allowed in
+ * robots.txt, but out of the sitemap, which lists only pages that answer 200.
+ */
+export const BARE_DOMAIN = "/";
+
 /** The address of the sitemap, which robots.txt names. */
 export const SITEMAP_PATH = "/sitemap.xml";
 
@@ -76,7 +83,8 @@ export const CRAWLABLE_ASSETS = ["/_next/static/", "/images/"] as const;
 export type RobotsRules = { allow: string[]; disallow: string[] };
 
 /**
- * Disallows everything, then allows each showcase address exactly, the
+ * Disallows everything, then allows each showcase address exactly, the bare
+ * domain, the home pages' x-default, whose redirect crawlers follow, the
  * assets its pages load and the sitemap. Google and Bing apply the most
  * specific (longest) matching rule, so every allowed address wins over
  * `Disallow: /`, and search pages, the admin, the API, later category pages,
@@ -85,6 +93,7 @@ export type RobotsRules = { allow: string[]; disallow: string[] };
 export function robotsRules(paths: readonly string[]): RobotsRules {
   return {
     allow: [
+      `${BARE_DOMAIN}$`,
       ...paths.map((path) => `${path}$`),
       ...CRAWLABLE_ASSETS,
       `${SITEMAP_PATH}$`,

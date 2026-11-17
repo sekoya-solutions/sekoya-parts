@@ -8,7 +8,10 @@
 // code (docs/adr/0012-front-end-assets.md): a native <details> element folds
 // each list without any script. On a phone they make way for one menu
 // (issue #181), a <details> element too, so the header keeps one row. The language switch takes each page's own
-// addresses in every language, the same ones as its hreflang tags.
+// addresses in every language, the same ones as its hreflang tags, and shows
+// each language's flag beside its name (issue #191). Following one of its
+// links, a small browser script remembers the language for the bare domain
+// (site/language-pick.tsx).
 import type { ReactNode } from "react";
 import { MODEL_COUNT } from "../catalog/generator.ts";
 import { type Locale, locales } from "../cms/locales.ts";
@@ -26,8 +29,11 @@ import { CartCount } from "./cart-count.tsx";
 import { CartForms } from "./cart-forms.tsx";
 import { getCategories } from "./categories.tsx";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
+import { Flag } from "./flags.tsx";
 import { AccountIcon, CartIcon, CloseIcon, MenuIcon } from "./header-icons.tsx";
 import { getInfoText } from "./info-texts.ts";
+import { LANGUAGE_PICK } from "./language-choice.ts";
+import { LanguagePick } from "./language-pick.tsx";
 import { MenuBackdrop } from "./menu-backdrop.tsx";
 import { MAX_QUERY_LENGTH } from "./search-key.ts";
 import type { Template } from "./templates.ts";
@@ -49,7 +55,8 @@ export function LanguageSwitch({
   const dictionary = getDictionary(locale);
   return (
     <details className="relative">
-      <summary className="cursor-pointer rounded-md px-2 py-1 text-sm text-cream uppercase">
+      <summary className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-sm text-cream uppercase">
+        <Flag locale={locale} />
         <span className="sr-only">{dictionary.languageMenu}: </span>
         {locale}
       </summary>
@@ -65,8 +72,10 @@ export function LanguageSwitch({
                   href={paths[other]}
                   hrefLang={other}
                   lang={other}
-                  className="block rounded-sm px-2 py-1"
+                  {...{ [LANGUAGE_PICK]: other }}
+                  className="flex items-center gap-2 rounded-sm px-2 py-1"
                 >
+                  <Flag locale={other} />
                   {getDictionary(other).languageName}
                 </a>
               </li>
@@ -225,6 +234,7 @@ export function SiteHeader({
           <CartLink locale={locale} />
         </div>
       </div>
+      {paths && <LanguagePick />}
     </header>
   );
 }
@@ -285,7 +295,13 @@ export async function MobileMenu({
               {locales.map((other) =>
                 other === locale ? null : (
                   <li key={other}>
-                    <a href={paths[other]} hrefLang={other} lang={other}>
+                    <a
+                      href={paths[other]}
+                      hrefLang={other}
+                      lang={other}
+                      {...{ [LANGUAGE_PICK]: other }}
+                    >
+                      <Flag locale={other} />
                       {getDictionary(other).languageName}
                     </a>
                   </li>

@@ -176,6 +176,7 @@
         "heading": "Cookies",
         "paragraphs": [
           "Consultar el catálogo no guarda ninguna cookie propia del sitio.",
+          "Cuando elige un idioma en el menú de idiomas, el sitio guarda una cookie, lang_v1, que solo contiene el código de ese idioma y que conserva durante un año, para abrir su dirección principal directamente en ese idioma en su próxima visita. Sin ella, la dirección principal sigue el idioma de su navegador.",
           "Cuando añade una pieza al carrito, el sitio guarda una cookie, cart_v1, que solo contiene los números de los productos y sus cantidades. Cuando aplica un código promocional, guarda una segunda, promo_v1, que solo contiene ese código. El sitio conserva cada una 30 días después de su último cambio. Son estrictamente necesarias para el carrito: por eso el sitio no muestra ningún aviso de consentimiento.",
           "Para vaciarlo, quite las piezas en la página del carrito o borre los datos de este sitio en los ajustes de su navegador."
         ]
