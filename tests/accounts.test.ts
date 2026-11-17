@@ -27,7 +27,6 @@ import {
   BRAND_WORDS,
   CART_WORDS,
   CATEGORY_SLUG,
-  FINDER_WORDS,
   FIT_WORDS,
   INFO_PAGES,
   INFO_SLUGS,
@@ -45,7 +44,6 @@ describe("account words", () => {
     const others = new Set([
       ...Object.values(BRAND_WORDS),
       ...Object.values(CART_WORDS),
-      ...Object.values(FINDER_WORDS),
       ...Object.values(FIT_WORDS),
       ...Object.values(SEARCH_WORDS),
       ...Object.values(MODEL_WORDS),

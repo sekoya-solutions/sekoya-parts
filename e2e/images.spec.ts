@@ -35,14 +35,18 @@ function expectDescribed(images: Awaited<ReturnType<typeof mainImages>>) {
   }
 }
 
-test("the home page shows an image per category, the first ones loaded at once", async ({
+test("the home page shows an image per category, each loaded lazily", async ({
   page,
 }) => {
   await page.goto("/fr");
   const images = await mainImages(page, 'main ul[data-list="categories"]');
   expect(images).toHaveLength(12);
   expectDescribed(images);
-  expectFirstRowFirst(images);
+  // Below the part finder and the promotions, whose first slide's image
+  // comes first (issue #196).
+  expect(images.map((i) => [i.loading, i.priority])).toEqual(
+    images.map(() => ["lazy", null]),
+  );
   // The showcase products below the categories (issue #111) load lazily,
   // which e2e/home-showcase.spec.ts checks.
   expectDescribed(await mainImages(page, 'main ul[data-list="showcase"]'));

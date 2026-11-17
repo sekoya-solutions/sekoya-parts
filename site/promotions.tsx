@@ -122,7 +122,15 @@ export async function HomePromotions({ locale }: { locale: Locale }) {
                 })}
               >
                 <a href={promotionPath(locale, slide, categories)}>
-                  <Picture image={imageOf(slide)} alt="" sizes={SLIDE_SIZES} />
+                  {/* The first slide's image is on the phone's first screen
+                      under the part finder, and its largest element (issue
+                      #196): fetched first, never lazily. */}
+                  <Picture
+                    image={imageOf(slide)}
+                    alt=""
+                    sizes={SLIDE_SIZES}
+                    priority={index === 0}
+                  />
                   <span className="slide-text">
                     <strong>{inLocale(slide.headline, locale)}</strong>
                     <span>{inLocale(slide.text, locale)}</span>

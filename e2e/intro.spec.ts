@@ -29,17 +29,21 @@ async function largestElement(page: Page) {
   );
   return page.evaluate(
     () =>
-      new Promise<{ intro: boolean; tag: string }>((resolve) => {
-        new PerformanceObserver((list) => {
-          const last = list.getEntries().at(-1) as
-            | (PerformanceEntry & { element: Element | null })
-            | undefined;
-          resolve({
-            intro: last?.element?.hasAttribute("data-intro") ?? false,
-            tag: last?.element?.outerHTML.slice(0, 120) ?? "none",
-          });
-        }).observe({ type: "largest-contentful-paint", buffered: true });
-      }),
+      new Promise<{ intro: boolean; firstSlide: boolean; tag: string }>(
+        (resolve) => {
+          new PerformanceObserver((list) => {
+            const last = list.getEntries().at(-1) as
+              | (PerformanceEntry & { element: Element | null })
+              | undefined;
+            resolve({
+              intro: last?.element?.hasAttribute("data-intro") ?? false,
+              firstSlide:
+                last?.element?.matches(".slider > li:first-child img") ?? false,
+              tag: last?.element?.outerHTML.slice(0, 120) ?? "none",
+            });
+          }).observe({ type: "largest-contentful-paint", buffered: true });
+        },
+      ),
   );
 }
 
@@ -68,13 +72,17 @@ const cardWidths = (page: Page) =>
     );
 
 for (const locale of locales) {
-  test(`the ${locale} home page's largest element is its introduction`, async ({
+  // Under the part finder, the first slide's image (issue #196), which is
+  // fetched first and never lazily.
+  test(`the ${locale} home page's largest element is its first slide's image, fetched first`, async ({
     page,
   }) => {
     await page.goto(`/${locale}`);
-    await expect(page.locator("[data-intro]")).toHaveCount(1);
     const largest = await largestElement(page);
-    expect(largest.intro, largest.tag).toBe(true);
+    expect(largest.firstSlide, largest.tag).toBe(true);
+    const image = page.locator(".slider > li").first().locator("img");
+    await expect(image).toHaveAttribute("loading", "eager");
+    await expect(image).toHaveAttribute("fetchpriority", "high");
   });
 
   test(`the ${locale} first category page's largest element is its introduction`, async ({

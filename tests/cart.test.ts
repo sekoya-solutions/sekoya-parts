@@ -8,7 +8,6 @@ import {
   CART_WORDS,
   CATEGORY_SLUG,
   cartPath,
-  FINDER_WORDS,
   FIT_WORDS,
   INFO_PAGES,
   INFO_SLUGS,
@@ -167,7 +166,6 @@ describe("cart words", () => {
   it("are valid category slug forms, reserved, and never another section's word or a generated category slug", () => {
     const others = new Set([
       ...Object.values(BRAND_WORDS),
-      ...Object.values(FINDER_WORDS),
       ...Object.values(FIT_WORDS),
       ...Object.values(SEARCH_WORDS),
       ...Object.values(MODEL_WORDS),

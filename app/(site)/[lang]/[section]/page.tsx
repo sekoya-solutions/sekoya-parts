@@ -7,8 +7,6 @@
 //   (docs/adr/0010-search.md, issue #113);
 // - the information pages, at /<lang>/<page slug> (issue #143);
 // - the brand index, at /<lang>/<brand word> (issue #147);
-// - the part finder, at /<lang>/<finder word>?make=…&appliance=…&q=… (issue
-//   #155);
 // - the fit check's answer, at /<lang>/<fit word>?part=…&q=… (issue #161);
 // - the cart, at /<lang>/<cart word> (issue #168);
 // - the account pages, at /<lang>/<account word>, <sign-up word> and
@@ -26,14 +24,12 @@ import {
   accountPageOf,
   BRAND_WORDS,
   checkoutPageOf,
-  FINDER_PARAMS,
   FIT_PARAMS,
   INFO_PAGES,
   INFO_SLUGS,
   infoPageOf,
   isBrandWord,
   isCartWord,
-  isFinderWord,
   isFitWord,
   isSearchWord,
 } from "../../../../site/addresses.ts";
@@ -53,7 +49,6 @@ import {
   checkoutMetadata,
 } from "../../../../site/checkout-page.tsx";
 import { getDictionary } from "../../../../site/dictionary.ts";
-import { FinderPage } from "../../../../site/finder.tsx";
 import { FitPage } from "../../../../site/fit-page.tsx";
 import { InfoPageView, infoMetadata } from "../../../../site/info-page.tsx";
 import { localeOf } from "../../../../site/resolve.ts";
@@ -101,12 +96,6 @@ export async function generateMetadata({
       title: `${getDictionary(locale).searchTitle} | Sekoya Parts`,
       robots: { index: false },
     };
-  // The finder's steps stay out of indexes too, like the search page.
-  if (isFinderWord(section))
-    return {
-      title: `${getDictionary(locale).finderTitle} | Sekoya Parts`,
-      robots: { index: false },
-    };
   // The fit check's answers too (issue #161).
   if (isFitWord(section))
     return {
@@ -136,21 +125,6 @@ export default async function SectionPage({ params, searchParams }: Props) {
     // 200, and results pages are kept out of search engines anyway.
     const query = queryOf((await searchParams).q);
     return <SearchPage locale={locale} query={query} />;
-  }
-  if (isFinderWord(section)) {
-    const query = await searchParams;
-    const one = (value: string | string[] | undefined) =>
-      typeof value === "string" ? value : undefined;
-    return (
-      <FinderPage
-        locale={locale}
-        choice={{
-          brand: one(query[FINDER_PARAMS.brand]),
-          type: one(query[FINDER_PARAMS.type]),
-          q: one(query.q),
-        }}
-      />
-    );
   }
   if (isFitWord(section)) {
     const query = await searchParams;

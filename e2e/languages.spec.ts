@@ -4,6 +4,7 @@
 // else French (issue #191).
 import { type APIRequestContext, expect, test } from "@playwright/test";
 import { locales } from "../cms/locales.ts";
+import { getDictionary } from "../site/dictionary.ts";
 
 /** The bare domain's answer to a request with these headers, unfollowed. */
 const bareDomain = (
@@ -75,8 +76,9 @@ for (const locale of locales) {
     const response = await page.goto(`/${locale}`);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    // The part finder's title (issue #196).
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Sekoya Parts",
+      getDictionary(locale).finderHomeTitle,
     );
   });
 }

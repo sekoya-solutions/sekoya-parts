@@ -3,6 +3,7 @@
 // from the page, never written here.
 import { expect, test } from "@playwright/test";
 import { locales } from "../cms/locales.ts";
+import { brandIndexPath } from "../site/addresses.ts";
 
 test.use({ javaScriptEnabled: false });
 
@@ -30,6 +31,20 @@ for (const locale of locales)
       const response = await request.get(href, { maxRedirects: 0 });
       expect(response.status(), href).toBe(200);
     }
+  });
+
+// The part finder is on the home page itself (issue #196): the first slide,
+// which led to its former page, leads to the brand index, as a promotion of
+// a category the catalog no longer has would.
+for (const locale of locales)
+  test(`the ${locale} first slide leads to the brand index`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}`);
+    await expect(page.locator(".slider > li > a").first()).toHaveAttribute(
+      "href",
+      brandIndexPath(locale),
+    );
   });
 
 test("the slides' headlines are in the page's language", async ({ page }) => {
@@ -61,7 +76,7 @@ test("the slider moves by its numbered links and never by itself", async ({
   );
 });
 
-test("the promotion images are described as decorative, sized and loaded lazily", async ({
+test("the promotion images are described as decorative, sized, and lazy but for the first slide's", async ({
   page,
 }) => {
   await page.goto("/fr");
@@ -73,15 +88,19 @@ test("the promotion images are described as decorative, sized and loaded lazily"
         width: img.getAttribute("width"),
         height: img.getAttribute("height"),
         loading: img.getAttribute("loading"),
+        priority: img.getAttribute("fetchpriority"),
         src: img.getAttribute("src") as string,
       })),
     );
   expect(images).toHaveLength(6);
-  for (const image of images) {
-    // The headline and text beside each image say what it leads to.
-    expect(image.alt).toBe("");
-    expect(image.loading).toBe("lazy");
-  }
+  // The headline and text beside each image say what it leads to.
+  for (const image of images) expect(image.alt).toBe("");
+  // The first slide's image is the home page's largest element on a phone
+  // (issue #196), fetched first; the others wait until they are near.
+  expect(images.map((i) => [i.loading, i.priority])).toEqual([
+    ["eager", "high"],
+    ...images.slice(1).map(() => ["lazy", null]),
+  ]);
   const slides = images.filter((i) => i.src.includes("promotion-slides"));
   expect(slides.map((i) => [i.width, i.height])).toEqual([
     ["2400", "900"],

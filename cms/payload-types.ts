@@ -207,7 +207,7 @@ export interface Promotion {
   image: number;
   headline: string;
   text?: string | null;
-  linkTo: 'category' | 'brands' | 'finder';
+  linkTo: 'category' | 'brands';
   category?:
     | (
         | 'belt'

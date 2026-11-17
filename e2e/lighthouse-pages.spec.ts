@@ -1,9 +1,10 @@
 // The pages the Lighthouse check measures are the templates its checks are
 // named after (AGENTS.md, section 3). Twice a section placed first in <main>
 // sent the "category" check elsewhere: the terms page (issue #144), then the
-// part finder (issue #155). This reads the addresses from the workflow itself
-// and resolves them as scripts/lighthouse.ts does, on the build CI tests, so
-// a wrong page fails here, before any deployment is measured. The account
+// part finder's former page (issue #155, removed by issue #196). This reads
+// the addresses from the workflow itself and resolves them as
+// scripts/lighthouse.ts does, on the build CI tests, so a wrong page fails
+// here, before any deployment is measured. The account
 // and order pages are read signed in, with a demo order placed through the
 // checkout, as the script's own account does (issue #188). Each page's
 // noindex tag must match the templates production's run expects to carry one.

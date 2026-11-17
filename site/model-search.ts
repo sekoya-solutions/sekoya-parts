@@ -18,7 +18,7 @@ export type ModelMatch = ModelKey & {
 
 type Database = PostgresAdapter["drizzle"];
 
-/** A brand and an appliance type, which the part finder searches within. */
+/** A brand and an appliance type, which the home page's part finder searches within. */
 export type ModelPair = { brandId: number; type: string };
 
 /**
@@ -36,7 +36,7 @@ export function modelSearchQuery(
   within?: ModelPair,
 ) {
   const expression = sql.raw(MODEL_SEARCH_KEY);
-  // The part finder searches one brand and appliance type only (issue #155).
+  // The part finder searches one brand and appliance type only (issue #196).
   const pair = within
     ? sql`AND m.brand_id = ${within.brandId} AND m.appliance_type = ${within.type}`
     : sql``;

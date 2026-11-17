@@ -1,5 +1,5 @@
 // The home page's promotions: when they show, when their part expires and
-// where they lead (issue #155).
+// where they lead (issues #155 and #196).
 import { describe, expect, it } from "vitest";
 import { categories, slugify } from "../catalog/generator.ts";
 import { type CategoryNaming, perLocale } from "../site/addresses.ts";
@@ -7,6 +7,7 @@ import {
   isRunning,
   nextPromotionChange,
   PROMOTION_CATEGORIES,
+  PROMOTION_LINKS,
   promotionPath,
 } from "../site/promotion-rules.ts";
 
@@ -52,19 +53,20 @@ describe("promotionPath", () => {
     ).toBe(`/de/${knob?.slugs.de}`);
   });
 
-  it("leads to the part finder when the catalog has no such category", () => {
+  it("leads to the brand index when the catalog has no such category", () => {
     expect(
       promotionPath("fr", { linkTo: "category", category: "toaster" }, naming),
-    ).toBe("/fr/trouver-une-piece");
+    ).toBe("/fr/marques");
   });
 
-  it("leads to the brand index or the finder", () => {
+  it("leads to the brand index", () => {
     expect(promotionPath("en", { linkTo: "brands" }, naming)).toBe(
       "/en/brands",
     );
-    expect(promotionPath("en", { linkTo: "finder" }, naming)).toBe(
-      "/en/find-a-part",
-    );
+  });
+
+  it("offers a category or the brand index only, never the removed finder (issue #196)", () => {
+    expect([...PROMOTION_LINKS]).toEqual(["category", "brands"]);
   });
 
   it("offers every generated category, and only those", () => {
