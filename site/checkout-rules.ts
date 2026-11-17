@@ -113,6 +113,23 @@ export function tokenHash(token: unknown): string | null {
 export const orderNumber = (sequence: number): string =>
   `SP-${String(sequence).padStart(6, "0")}`;
 
+/** An order number as orderNumber writes it, read from an address. */
+const ORDER_NUMBER = /^SP-\d{6,}$/;
+
+/** The order number an address names, or null for any other value. */
+export const parseOrderNumber = (value: unknown): string | null =>
+  typeof value === "string" && ORDER_NUMBER.test(value) ? value : null;
+
+/**
+ * The day an order was placed, in the page's language and in the Europe/Paris
+ * time zone, the shop's, so it reads the same whatever the server's zone.
+ */
+export const orderDate = (iso: string, locale: string): string =>
+  new Intl.DateTimeFormat(locale, {
+    dateStyle: "long",
+    timeZone: "Europe/Paris",
+  }).format(new Date(iso));
+
 /**
  * What the checkout route answers, as the checkout pages' notice:
  * - address, method, point: the first step's answers were refused;

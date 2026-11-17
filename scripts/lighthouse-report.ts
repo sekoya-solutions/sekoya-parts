@@ -164,14 +164,19 @@ export function categoryScore(
 
 /**
  * The templates meant to carry noindex, which robots.txt also disallows: the
- * cart page (issue #168, ADR 0013) and the account pages (issue #177). Their
- * pages fail is-crawlable from both.
+ * cart page (issue #168, ADR 0013), the account pages (issue #177), the
+ * checkout's delivery and payment steps (issue #187, missing here until
+ * issue #188: production's run for 9a5b93f stopped on them) and an order's
+ * page (issue #188). Their pages fail is-crawlable from both.
  */
 export const NOINDEX_TEMPLATES: readonly string[] = [
   "cart",
   "account",
   "sign-up",
   "sign-out",
+  "checkout",
+  "payment",
+  "order",
 ];
 
 /** The robots meta tag with noindex, as Lighthouse quotes it (is-crawlable.js). */
@@ -321,7 +326,9 @@ const categoryName = (id: CategoryId): string =>
  * of each address is the warm-up, which is not counted. Lighthouse CI starts a
  * new Chrome for every run, and the first one on a fresh runner is slower: in
  * run 43272369772 it scored 92 against 100, with the same requests and a
- * benchmark index of 1,996 against about 2,950 (issue #61).
+ * benchmark index of 1,996 against about 2,950 (issue #61). An address is its
+ * path and its query, so the account page and an order's page at
+ * ?order=<number> are two (issue #188).
  */
 export function splitWarmUp<
   T extends { requestedUrl: string; fetchTime: string },
@@ -330,7 +337,8 @@ export function splitWarmUp<
   for (const report of [...reports].sort((a, b) =>
     a.fetchTime.localeCompare(b.fetchTime),
   )) {
-    const path = new URL(report.requestedUrl).pathname;
+    const { pathname, search } = new URL(report.requestedUrl);
+    const path = `${pathname}${search}`;
     byPath.set(path, [...(byPath.get(path) ?? []), report]);
   }
   const split = new Map<string, { warmUp: T; runs: T[] }>();

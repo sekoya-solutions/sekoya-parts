@@ -1,16 +1,20 @@
 // The demo orders on a migrated database (issue #187): drafts saved and read
 // back by their token's hash, placing under the row's lock so two requests
 // place a draft once, a refusal that changes nothing, the purge and the cap
-// the database's trigger holds.
+// the database's trigger holds; and, since issue #188, a customer's orders
+// read by the account alone and deleted with it.
 //
 // The test's own rows get random token hashes and are deleted afterwards.
 // The purge and the cap run inside a transaction that is rolled back, so
 // they change no other row, even on the dev database.
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { purgeAccounts, purgeCutoff } from "../cms/accounts/purge.ts";
 import { purgeOrders } from "../cms/orders/purge.ts";
 import {
+  customerOrder,
+  customerOrders,
   type Placement,
   placeOrder,
   readCheckout,
@@ -358,6 +362,149 @@ describe("the cap", () => {
   it("lets a draft in below the cap", async () => {
     await rolledBack(async () => {
       await draftRow(newHash());
+    });
+  });
+});
+
+describe("a customer's orders", () => {
+  const newCustomer = async (lastSignIn: Date | null = null) =>
+    (
+      await client.query<{ id: number }>(
+        `INSERT INTO customers (username, last_sign_in_at)
+         VALUES ($1, $2) RETURNING id`,
+        [`t188-${randomBytes(4).toString("hex")}`, lastSignIn],
+      )
+    ).rows[0]?.id as number;
+
+  // A row as the checkout leaves it: a draft, or an order placed a given
+  // number of days ago with its number, total and one line.
+  const insertOrder = async (
+    customerId: number | null,
+    placedDaysAgo: number | null,
+  ) => {
+    const placed = placedDaysAgo !== null;
+    const number = placed
+      ? `SP-9${String(randomInt(10 ** 8)).padStart(8, "0")}`
+      : null;
+    const { rows } = await client.query<{ id: number }>(
+      `INSERT INTO orders
+         (token_hash, status, locale, customer_id, number, address_name,
+          address_line1, address_postal_code, address_city, address_country,
+          delivery_method, subtotal_cents, discount_cents, delivery_cents,
+          total_cents, placed_at)
+       VALUES ($1, $2, 'fr', $3, $4, 'T', 'L', '75001', 'Paris', 'FR', 'home',
+               $5, 0, 0, $5,
+               CASE WHEN $6::int IS NULL THEN NULL
+                    ELSE now() - make_interval(days => $6::int) END)
+       RETURNING id`,
+      [
+        newHash(),
+        placed ? "placed" : "draft",
+        customerId,
+        number,
+        placed ? 1000 + (placedDaysAgo ?? 0) : null,
+        placedDaysAgo,
+      ],
+    );
+    const id = rows[0]?.id as number;
+    if (placed)
+      await client.query(
+        `INSERT INTO orders_lines
+           (_order, _parent_id, id, product, reference, name, unit_cents, quantity)
+         VALUES (1, $1, $2, 1, 'SP000001', 'Pièce A', 1000, 1)`,
+        [id, randomBytes(12).toString("hex")],
+      );
+    return { id, number: number ?? "" };
+  };
+
+  const remaining = async (ids: number[]) =>
+    (
+      await client.query<{ id: number }>(
+        "SELECT id FROM orders WHERE id = ANY($1)",
+        [ids],
+      )
+    ).rows
+      .map((row) => row.id)
+      .sort();
+
+  it("lists the customer's placed orders only, newest first, up to the limit", async () => {
+    await rolledBack(async () => {
+      const customer = await newCustomer();
+      const other = await newCustomer();
+      const older = await insertOrder(customer, 3);
+      const newest = await insertOrder(customer, 1);
+      const middle = await insertOrder(customer, 2);
+      await insertOrder(customer, null);
+      await insertOrder(other, 0);
+      await insertOrder(null, 0);
+
+      const listed = await customerOrders(client, customer, 10);
+      expect(listed.map((order) => order.number)).toEqual([
+        newest.number,
+        middle.number,
+        older.number,
+      ]);
+      expect(listed[0]?.totalCents).toBe(1001);
+      expect(Date.parse(listed[0]?.placedAt ?? "")).not.toBeNaN();
+      expect(
+        (await customerOrders(client, customer, 2)).map((o) => o.number),
+      ).toEqual([newest.number, middle.number]);
+    });
+  });
+
+  it("reads one order for its customer only", async () => {
+    await rolledBack(async () => {
+      const customer = await newCustomer();
+      const other = await newCustomer();
+      const order = await insertOrder(customer, 0);
+      expect(await customerOrder(client, customer, order.number)).toMatchObject(
+        {
+          status: "placed",
+          number: order.number,
+          lines: [{ reference: "SP000001", quantity: 1 }],
+          totals: { totalCents: 1000 },
+        },
+      );
+      expect(await customerOrder(client, other, order.number)).toBeNull();
+      expect(await customerOrder(client, customer, "SP-000000")).toBeNull();
+    });
+  });
+
+  it("are deleted with the account, drafts and lines included, and no one else's", async () => {
+    await rolledBack(async () => {
+      const customer = await newCustomer();
+      const other = await newCustomer();
+      const placed = await insertOrder(customer, 0);
+      const draft = await insertOrder(customer, null);
+      const others = await insertOrder(other, 0);
+      const guest = await insertOrder(null, 0);
+
+      // As "Delete my account" does, through Payload's delete.
+      await client.query("DELETE FROM customers WHERE id = $1", [customer]);
+      expect(
+        await remaining([placed.id, draft.id, others.id, guest.id]),
+      ).toEqual([others.id, guest.id].sort());
+      const lines = await client.query(
+        "SELECT 1 FROM orders_lines WHERE _parent_id = $1",
+        [placed.id],
+      );
+      expect(lines.rows).toHaveLength(0);
+    });
+  });
+
+  it("are deleted by the daily purge with an expired account, and kept with a current one", async () => {
+    const now = new Date();
+    await rolledBack(async () => {
+      const day = 24 * 60 * 60 * 1000;
+      const expired = await newCustomer(
+        new Date(purgeCutoff(now).getTime() - day),
+      );
+      const current = await newCustomer(now);
+      const gone = await insertOrder(expired, 40);
+      const kept = await insertOrder(current, 40);
+
+      await purgeAccounts(client, now);
+      expect(await remaining([gone.id, kept.id])).toEqual([kept.id]);
     });
   });
 });

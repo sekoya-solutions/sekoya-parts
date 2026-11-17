@@ -159,8 +159,8 @@
       {
         "heading": "Demokonto",
         "paragraphs": [
-          "Om du skapar ett demokonto sparar webbplatsen i sin databas, som ligger i Europa, kontots användarnamn, en hash av lösenordet (aldrig själva lösenordet), datumet för den senaste inloggningen, dess öppna sessioner (en identifierare och en utgångstid) och de adresser du sparar i det, högst fem (ett namn, en postadress och ett land). Den frågar inte efter någon e-postadress. En daglig uppgift raderar varje konto vars senaste inloggning är mer än 30 dagar gammal, tillsammans med dess adresser.",
-          "På sidan ”Mitt konto” kan du redigera eller ta bort varje adress, och ”Ta bort mitt konto” raderar kontot, dess adresser och dess sessioner direkt och för alltid.",
+          "Om du skapar ett demokonto sparar webbplatsen i sin databas, som ligger i Europa, kontots användarnamn, en hash av lösenordet (aldrig själva lösenordet), datumet för den senaste inloggningen, dess öppna sessioner (en identifierare och en utgångstid) och de adresser du sparar i det, högst fem (ett namn, en postadress och ett land). Den frågar inte efter någon e-postadress. En daglig uppgift raderar varje konto vars senaste inloggning är mer än 30 dagar gammal, tillsammans med dess adresser och dess beställningar.",
+          "På sidan ”Mitt konto” hittar du dina beställningar och kan redigera eller ta bort varje adress, och ”Ta bort mitt konto” raderar kontot, dess adresser, dess beställningar och dess sessioner direkt och för alltid.",
           "Medan du är inloggad sätter webbplatsen två kakor i 2 timmar: payload-token, som bara servern kan läsa och som bär din session, och account_v1, som bara anger att en session är öppen, så att sidhuvudet kan visa det. De är strikt nödvändiga för kontot. När du loggar ut raderas båda; din varukorg sparas."
         ]
       },
@@ -169,7 +169,7 @@
         "paragraphs": [
           "När du lägger en demobeställning sparar webbplatsen i sin databas den adress och det leveranssätt du anger redan i första steget, och när beställningen läggs de beställda delarna, deras priser, beloppen och datumet. Ingenting debiteras eller levereras, och inget betalsätt efterfrågas.",
           "Under beställningen sätter webbplatsen en kaka i 2 timmar, checkout_v1, som bara servern kan läsa och som bara innehåller ett slumpmässigt nummer som anger din påbörjade beställning. Den är strikt nödvändig för beställningen.",
-          "En daglig uppgift raderar en beställning som aldrig lades 24 timmar efter dess senaste steg, och en beställning lagd utan konto 30 dagar efter att den lades. En beställning som läggs medan du är inloggad är kopplad till ditt konto; om kontot raderas, raderas beställningen 30 dagar efter att den lades."
+          "En daglig uppgift raderar en beställning som aldrig lades 24 timmar efter dess senaste steg, och en beställning lagd utan konto 30 dagar efter att den lades. En beställning som läggs medan du är inloggad är kopplad till ditt konto, som ensamt visar den, och raderas tillsammans med det."
         ]
       },
       {

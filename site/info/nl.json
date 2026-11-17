@@ -159,8 +159,8 @@
       {
         "heading": "Demo-account",
         "paragraphs": [
-          "Als u een demo-account aanmaakt, bewaart de site in haar database, gehost in Europa, de gebruikersnaam, een hash van het wachtwoord (nooit het wachtwoord zelf), de datum van de laatste keer inloggen, de open sessies (een kenmerk en een vervaltijd) en de adressen die u erin opslaat, maximaal vijf (een naam, een postadres en een land). Er wordt geen e-mailadres gevraagd. Een dagelijkse taak verwijdert elk account waarvan de laatste keer inloggen meer dan 30 dagen geleden is, samen met de adressen ervan.",
-          "Op de pagina ‘Mijn account’ kunt u elk adres bewerken of verwijderen, en met ‘Mijn account verwijderen’ verwijdert u het account, de adressen en de sessies meteen en definitief.",
+          "Als u een demo-account aanmaakt, bewaart de site in haar database, gehost in Europa, de gebruikersnaam, een hash van het wachtwoord (nooit het wachtwoord zelf), de datum van de laatste keer inloggen, de open sessies (een kenmerk en een vervaltijd) en de adressen die u erin opslaat, maximaal vijf (een naam, een postadres en een land). Er wordt geen e-mailadres gevraagd. Een dagelijkse taak verwijdert elk account waarvan de laatste keer inloggen meer dan 30 dagen geleden is, samen met de adressen en de bestellingen ervan.",
+          "Op de pagina ‘Mijn account’ vindt u uw bestellingen en kunt u elk adres bewerken of verwijderen, en met ‘Mijn account verwijderen’ verwijdert u het account, de adressen, de bestellingen en de sessies meteen en definitief.",
           "Zolang u bent ingelogd, plaatst de site twee cookies voor 2 uur: payload-token, alleen leesbaar voor de server, dat uw sessie draagt, en account_v1, dat alleen aangeeft dat er een sessie open is, zodat de kopregel dat kan tonen. Ze zijn strikt noodzakelijk voor het account. Uitloggen verwijdert ze allebei; uw winkelwagen blijft bewaard."
         ]
       },
@@ -169,7 +169,7 @@
         "paragraphs": [
           "Wanneer u een demobestelling plaatst, slaat de site in zijn database vanaf de eerste stap het adres en de bezorgwijze op die u opgeeft, en bij het plaatsen de bestelde onderdelen, hun prijzen, de bedragen en de datum. Er wordt niets in rekening gebracht of bezorgd, en er wordt geen betaalmiddel gevraagd.",
           "Tijdens de bestelling plaatst de site voor 2 uur een cookie, checkout_v1, alleen leesbaar voor de server, dat alleen een willekeurig nummer bevat dat uw lopende bestelling aanduidt. Het is strikt noodzakelijk voor de bestelling.",
-          "Een dagelijkse taak verwijdert een nooit geplaatste bestelling 24 uur na de laatste stap, en een bestelling zonder account 30 dagen na het plaatsen. Een bestelling die u ingelogd plaatst, is aan uw account gekoppeld; wordt het account verwijderd, dan wordt de bestelling 30 dagen na het plaatsen verwijderd."
+          "Een dagelijkse taak verwijdert een nooit geplaatste bestelling 24 uur na de laatste stap, en een bestelling zonder account 30 dagen na het plaatsen. Een bestelling die u ingelogd plaatst, is aan uw account gekoppeld, dat ze als enige toont, en wordt er samen mee verwijderd."
         ]
       },
       {

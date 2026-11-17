@@ -56,13 +56,15 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
         run: node scripts/docs-only.ts --superseded "$DEPLOY_SHA"
       - run: npm ci
-      # Single loads, one after another, on twelve pages: the French home page,
+      # Single loads, one after another, on thirteen pages: the French home page,
       # the first category it lists (issue #81), the heaviest product page, its
       # first reference page, its most popular model's page (issue #79) and the
       # first brand the brand index lists (issue #147), the cart page, with
       # a cart of three products sent as a cookie (issue #168), the account
       # page signed in with an account of its own that the run signs up and
-      # deletes (issue #178), the sign-up and sign-out pages, signed out
+      # deletes (issue #178), with a demo order the account places through the
+      # checkout, and that order's page, the first link of the account page's
+      # orders list, signed in (issue #188), the sign-up and sign-out pages, signed out
       # (issue #177), and the checkout's delivery and payment steps with the
       # same cart, the payment step with a draft of the run's own that is
       # never placed (issue #187).
@@ -96,6 +98,7 @@ jobs:
           brand=first-link:/fr/marques:/fr/marques/
           cart=/fr/mon-panier
           account=/fr/mon-compte
+          order=first-link:/fr/mon-compte:orders:/fr/mon-compte
           sign-up=/fr/inscription
           sign-out=/fr/deconnexion
           checkout=/fr/commande

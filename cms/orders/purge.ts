@@ -2,8 +2,8 @@
 // run by the daily cron with the accounts' purge (cms/accounts/endpoint.ts):
 // - a draft never placed, 24 hours after the last checkout form sent for it;
 // - a guest's order, 30 days after it was placed. An account's orders go
-//   with the account instead (issue #188); until then, deleting an account
-//   leaves its orders without a customer, so they become a guest's.
+//   with the account instead, deleted by the customer_orders_delete trigger
+//   (migrations/20261117_120000_customer_orders.ts, issue #188).
 // Their lines go with them through the foreign key's ON DELETE CASCADE
 // (migrations/20261117_075041_orders.ts).
 import {

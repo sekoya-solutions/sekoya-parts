@@ -1,8 +1,10 @@
 // The demo accounts' purge (issue #177, docs/adr/0014-customer-accounts.md):
 // an account is deleted 30 days after its last sign-in, or after its
 // creation when it never signed in, such as one an editor created. Its
-// sessions, and its rows in Payload's own tables, go with it through their
-// foreign keys' ON DELETE CASCADE (migrations/20261116_201311_customers.ts).
+// sessions, its saved addresses and its rows in Payload's own tables go with
+// it through their foreign keys' ON DELETE CASCADE, and its orders through
+// the customer_orders_delete trigger
+// (migrations/20261117_120000_customer_orders.ts).
 import { ACCOUNT_RETENTION_DAYS } from "../../site/account-rules.ts";
 import type { Query } from "../sales/rotation.ts";
 

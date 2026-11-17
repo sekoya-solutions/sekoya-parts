@@ -88,7 +88,10 @@ export const instant = false;
 
 type Props = PageProps<"/[lang]/[section]">;
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: Props): Promise<Metadata> {
   const { lang, section } = await params;
   const locale = localeOf(lang);
   // Results pages stay out of search engines' indexes (ADR 0010), with no
@@ -113,7 +116,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // The cart, which differs per visitor (issue #168).
   if (isCartWord(section)) return cartMetadata(locale);
   // The account pages, which differ per visitor too (issue #177).
-  if (accountPageOf(section)) return accountMetadata(locale, section);
+  if (accountPageOf(section))
+    return accountMetadata(locale, section, await searchParams);
   // The checkout pages, which differ per visitor too (issue #187).
   if (checkoutPageOf(section)) return checkoutMetadata(locale, section);
   if (infoPageOf(section)) return infoMetadata(locale, section);

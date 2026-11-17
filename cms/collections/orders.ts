@@ -24,6 +24,8 @@ export const ORDER_COLLECTION = "orders";
 // once. A database trigger caps the table at MAX_ORDERS rows, drafts
 // included, and the daily purge deletes a draft never placed after 24 hours
 // and a guest's order 30 days after it was placed (cms/orders/purge.ts).
+// An account's orders, drafts included, are deleted with the account by a
+// trigger (migrations/20261117_120000_customer_orders.ts, issue #188).
 export const Orders: CollectionConfig = {
   slug: ORDER_COLLECTION,
   access: editorCollectionAccess,

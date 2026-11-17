@@ -109,7 +109,16 @@ const cartHeader = {
 // account" once the runs end, whatever their outcome; if that fails, the
 // daily purge deletes it 30 days later. The session token is checked out of
 // every saved report, like the bypass secret.
+//
+// Since issue #188, the account is signed up before the first requests, and
+// places one demo order through the checkout (placeOrderForRun), so the
+// account page is measured with an order in its list, and the order page,
+// reached from that list's link, with the same session. The order goes with
+// the account when the run deletes it. If the run dies before, the daily
+// purge deletes both 30 days later.
 const ACCOUNT_PAGE = "account";
+const ORDER_PAGE = "order";
+const ACCOUNT_PAGES = [ACCOUNT_PAGE, ORDER_PAGE];
 type RunAccount = {
   username: string;
   password: string;
@@ -318,6 +327,71 @@ async function deleteRunAccount(account: RunAccount): Promise<void> {
   }
 }
 
+/** The checkout cookie a checkout route's answer sets, or undefined. */
+const checkoutToken = (response: Response) =>
+  response.headers
+    .getSetCookie()
+    .map((cookie) => cookie.split(";")[0] ?? "")
+    .find((pair) => pair.startsWith(`${CHECKOUT_COOKIE}=`))
+    ?.slice(CHECKOUT_COOKIE.length + 1);
+
+/**
+ * Places one demo order of the run's cart for the run's account, as the
+ * checkout's two forms do: the delivery step, then "Place order" with the
+ * total the payment page shows.
+ */
+async function placeOrderForRun(account: RunAccount): Promise<void> {
+  const signedIn = {
+    Cookie: `${cartHeader.Cookie}; ${account.header.Cookie}`,
+  };
+  const paymentPath = checkoutPagePath("fr", "payment");
+  const delivery = await postTo(
+    CHECKOUT_ROUTE,
+    {
+      intent: "delivery",
+      name: "Lighthouse Run",
+      line1: "1 rue de la Mesure",
+      line2: "",
+      postalCode: "75001",
+      city: "Paris",
+      country: "FR",
+      method: "home",
+    },
+    signedIn,
+  );
+  const token = checkoutToken(delivery);
+  const toPayment = delivery.headers.get("location");
+  if (delivery.status !== 303 || toPayment !== paymentPath || !token)
+    throw new Error(
+      `The run's order answered ${delivery.status} to ${toPayment ?? "nowhere"} at its delivery step.`,
+    );
+  const withDraft = {
+    Cookie: `${signedIn.Cookie}; ${CHECKOUT_COOKIE}=${token}`,
+  };
+  const payment = await request(paymentPath, withDraft);
+  const total = /name="total" value="(\d+)"/.exec(await payment.text())?.[1];
+  if (payment.status !== 200 || !total)
+    throw new Error(
+      `${paymentPath} answered ${payment.status} with no total for the run's order.`,
+    );
+  const placed = await postTo(
+    CHECKOUT_ROUTE,
+    { intent: "place", total },
+    withDraft,
+  );
+  const toConfirmation = placed.headers.get("location");
+  if (
+    placed.status !== 303 ||
+    toConfirmation !== checkoutPagePath("fr", "confirmation")
+  )
+    throw new Error(
+      `The run's order answered ${placed.status} to ${toConfirmation ?? "nowhere"} when placed.`,
+    );
+  console.log(
+    "Placed the run's own demo order for the account and order pages.",
+  );
+}
+
 /** Sends the delivery step for the run's cart and returns the draft's cookie. */
 async function startDraftForRun(): Promise<RunDraft> {
   const response = await postTo(
@@ -335,11 +409,7 @@ async function startDraftForRun(): Promise<RunDraft> {
     cartHeader,
   );
   const location = response.headers.get("location");
-  const token = response.headers
-    .getSetCookie()
-    .map((cookie) => cookie.split(";")[0] ?? "")
-    .find((pair) => pair.startsWith(`${CHECKOUT_COOKIE}=`))
-    ?.slice(CHECKOUT_COOKIE.length + 1);
+  const token = checkoutToken(response);
   if (
     response.status !== 303 ||
     location !== checkoutPagePath("fr", "payment") ||
@@ -376,12 +446,10 @@ async function follow(requested: string, extra: Record<string, string> = {}) {
       response.headers.get("location"),
     );
     await response.body?.cancel();
-    if (!next) {
-      console.error(
+    if (!next)
+      return stop(
         `Stopped: ${path} redirects outside the deployment or to nowhere.`,
       );
-      process.exit(1);
-    }
     console.log(`${path} redirects to ${next}, which is measured.`);
     path = next;
     response = await request(path, extra);
@@ -393,63 +461,96 @@ async function firstLink(
   page: string,
   prefix: string,
   list: string | undefined,
+  extra: Record<string, string> = {},
 ): Promise<string> {
-  const { path, response } = await follow(page);
+  const { path, response } = await follow(page, extra);
   const html = await response.text();
   if (response.status !== 200) {
-    console.error(`Stopped: ${path} answered ${response.status}.`);
-    process.exit(1);
+    await stop(`Stopped: ${path} answered ${response.status}.`);
   }
   const href = firstMainLink(html, prefix, list);
-  if (!href) {
-    console.error(
+  if (!href)
+    return stop(
       `Stopped: ${path} has no link starting with ${prefix} in <main>${list ? `'s ${list} list` : ""}.`,
     );
-    process.exit(1);
-  }
   console.log(`${path} links first to ${href}, which is measured.`);
   return href;
+}
+
+// The run's account and its order come before the first requests: the
+// order page is reached from the account page's list, signed in.
+let runAccount: RunAccount | null = null;
+if (pages.some(({ page }) => ACCOUNT_PAGES.includes(page))) {
+  try {
+    runAccount = await signUpForRun();
+    await placeOrderForRun(runAccount);
+  } catch (error) {
+    await stop(
+      `::error title=Lighthouse::Stopped: ${(error as Error).message}`,
+    );
+  }
+}
+
+/** The cookies a page's first request and runs carry. */
+const cookiesFor = (page: string): Record<string, string> =>
+  CART_COOKIE_PAGES.includes(page)
+    ? cartHeader
+    : ACCOUNT_PAGES.includes(page) && runAccount
+      ? runAccount.header
+      : {};
+
+/** Stops the run before its measurements, deleting the run's account first. */
+async function stop(message: string): Promise<never> {
+  console.error(message);
+  if (runAccount) await deleteRunAccount(runAccount);
+  process.exit(1);
 }
 
 const figures: Figures[] = [];
 for (const { page, address } of pages) {
   const linked = linkedAddress(address);
   const requested = linked
-    ? await firstLink(linked.page, linked.prefix, linked.list)
+    ? await firstLink(linked.page, linked.prefix, linked.list, cookiesFor(page))
     : address;
-  const { path, response } = await follow(
-    requested,
-    CART_COOKIE_PAGES.includes(page) ? cartHeader : {},
-  );
+  const { path, response } = await follow(requested, cookiesFor(page));
   const html = await response.text();
   if (response.status !== 200) {
-    console.error(`Stopped: ${path} answered ${response.status}.`);
-    process.exit(1);
+    await stop(`Stopped: ${path} answered ${response.status}.`);
   }
   // The page measured must be the template its check is named after: a link
   // that leads elsewhere, as the home page's first link did twice (issues
   // #144 and #155), stops the run rather than scoring the wrong page.
   const template = mainTemplate(html);
   if (template !== page) {
-    console.error(
+    await stop(
       `::error title=Lighthouse::Stopped: ${path} is a ${template ?? "unmarked"} page, not the ${page} page its check measures.`,
     );
-    process.exit(1);
   }
   if (page === CART_PAGE) {
     const lines = html.split("data-cart-line=").length - 1;
     if (lines !== CART_LINES_SEEDED) {
-      console.error(
+      await stop(
         `::error title=Lighthouse::Stopped: ${path} lists ${lines} cart lines, not the ${CART_LINES_SEEDED} its cookie holds.`,
       );
-      process.exit(1);
     }
   }
+  // Signed in as the run's account: its page lists the run's order, and
+  // the order page shows it.
+  if (
+    (page === ACCOUNT_PAGE &&
+      !(
+        html.includes('data-account="signed-in"') &&
+        html.includes('data-list="orders"')
+      )) ||
+    (page === ORDER_PAGE && !html.includes('data-account="order"'))
+  )
+    await stop(
+      `::error title=Lighthouse::Stopped: ${path} does not show the run's account and its order.`,
+    );
   if (page === CHECKOUT_PAGE && !html.includes('data-checkout="delivery"')) {
-    console.error(
+    await stop(
       `::error title=Lighthouse::Stopped: ${path} shows no delivery form for its cart.`,
     );
-    process.exit(1);
   }
   // Production: the public address must serve the deployed commit. No wait
   // and no retry: a mismatch fails the run (issue #67).
@@ -459,8 +560,7 @@ for (const { page, address } of pages) {
       expectedCommit,
     );
     if (mismatch) {
-      console.error(`::error title=Lighthouse::Stopped: ${path}: ${mismatch}`);
-      process.exit(1);
+      await stop(`::error title=Lighthouse::Stopped: ${path}: ${mismatch}`);
     }
   }
   figures.push({
@@ -491,10 +591,9 @@ if (target === "production") {
     expectedCommit,
   );
   if (response.status !== 200 || mismatch) {
-    console.error(
+    await stop(
       `::error title=Lighthouse::Stopped: /robots.txt: ${mismatch ?? `answered ${response.status}.`}`,
     );
-    process.exit(1);
   }
   const { rules } = parseRobots(text);
   for (const entry of figures)
@@ -512,7 +611,6 @@ const configFile = join(configDir, "lighthouserc.json");
 const staging = mkdtempSync(join(tmpdir(), "lighthouse-reports-"));
 rmSync(LHCI_DIR, { recursive: true, force: true });
 const profiles: string[] = [];
-let runAccount: RunAccount | null = null;
 let runDraft: RunDraft | null = null;
 try {
   const chrome = await chromePath();
@@ -555,7 +653,7 @@ try {
   };
   const plain = figures.filter(
     ({ page }) =>
-      ![SEEDED_PAGE, ACCOUNT_PAGE, ...CART_COOKIE_PAGES].includes(page),
+      ![SEEDED_PAGE, ...ACCOUNT_PAGES, ...CART_COOKIE_PAGES].includes(page),
   );
   if (plain.length > 0)
     collect(
@@ -584,24 +682,10 @@ try {
     entry.cache = response.headers.get("x-vercel-cache") ?? "";
     collect([entry.path], RUNS + 1, undefined, runDraft.header);
   }
-  for (const entry of figures.filter(({ page }) => page === ACCOUNT_PAGE)) {
-    runAccount ??= await signUpForRun();
-    // The first request, signed in this time: the page must show the
-    // account, and its HTML size is the signed-in page's.
-    const response = await request(entry.path, runAccount.header);
-    const html = await response.text();
-    if (
-      response.status !== 200 ||
-      mainTemplate(html) !== ACCOUNT_PAGE ||
-      !html.includes('data-account="signed-in"')
-    )
-      throw new Error(
-        `${entry.path} answered ${response.status} without the signed-in account page.`,
-      );
-    entry.htmlBytes = Buffer.byteLength(html);
-    entry.cache = response.headers.get("x-vercel-cache") ?? "";
-    collect([entry.path], RUNS + 1, undefined, runAccount.header);
-  }
+  // Their first request was signed in already, and checked the page.
+  for (const { path, page } of figures)
+    if (ACCOUNT_PAGES.includes(page) && runAccount)
+      collect([path], RUNS + 1, undefined, runAccount.header);
   for (const { path } of figures.filter(({ page }) => page === SEEDED_PAGE)) {
     // The warm-up without a history, then each run from a seeded profile.
     collect([path], 1);

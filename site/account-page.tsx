@@ -4,7 +4,9 @@
 //   a visitor who is not signed in, the username and a sign-out button for a
 //   customer, then since issue #178 the account page itself: the saved
 //   addresses, with one shown as a form to edit when ?address=<id> names
-//   it, the password change and "Delete my account";
+//   it, the password change and "Delete my account", and since issue #188
+//   the customer's orders, each leading to its own page at ?order=<number>,
+//   readable by its customer only;
 // - the sign-up page;
 // - the sign-out page, which confirms the sign-out and asks for it.
 //
@@ -16,11 +18,18 @@
 // robots.txt already disallows them (site/crawl.ts).
 
 import config from "@payload-config";
+import type { PostgresAdapter } from "@payloadcms/db-postgres";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 import { CUSTOMER_COLLECTION } from "../cms/collections/customers.ts";
 import type { Locale } from "../cms/locales.ts";
+import {
+  customerOrder,
+  customerOrders,
+  type StoredCheckout,
+} from "../cms/orders/store.ts";
 import {
   ACCOUNT_NOTICE_PARAM,
   ACCOUNT_ROUTE,
@@ -29,6 +38,8 @@ import {
   DONE_NOTICES,
   isAccountNotice,
   MAX_ACCOUNTS,
+  ORDER_LIST_MAX,
+  ORDER_PARAM,
   PASSWORD_MAX,
   PASSWORD_MIN,
   USERNAME_MAX,
@@ -41,10 +52,14 @@ import {
   accountPageOf,
   accountPagePath,
   accountPath,
+  orderPath,
   perLocale,
 } from "./addresses.ts";
+import { orderDate, parseOrderNumber } from "./checkout-rules.ts";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
+import { PlacedOrder } from "./order-summary.tsx";
+import { formatPrice } from "./product.tsx";
 import { addressLines, MAX_ADDRESSES } from "./saved-addresses.ts";
 import { type StoredAddress, storedAddresses } from "./stored-addresses.ts";
 
@@ -54,12 +69,58 @@ const TITLES: Record<AccountPage, keyof Dictionary> = {
   "sign-out": "signOutTitle",
 };
 
-export function accountMetadata(locale: Locale, section: string): Metadata {
+export function accountMetadata(
+  locale: Locale,
+  section: string,
+  query: Record<string, string | string[] | undefined>,
+): Metadata {
   const page = accountPageOf(section) ?? "account";
+  const dictionary = getDictionary(locale);
+  const number =
+    page === "account" ? parseOrderNumber(query[ORDER_PARAM]) : null;
   return {
-    title: `${getDictionary(locale)[TITLES[page]]} | Sekoya Parts`,
+    title: `${number ? fill(dictionary.orderTitle, { number }) : dictionary[TITLES[page]]} | Sekoya Parts`,
     robots: { index: false },
   };
+}
+
+/** The Postgres pool Payload's adapter holds, for the order reads. */
+async function pool() {
+  return ((await getPayload({ config })).db as unknown as PostgresAdapter).pool;
+}
+
+/**
+ * The order number the account address names with ?order= (issue #188),
+ * null without the parameter, and the not-found page for a value that is not
+ * an order number.
+ */
+function orderNumberOf(
+  query: Record<string, string | string[] | undefined>,
+): string | null {
+  const raw = query[ORDER_PARAM];
+  if (raw === undefined) return null;
+  const number = parseOrderNumber(raw);
+  if (!number) notFound();
+  return number;
+}
+
+/**
+ * One of the customer's orders (issue #188): null for a visitor who is not
+ * signed in, who gets the sign-in form, and the not-found page when no
+ * placed order of this customer has the number, so another customer's order
+ * reads as none.
+ *
+ * The page streams, so its status is already 200 when this is decided:
+ * Next.js then renders the not-found page with a noindex tag, but cannot
+ * send a 404 (node_modules/next/dist/docs/01-app/02-guides/streaming.md,
+ * "The HTTP contract"). Nothing of the order reaches that page.
+ */
+async function orderView(number: string) {
+  const customer = await signedInCustomer(new Headers(await headers()));
+  if (!customer) return null;
+  const order = await customerOrder(await pool(), customer.id, number);
+  if (!order?.totals || !order.placedAt) notFound();
+  return { ...order, totals: order.totals, placedAt: order.placedAt };
 }
 
 /** A refusal's message; the sign-out's confirmation is shown on its own. */
@@ -477,6 +538,78 @@ function DeleteAccount({
   );
 }
 
+/**
+ * The customer's placed orders, newest first (issue #188): the
+ * ORDER_LIST_MAX most recent, each leading to its own page.
+ */
+async function Orders({
+  customer,
+  locale,
+  dictionary,
+}: {
+  customer: SignedInCustomer;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  // One more than shown, to tell whether there are more.
+  const orders = await customerOrders(
+    await pool(),
+    customer.id,
+    ORDER_LIST_MAX + 1,
+  );
+  const shown = orders.slice(0, ORDER_LIST_MAX);
+  return (
+    <section aria-labelledby="orders-title" className="mt-10">
+      <h2 id="orders-title" className="text-2xl font-bold">
+        {dictionary.ordersTitle}
+      </h2>
+      {shown.length === 0 ? (
+        <p className="mt-2" data-orders="none">
+          {dictionary.ordersNone}
+        </p>
+      ) : (
+        <>
+          <table className="orders-table mt-4" data-list="orders">
+            <thead>
+              <tr>
+                <th scope="col">{dictionary.ordersNumber}</th>
+                <th scope="col">{dictionary.ordersDate}</th>
+                <th scope="col">{dictionary.ordersTotal}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((order) => (
+                <tr key={order.number} data-order={order.number}>
+                  <th scope="row" className="orders-number">
+                    <a
+                      href={orderPath(locale, order.number)}
+                      className="orders-link"
+                    >
+                      {order.number}
+                    </a>
+                  </th>
+                  <td>{orderDate(order.placedAt, locale)}</td>
+                  <td
+                    className="orders-total"
+                    data-order-total={order.totalCents}
+                  >
+                    {formatPrice(order.totalCents, locale)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {orders.length > ORDER_LIST_MAX && (
+            <p className="mt-2 text-slate" data-orders="more">
+              {fill(dictionary.ordersMore, { count: ORDER_LIST_MAX })}
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 /** The account page of a signed-in customer (issue #178). */
 async function AccountHome({
   customer,
@@ -501,6 +634,7 @@ async function AccountHome({
         </p>
         <SignOutForm locale={locale} dictionary={dictionary} />
       </section>
+      <Orders customer={customer} locale={locale} dictionary={dictionary} />
       <Addresses
         addresses={addresses}
         editing={editing}
@@ -694,7 +828,41 @@ async function AccountContents({
   );
 }
 
-export function AccountPageView({
+/**
+ * One of the customer's placed orders (issue #188), as it was placed.
+ */
+function OrderDetails({
+  order,
+  locale,
+  dictionary,
+}: {
+  order: StoredCheckout & {
+    totals: NonNullable<StoredCheckout["totals"]>;
+    placedAt: string;
+  };
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <div data-account="order">
+      <p className="mt-6" data-order-date>
+        {fill(dictionary.orderPlacedOn, {
+          date: orderDate(order.placedAt, locale),
+        })}
+      </p>
+      <PlacedOrder
+        order={{ ...order, totals: order.totals }}
+        locale={locale}
+        dictionary={dictionary}
+      />
+      <p className="mt-8">
+        <a href={accountPath(locale)}>{dictionary.orderBack}</a>
+      </p>
+    </div>
+  );
+}
+
+export async function AccountPageView({
   locale,
   section,
   searchParams,
@@ -705,6 +873,31 @@ export function AccountPageView({
 }) {
   const page = accountPageOf(section) ?? "account";
   const dictionary = getDictionary(locale);
+  // Read outside any <Suspense> boundary, like the rest of the page. One of
+  // the customer's orders at ?order=<number> (issue #188).
+  const number = page === "account" ? orderNumberOf(await searchParams) : null;
+  if (number) {
+    const order = await orderView(number);
+    return (
+      <SiteFrame
+        locale={locale}
+        template="order"
+        paths={perLocale((other) => orderPath(other, number))}
+      >
+        <h1 className="text-3xl font-bold sm:text-4xl">
+          {fill(dictionary.orderTitle, { number })}
+        </h1>
+        <p data-demo-notice className="mt-2 text-slate">
+          {dictionary.accountDemo}
+        </p>
+        {order ? (
+          <OrderDetails order={order} locale={locale} dictionary={dictionary} />
+        ) : (
+          <SignInForm locale={locale} dictionary={dictionary} />
+        )}
+      </SiteFrame>
+    );
+  }
   return (
     <SiteFrame
       locale={locale}

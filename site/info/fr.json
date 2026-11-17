@@ -159,8 +159,8 @@
       {
         "heading": "Compte de démonstration",
         "paragraphs": [
-          "Si vous créez un compte de démonstration, le site enregistre dans sa base de données, hébergée en Europe, son nom d’utilisateur, une empreinte de son mot de passe (jamais le mot de passe lui-même), la date de sa dernière connexion, ses sessions ouvertes (un identifiant et une heure d’expiration) et les adresses que vous y enregistrez, cinq au plus (un nom, une adresse postale et un pays). Il ne demande aucune adresse e-mail. Une tâche quotidienne supprime chaque compte dont la dernière connexion date de plus de 30 jours, avec ses adresses.",
-          "Sur la page Mon compte, vous pouvez modifier ou supprimer chaque adresse, et « Supprimer mon compte » efface tout de suite et définitivement le compte, ses adresses et ses sessions.",
+          "Si vous créez un compte de démonstration, le site enregistre dans sa base de données, hébergée en Europe, son nom d’utilisateur, une empreinte de son mot de passe (jamais le mot de passe lui-même), la date de sa dernière connexion, ses sessions ouvertes (un identifiant et une heure d’expiration) et les adresses que vous y enregistrez, cinq au plus (un nom, une adresse postale et un pays). Il ne demande aucune adresse e-mail. Une tâche quotidienne supprime chaque compte dont la dernière connexion date de plus de 30 jours, avec ses adresses et ses commandes.",
+          "Sur la page Mon compte, vous retrouvez vos commandes et pouvez modifier ou supprimer chaque adresse, et « Supprimer mon compte » efface tout de suite et définitivement le compte, ses adresses, ses commandes et ses sessions.",
           "Pendant que vous êtes connecté, le site dépose deux cookies pour 2 heures : payload-token, lisible par le serveur seul, qui porte votre session, et account_v1, qui indique seulement qu’une session est ouverte, pour que l’en-tête l’affiche. Ils sont strictement nécessaires au compte. Se déconnecter supprime les deux ; votre panier est conservé."
         ]
       },
@@ -169,7 +169,7 @@
         "paragraphs": [
           "Quand vous passez une commande de démonstration, le site enregistre dans sa base de données l’adresse et le mode de livraison que vous indiquez dès la première étape, puis, à la validation, les pièces commandées, leurs prix, les montants et la date. Rien n’est facturé ni livré, et aucun moyen de paiement n’est demandé.",
           "Pendant la commande, le site dépose pour 2 heures un cookie, checkout_v1, lisible par le serveur seul, qui ne contient qu’un numéro aléatoire désignant votre commande en cours. Il est strictement nécessaire à la commande.",
-          "Une tâche quotidienne supprime une commande jamais validée 24 heures après sa dernière étape, et une commande passée sans compte 30 jours après sa validation. Une commande passée en étant connecté est rattachée à votre compte ; si le compte est supprimé, elle est supprimée 30 jours après sa validation."
+          "Une tâche quotidienne supprime une commande jamais validée 24 heures après sa dernière étape, et une commande passée sans compte 30 jours après sa validation. Une commande passée en étant connecté est rattachée à votre compte, qui seul la montre, et supprimée avec lui."
         ]
       },
       {

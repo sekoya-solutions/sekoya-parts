@@ -32,16 +32,16 @@ import {
   checkoutPageOf,
   checkoutPagePath,
   homePath,
+  orderPath,
   perLocale,
 } from "./addresses.ts";
 import { CART_COOKIE, PROMO_COOKIE, parseCart } from "./cart.ts";
-import { type CartTotals, cartTotals } from "./cart-pricing.ts";
+import { cartTotals } from "./cart-pricing.ts";
 import {
   CHECKOUT_COOKIE,
   CHECKOUT_NOTICE_PARAM,
   CHECKOUT_ROUTE,
   type CheckoutNotice,
-  type DeliveryChoice,
   type DeliveryMethod,
   deliveryFor,
   isCheckoutNotice,
@@ -56,14 +56,16 @@ import {
 } from "./checkout-totals.ts";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
-import { type PickupPoint, pickupPointsIn } from "./pickup-points.ts";
-import { formatPrice } from "./product.tsx";
 import {
-  addressLines,
-  COUNTRIES,
-  countryOptions,
-  type SavedAddress,
-} from "./saved-addresses.ts";
+  AddressLines,
+  MethodText,
+  PlacedOrder,
+  pointText,
+  Summary,
+} from "./order-summary.tsx";
+import { pickupPointsIn } from "./pickup-points.ts";
+import { formatPrice } from "./product.tsx";
+import { addressLines, COUNTRIES, countryOptions } from "./saved-addresses.ts";
 import { type StoredAddress, storedAddresses } from "./stored-addresses.ts";
 
 const TITLES: Record<CheckoutPage, keyof Dictionary> = {
@@ -112,107 +114,6 @@ function Hidden({ locale, intent }: { locale: Locale; intent: string }) {
       <input type="hidden" name="lang" value={locale} />
       <input type="hidden" name="intent" value={intent} />
     </>
-  );
-}
-
-function AddressLines({
-  address,
-  locale,
-}: {
-  address: SavedAddress;
-  locale: Locale;
-}) {
-  return (
-    <>
-      {addressLines(address, locale).map(({ key, text }) => (
-        <span key={key} className="block">
-          {text}
-        </span>
-      ))}
-    </>
-  );
-}
-
-/** A pickup point as the page names it: its name, postal code and city. */
-const pointText = (point: PickupPoint, dictionary: Dictionary): string =>
-  `${fill(dictionary.checkoutPickupName, { city: point.city })}, ${point.postalCode} ${point.city}`;
-
-/** A delivery method's name, with its pickup point when it has one. */
-function MethodText({
-  choice,
-  dictionary,
-}: {
-  choice: DeliveryChoice;
-  dictionary: Dictionary;
-}) {
-  // The point's name already says it is a pickup point.
-  if (choice.method === "pickup" && choice.point)
-    return <>{pointText(choice.point, dictionary)}</>;
-  return (
-    <>
-      {dictionary[choice.method === "home" ? "checkoutHome" : "checkoutPickup"]}
-    </>
-  );
-}
-
-/** An order's lines and totals, as the payment page and the confirmation show them. */
-function Summary({
-  lines,
-  totals,
-  code,
-  locale,
-  dictionary,
-}: {
-  lines: readonly {
-    key: number;
-    name: string;
-    unitCents: number;
-    quantity: number;
-  }[];
-  totals: CartTotals;
-  code: string | null;
-  locale: Locale;
-  dictionary: Dictionary;
-}) {
-  const price = (cents: number) => formatPrice(cents, locale);
-  return (
-    <section aria-labelledby="order-lines-title" className="mt-8">
-      <h2 id="order-lines-title" className="text-2xl font-bold">
-        {dictionary.paymentLines}
-      </h2>
-      <ul data-list="order-lines" className="mt-4">
-        {lines.map((line) => (
-          <li key={line.key} data-order-line={line.key} className="mt-2">
-            {fill(dictionary.checkoutLabelValue, {
-              label: `${line.name} × ${line.quantity}`,
-              value: price(line.unitCents * line.quantity),
-            })}
-          </li>
-        ))}
-      </ul>
-      <div className="cart-totals mt-4">
-        <dl>
-          <dt>{dictionary.cartSubtotal}</dt>
-          <dd data-order-subtotal>{price(totals.subtotalCents)}</dd>
-          {code && totals.discountCents > 0 && (
-            <>
-              <dt>{fill(dictionary.cartDiscount, { code })}</dt>
-              <dd data-order-discount>−{price(totals.discountCents)}</dd>
-            </>
-          )}
-          <dt>{dictionary.cartDelivery}</dt>
-          <dd data-order-delivery={totals.deliveryCents}>
-            {totals.deliveryCents === 0
-              ? dictionary.cartDeliveryFree
-              : price(totals.deliveryCents)}
-          </dd>
-          <dt className="cart-total">{dictionary.cartTotal}</dt>
-          <dd className="cart-total" data-order-total={totals.totalCents}>
-            {price(totals.totalCents)}
-          </dd>
-        </dl>
-      </div>
-    </section>
   );
 }
 
@@ -536,31 +437,21 @@ function ConfirmationView({ visit }: { visit: Visit }) {
         <strong data-order-number>{stored.number}</strong>
       </p>
       <p className="mt-2">{dictionary.confirmationDemo}</p>
-      {stored.customerId === null && (
+      {stored.customerId === null ? (
         <p className="mt-2 text-slate">
           {fill(dictionary.confirmationKept, { days: ORDER_RETENTION_DAYS })}
         </p>
+      ) : (
+        // A signed-in customer finds it in the account (issue #188).
+        <p className="mt-2 text-slate" data-order-account>
+          {dictionary.confirmationInAccount}{" "}
+          <a href={orderPath(locale, stored.number ?? "")}>
+            {dictionary.confirmationAccountLink}
+          </a>
+        </p>
       )}
-      <section aria-labelledby="delivery-title" className="mt-6">
-        <h2 id="delivery-title" className="text-2xl font-bold">
-          {dictionary.checkoutAddressTitle}
-        </h2>
-        <p className="mt-2" data-order-address>
-          <AddressLines address={stored.choice.address} locale={locale} />
-        </p>
-        <p className="mt-2" data-order-method={stored.choice.method}>
-          <MethodText choice={stored.choice} dictionary={dictionary} />
-        </p>
-      </section>
-      <Summary
-        lines={stored.lines.map((line) => ({
-          key: line.product,
-          name: line.name,
-          unitCents: line.unitCents,
-          quantity: line.quantity,
-        }))}
-        totals={{ ...stored.totals, leftForFreeDeliveryCents: 0 }}
-        code={stored.totals.promotionCode}
+      <PlacedOrder
+        order={{ ...stored, totals: stored.totals }}
         locale={locale}
         dictionary={dictionary}
       />
