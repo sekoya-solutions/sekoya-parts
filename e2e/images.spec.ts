@@ -86,8 +86,8 @@ test("the product page's main image loads first, described by the product's name
   await page.goto(await productAddress(request, "de", MILLION_PRODUCT_ID));
   const images = await mainImages(page);
   // The gallery's pictures first (issue #200), then its thumbnails, then the
-  // related products' cards (issue #161): only the first picture loads at
-  // once, with high priority.
+  // related products' cards (issue #161): only the first picture is eager,
+  // with high priority; the others are marked lazy.
   const gallery = await mainImages(page, 'main ul[data-list="gallery"]');
   const thumbs = await mainImages(page, "main .gallery-thumbs");
   const related = await mainImages(page, 'main ul[data-list="related"]');

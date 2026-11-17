@@ -5,7 +5,10 @@
 // component in site/gallery-controls.tsx runs, so nothing moves when it does.
 //
 // The first picture is the page's largest element on a phone: it is fetched
-// first and never lazily. The other pictures and every thumbnail load lazily.
+// first and never lazily. The other pictures and every thumbnail are marked
+// lazy; a browser may still fetch them while the page loads, as they sit
+// beside the screen or on it (Chrome did on Lighthouse's phone, once the
+// first picture had arrived, PR #201).
 import type { Locale } from "../cms/locales.ts";
 import { fill, getDictionary } from "./dictionary.ts";
 import { GalleryControls } from "./gallery-controls.tsx";
