@@ -36,7 +36,7 @@ Facts were checked on 2026-11-11.
   - Google advises against automatically redirecting visitors between language versions. Localized words in addresses are fine ([multilingual sites](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites?hl=en)).
   - Translated path words read naturally for visitors and carry a light ranking signal. They need each page to be found by a stable key, since its words differ in each language. Categories already have a slug in each language ([ADR 0007](0007-catalog-data-model.md)).
   - The same words in every language would keep each page's ten versions at the same path, but read poorly outside one language.
-- **Language tags.** Google reads `hreflang` from HTML, HTTP headers or sitemaps. Each version lists every version, itself included, and `x-default` names the fallback ([localized versions](https://developers.google.com/search/docs/specialty/international/localized-versions)). Next.js writes these links from `alternates.languages` ([generateMetadata](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)).
+- **Language tags.** Google reads `hreflang` from HTML, HTTP headers or sitemaps. Each version lists every version, itself included, and `x-default` names the fallback, which suits language selectors and home pages that redirect by the browser's language ([localized versions](https://developers.google.com/search/docs/specialty/international/localized-versions), checked again on 2026-11-17). Next.js writes these links from `alternates.languages` ([generateMetadata](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)).
 - **Sitemaps.** A sitemap holds at most 50,000 addresses or 50 MB uncompressed ([build a sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)). Next.js splits large ones with `generateSitemaps` ([generateSitemaps](https://nextjs.org/docs/app/api-reference/functions/generate-sitemaps)).
 - **Crawl control.**
   - A `robots.txt` block stops crawling but not indexing, and a crawler that cannot fetch a page never sees its `noindex` ([block indexing](https://developers.google.com/search/docs/crawling-indexing/block-indexing)).
@@ -51,7 +51,12 @@ Facts were checked on 2026-11-11.
 Chosen:
 
 - **Routing** follows Next.js's own pattern, with no library: `app/[lang]` for the ten languages and dictionaries loaded on the server.
-- **The bare domain `/`** is a small page listing the ten languages. It is the `x-default` for the home page. Nothing redirects by the browser's language, and addresses without a language return 404.
+- **The bare domain `/`** redirects to a home page, and is its `x-default` (issue #191, owner decision, 2026-11-17; a page listing the ten languages until then):
+  - a temporary redirect (307), never cached for other visitors, to the language the visitor last picked in the language switch, kept in the `lang_v1` cookie for one year;
+  - without that cookie, or with an unknown value, to the best of the ten languages in the browser's `Accept-Language` header, by quality order and primary subtag (`en-GB` goes to `/en`);
+  - to `/fr` when nothing matches or the header is missing, as for most crawlers.
+- **The language switch** shows each language's flag beside its name, English with the United Kingdom's flag. A small browser script sets the cookie when one of its links is followed, so the catalog pages stay static output and the links point at the translated pages; without JavaScript the language still changes, but the pick is not remembered.
+- **Only `/` redirects by language.** Every address with a language serves that language to everyone, crawlers included, and other addresses without a language return 404.
 - **Addresses are translated:**
   - categories at `/<lang>/<category slug>`, for example `/fr/refrigerateur` and `/en/fridge`, and their later pages at `/<lang>/<category slug>/<n>`, 48 products each ([#81](https://github.com/sekoya-solutions/sekoya-parts/issues/81)). Product references hold a letter, so a number there is always a page;
   - products at `/<lang>/<category slug>/<words>-<reference>`, the words taken from the product's generated name in that language;
@@ -67,7 +72,7 @@ Chosen:
 Why:
 
 - **Readable addresses.** Translated words suit an e-commerce site, as visitors and search engines read them in their own language. Finding pages by stable keys keeps the cache keys of ADR 0008 unchanged: identifiers and the language.
-- **No guessed language:** no redirect by browser language, as Google advises.
+- **No guessed language on the language pages:** none redirects by browser language, as Google advises. Only the bare domain does, the case Google's `x-default` was designed for, so a visitor lands on a home page in their language at once.
 - **Search pages stay uncrawled,** which protects the search quota. `noindex` alone would let crawlers fetch them.
 - **DeepL** is free without a card, covers the ten languages and stops rather than charges at its limit.
 
@@ -77,6 +82,7 @@ What it costs, and where each cost is checked:
 - **The section word for models** and the allow list in `robots.txt` exist in ten languages.
 - **Blocked pages could still be indexed.** A disallowed page linked from elsewhere could appear without content in results, which Google allows. That is acceptable for search pages and the admin.
 - **DeepL's free allowance** is 1,000,000 characters in total, once (owner, 2026-11-13), and one translation of the twelve showcase products costs about 45,600. A translation memory keeps every translation through catalog reloads, so only new or changed French text is sent ([#104](https://github.com/sekoya-solutions/sekoya-parts/issues/104)).
+- **The bare domain runs a function on every visit,** since its redirect depends on the visitor. It reads two headers and answers at once, and a test covers each case.
 - **Sitemaps for the whole catalog** would only need `generateSitemaps` at 50,000 addresses each, if the crawl showcase is ever widened.
 
 ## Consequences
