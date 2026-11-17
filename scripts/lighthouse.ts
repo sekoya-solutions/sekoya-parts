@@ -62,6 +62,7 @@ import {
   PREVIEW_SKIPPED_AUDITS,
   PRODUCTION_URL,
   pageArguments,
+  postForm,
   REPORTS_DIR,
   refusedRequests,
   reportFiles,
@@ -216,22 +217,21 @@ async function request(
 
 // One form POST to the account route, as the site's own forms send it: from
 // the site's origin, without following the 303. A mitigation stops
-// everything, as for request().
+// everything, as for request(). It goes on a connection of its own (postForm).
 async function postAccount(
   fields: Record<string, string>,
   extra: Record<string, string> = {},
 ): Promise<Response> {
-  const response = await fetch(new URL(ACCOUNT_ROUTE, base), {
-    method: "POST",
-    headers: {
+  const response = await postForm(
+    new URL(ACCOUNT_ROUTE, base),
+    {
       ...headers,
       ...extra,
       Origin: new URL(base).origin,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({ lang: "fr", ...fields }),
-    redirect: "manual",
-  });
+    new URLSearchParams({ lang: "fr", ...fields }).toString(),
+  );
   if (
     response.status === 403 ||
     response.status === 429 ||
@@ -242,7 +242,6 @@ async function postAccount(
     );
     process.exit(1);
   }
-  await response.body?.cancel();
   return response;
 }
 

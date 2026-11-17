@@ -4,6 +4,8 @@
 // "Lighthouse scores" checks (one per page since issue #96) and the pull
 // request comment.
 // No input or output here, so Vitest tests it directly.
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
 import { ReportGenerator } from "lighthouse/report/generator/report-generator.js";
 import {
   isTemplate,
@@ -615,4 +617,45 @@ export function commentBody(
     reports,
     "",
   ].join("\n");
+}
+
+/**
+ * A POST on a connection of its own, its answer as a Response (issue #178).
+ * Each POST opens a connection of its own (agent: false) rather than
+ * fetch's pool: the sign-up comes minutes after the last request, and the
+ * deletion after every run, when the deployment has closed the pooled
+ * connection, and fetch never sends a POST again on another one. Run
+ * 43984792765 failed so ("other side closed"). Nothing retries.
+ */
+export function postForm(
+  url: URL,
+  sent: Record<string, string>,
+  body: string,
+): Promise<Response> {
+  const send = url.protocol === "http:" ? httpRequest : httpsRequest;
+  return new Promise((resolve, reject) => {
+    const req = send(
+      url,
+      {
+        method: "POST",
+        agent: false,
+        headers: { ...sent, "Content-Length": Buffer.byteLength(body) },
+      },
+      (res) => {
+        res.resume();
+        const answer = new Headers();
+        for (const [name, value] of Object.entries(res.headers))
+          for (const one of Array.isArray(value) ? value : [value])
+            if (one !== undefined) answer.append(name, one);
+        res.on("end", () =>
+          resolve(
+            new Response(null, { status: res.statusCode, headers: answer }),
+          ),
+        );
+        res.on("error", reject);
+      },
+    );
+    req.on("error", reject);
+    req.end(body);
+  });
 }
