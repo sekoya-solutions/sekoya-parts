@@ -304,6 +304,9 @@ test.describe("the facts bar on a phone", () => {
       await page.goto(`/${locale}`);
       const { bar, track, lists, copy } = facts(page);
       expect((await bar.boundingBox())?.height).toBeLessThan(32);
+      // The test browser's pointer may start at the page's top-left corner,
+      // over the bar, where hovering rightly pauses the loop: move it off.
+      await page.mouse.move(180, 500);
       expect(await animation(track)).toEqual({
         name: "facts-scroll",
         state: "running",
@@ -350,6 +353,8 @@ test.describe("the facts bar on a phone", () => {
   test("hovering pauses the loop", async ({ page }) => {
     await page.goto("/en");
     const { bar, track } = facts(page);
+    await page.mouse.move(180, 500);
+    expect((await animation(track)).state).toBe("running");
     await bar.hover({ position: { x: 4, y: 4 } });
     expect((await animation(track)).state).toBe("paused");
     await page.mouse.move(180, 500);
