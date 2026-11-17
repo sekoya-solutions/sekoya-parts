@@ -75,6 +75,7 @@ export interface Config {
     'promotion-codes': PromotionCode;
     users: User;
     customers: Customer;
+    orders: Order;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -89,6 +90,7 @@ export interface Config {
     'promotion-codes': PromotionCodesSelect<false> | PromotionCodesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -316,6 +318,50 @@ export interface Customer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  number?: string | null;
+  status: 'draft' | 'placed';
+  tokenHash: string;
+  locale: 'fr' | 'en' | 'de' | 'es' | 'it' | 'nl' | 'pt' | 'pl' | 'sv' | 'da';
+  customer?: (number | null) | Customer;
+  address: {
+    name: string;
+    line1: string;
+    line2?: string | null;
+    postalCode: string;
+    city: string;
+    country: string;
+  };
+  deliveryMethod: 'home' | 'pickup';
+  pickup?: {
+    point?: string | null;
+    city?: string | null;
+    postalCode?: string | null;
+  };
+  lines?:
+    | {
+        product: number;
+        reference: string;
+        name: string;
+        unitCents: number;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  promotionCode?: string | null;
+  subtotalCents?: number | null;
+  discountCents?: number | null;
+  deliveryCents?: number | null;
+  totalCents?: number | null;
+  placedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -365,6 +411,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'customers';
         value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
       } | null);
   globalSlug?: string | null;
   user:
@@ -555,6 +605,53 @@ export interface CustomersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  number?: T;
+  status?: T;
+  tokenHash?: T;
+  locale?: T;
+  customer?: T;
+  address?:
+    | T
+    | {
+        name?: T;
+        line1?: T;
+        line2?: T;
+        postalCode?: T;
+        city?: T;
+        country?: T;
+      };
+  deliveryMethod?: T;
+  pickup?:
+    | T
+    | {
+        point?: T;
+        city?: T;
+        postalCode?: T;
+      };
+  lines?:
+    | T
+    | {
+        product?: T;
+        reference?: T;
+        name?: T;
+        unitCents?: T;
+        quantity?: T;
+        id?: T;
+      };
+  promotionCode?: T;
+  subtotalCents?: T;
+  discountCents?: T;
+  deliveryCents?: T;
+  totalCents?: T;
+  placedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -601,6 +698,7 @@ export interface ShopSetting {
   id: number;
   deliveryCents: number;
   freeDeliveryFromCents: number;
+  pickupCents: number;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -611,6 +709,7 @@ export interface ShopSetting {
 export interface ShopSettingsSelect<T extends boolean = true> {
   deliveryCents?: T;
   freeDeliveryFromCents?: T;
+  pickupCents?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

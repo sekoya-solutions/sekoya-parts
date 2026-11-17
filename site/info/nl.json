@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Demobestellingen",
+        "paragraphs": [
+          "Wanneer u een demobestelling plaatst, slaat de site in zijn database vanaf de eerste stap het adres en de bezorgwijze op die u opgeeft, en bij het plaatsen de bestelde onderdelen, hun prijzen, de bedragen en de datum. Er wordt niets in rekening gebracht of bezorgd, en er wordt geen betaalmiddel gevraagd.",
+          "Tijdens de bestelling plaatst de site voor 2 uur een cookie, checkout_v1, alleen leesbaar voor de server, dat alleen een willekeurig nummer bevat dat uw lopende bestelling aanduidt. Het is strikt noodzakelijk voor de bestelling.",
+          "Een dagelijkse taak verwijdert een nooit geplaatste bestelling 24 uur na de laatste stap, en een bestelling zonder account 30 dagen na het plaatsen. Een bestelling die u ingelogd plaatst, is aan uw account gekoppeld; wordt het account verwijderd, dan wordt de bestelling 30 dagen na het plaatsen verwijderd."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Het bekijken van de catalogus plaatst geen eigen cookie van de site.",

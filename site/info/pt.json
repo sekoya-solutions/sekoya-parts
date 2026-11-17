@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Encomendas de demonstração",
+        "paragraphs": [
+          "Quando faz uma encomenda de demonstração, o site guarda na sua base de dados a morada e o modo de entrega que indica logo no primeiro passo e, ao confirmar, as peças encomendadas, os seus preços, os montantes e a data. Nada é cobrado nem entregue, e não é pedido nenhum meio de pagamento.",
+          "Durante a encomenda, o site define durante 2 horas um cookie, checkout_v1, que só o servidor consegue ler e que contém apenas um número aleatório que designa a sua encomenda em curso. É estritamente necessário para a encomenda.",
+          "Uma tarefa diária apaga uma encomenda nunca confirmada 24 horas após o seu último passo, e uma encomenda feita sem conta 30 dias após a confirmação. Uma encomenda feita com sessão iniciada fica associada à sua conta; se a conta for apagada, a encomenda é apagada 30 dias após a confirmação."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Consultar o catálogo não guarda nenhum cookie próprio do site.",

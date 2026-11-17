@@ -359,6 +359,77 @@ export const accountPagePath = (locale: Locale, page: AccountPage): string =>
 export const accountPath = (locale: Locale): string =>
   accountPagePath(locale, "account");
 
+/**
+ * The checkout pages in each language (issue #187): the delivery step at the
+ * checkout address, where the cart page leads; the payment step; and the
+ * confirmation. Each is a valid category slug's form, and Payload refuses a
+ * category slug equal to any of them. Two languages may share a word for the
+ * same page.
+ */
+export const CHECKOUT_WORDS: Record<Locale, string> = {
+  fr: "commande",
+  en: "checkout",
+  de: "kasse",
+  es: "tramitar-pedido",
+  it: "cassa",
+  nl: "afrekenen",
+  pt: "finalizar-compra",
+  pl: "zamowienie",
+  sv: "kassa",
+  da: "til-kassen",
+};
+
+export const PAYMENT_WORDS: Record<Locale, string> = {
+  fr: "paiement",
+  en: "payment",
+  de: "zahlung",
+  es: "pago",
+  it: "pagamento",
+  nl: "betaling",
+  pt: "pagamento",
+  pl: "platnosc",
+  sv: "betalning",
+  da: "betaling",
+};
+
+export const CONFIRMATION_WORDS: Record<Locale, string> = {
+  fr: "confirmation",
+  en: "order-confirmed",
+  de: "bestellbestaetigung",
+  es: "confirmacion",
+  it: "conferma-ordine",
+  nl: "bevestiging",
+  pt: "confirmacao",
+  pl: "potwierdzenie",
+  sv: "orderbekraftelse",
+  da: "ordrebekraeftelse",
+};
+
+/** The three checkout pages. */
+export type CheckoutPage = "checkout" | "payment" | "confirmation";
+
+const CHECKOUT_PAGE_WORDS: Record<CheckoutPage, Record<Locale, string>> = {
+  checkout: CHECKOUT_WORDS,
+  payment: PAYMENT_WORDS,
+  confirmation: CONFIRMATION_WORDS,
+};
+
+const checkoutPageByWord = new Map<string, CheckoutPage>(
+  (Object.keys(CHECKOUT_PAGE_WORDS) as CheckoutPage[]).flatMap((page) =>
+    Object.values(CHECKOUT_PAGE_WORDS[page]).map(
+      (word) => [word, page] as const,
+    ),
+  ),
+);
+
+/** The checkout page a section names, in any language and letter case, or null. */
+export const checkoutPageOf = (section: string): CheckoutPage | null =>
+  checkoutPageByWord.get(section.toLowerCase()) ?? null;
+
+/** A checkout page's address in one language. */
+export const checkoutPagePath = (locale: Locale, page: CheckoutPage): string =>
+  `/${locale}/${CHECKOUT_PAGE_WORDS[page][locale]}`;
+
 /** How many of a pair's models the finder's third step lists (owner decision). */
 export const POPULAR_MODELS = 24;
 
@@ -557,6 +628,7 @@ export const isReservedWord = (section: string): boolean =>
   isFitWord(section) ||
   isCartWord(section) ||
   accountPageOf(section) !== null ||
+  checkoutPageOf(section) !== null ||
   infoPageOf(section) !== null;
 
 /**

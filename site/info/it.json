@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Ordini dimostrativi",
+        "paragraphs": [
+          "Quando effettui un ordine dimostrativo, il sito salva nel suo database l’indirizzo e la modalità di consegna che indichi fin dal primo passaggio, poi, alla conferma, i ricambi ordinati, i loro prezzi, gli importi e la data. Nulla viene addebitato o consegnato e non viene chiesto alcun metodo di pagamento.",
+          "Durante l’ordine, il sito imposta per 2 ore un cookie, checkout_v1, leggibile solo dal server, che contiene soltanto un numero casuale che indica il tuo ordine in corso. È strettamente necessario all’ordine.",
+          "Un’attività quotidiana elimina un ordine mai confermato 24 ore dopo il suo ultimo passaggio, e un ordine effettuato senza account 30 giorni dopo la conferma. Un ordine effettuato con l’accesso è collegato al tuo account; se l’account viene eliminato, l’ordine viene eliminato 30 giorni dopo la conferma."
+        ]
+      },
+      {
         "heading": "Cookie",
         "paragraphs": [
           "La consultazione del catalogo non imposta alcun cookie del sito stesso.",

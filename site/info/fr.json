@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Commandes de démonstration",
+        "paragraphs": [
+          "Quand vous passez une commande de démonstration, le site enregistre dans sa base de données l’adresse et le mode de livraison que vous indiquez dès la première étape, puis, à la validation, les pièces commandées, leurs prix, les montants et la date. Rien n’est facturé ni livré, et aucun moyen de paiement n’est demandé.",
+          "Pendant la commande, le site dépose pour 2 heures un cookie, checkout_v1, lisible par le serveur seul, qui ne contient qu’un numéro aléatoire désignant votre commande en cours. Il est strictement nécessaire à la commande.",
+          "Une tâche quotidienne supprime une commande jamais validée 24 heures après sa dernière étape, et une commande passée sans compte 30 jours après sa validation. Une commande passée en étant connecté est rattachée à votre compte ; si le compte est supprimé, elle est supprimée 30 jours après sa validation."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Parcourir le catalogue ne dépose aucun cookie du site lui-même.",

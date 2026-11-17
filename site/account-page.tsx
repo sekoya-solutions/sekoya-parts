@@ -35,6 +35,7 @@ import {
   USERNAME_MIN,
 } from "./account-rules.ts";
 import { type SignedInCustomer, signedInCustomer } from "./account-session.ts";
+import { AddressFields } from "./address-fields.tsx";
 import {
   type AccountPage,
   accountPageOf,
@@ -44,18 +45,8 @@ import {
 } from "./addresses.ts";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
-import {
-  ADDRESS_FIELDS,
-  type AddressField,
-  addressLines,
-  countryOptions,
-  DEFAULT_COUNTRY,
-  FIELD_RULES,
-  isCountry,
-  MAX_ADDRESSES,
-  POSTAL_CODE,
-  type SavedAddress,
-} from "./saved-addresses.ts";
+import { addressLines, MAX_ADDRESSES } from "./saved-addresses.ts";
+import { type StoredAddress, storedAddresses } from "./stored-addresses.ts";
 
 const TITLES: Record<AccountPage, keyof Dictionary> = {
   account: "accountTitle",
@@ -241,111 +232,6 @@ function SignedIn({
       </p>
       <SignOutForm locale={locale} dictionary={dictionary} />
     </div>
-  );
-}
-
-/** A saved address's id and fields, as Payload reads them back. */
-type StoredAddress = SavedAddress & { id: string };
-
-/** The signed-in customer's saved addresses, in the order they were added. */
-async function storedAddresses(customerId: number): Promise<StoredAddress[]> {
-  const payload = await getPayload({ config });
-  const doc = await payload.findByID({
-    collection: CUSTOMER_COLLECTION,
-    id: customerId,
-    depth: 0,
-    overrideAccess: true,
-    disableErrors: true,
-  });
-  return (doc?.addresses ?? []).flatMap((row) =>
-    row.id && isCountry(row.country)
-      ? [
-          {
-            id: row.id,
-            label: row.label ?? "",
-            name: row.name,
-            line1: row.line1,
-            line2: row.line2 ?? "",
-            postalCode: row.postalCode,
-            city: row.city,
-            country: row.country,
-          },
-        ]
-      : [],
-  );
-}
-
-const FIELD_LABELS: Record<AddressField, keyof Dictionary> = {
-  label: "addressLabel",
-  name: "addressName",
-  line1: "addressLine1",
-  line2: "addressLine2",
-  postalCode: "addressPostalCode",
-  city: "addressCity",
-};
-
-const AUTOCOMPLETE: Record<AddressField, string | undefined> = {
-  label: "off",
-  name: "name",
-  line1: "address-line1",
-  line2: "address-line2",
-  postalCode: "postal-code",
-  city: "address-level2",
-};
-
-/**
- * The fields of an address form, filled with an address to edit. `prefix`
- * keeps the ids of the add form and of the edit form apart.
- */
-function AddressFields({
-  prefix,
-  address,
-  locale,
-  dictionary,
-}: {
-  prefix: string;
-  address: SavedAddress | null;
-  locale: Locale;
-  dictionary: Dictionary;
-}) {
-  return (
-    <>
-      {ADDRESS_FIELDS.map((name) => {
-        const id = `${prefix}-${name}`;
-        const rule = FIELD_RULES[name];
-        return (
-          <p key={name}>
-            <label htmlFor={id}>{dictionary[FIELD_LABELS[name]]}</label>
-            <input
-              id={id}
-              name={name}
-              type="text"
-              autoComplete={AUTOCOMPLETE[name]}
-              maxLength={rule.max}
-              required={rule.required}
-              defaultValue={address?.[name] ?? ""}
-              pattern={name === "postalCode" ? POSTAL_CODE.source : undefined}
-            />
-          </p>
-        );
-      })}
-      <p>
-        <label htmlFor={`${prefix}-country`}>{dictionary.addressCountry}</label>
-        <select
-          id={`${prefix}-country`}
-          name="country"
-          autoComplete="country"
-          required
-          defaultValue={address?.country ?? DEFAULT_COUNTRY[locale]}
-        >
-          {countryOptions(locale).map(({ code, name }) => (
-            <option key={code} value={code}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </p>
-    </>
   );
 }
 

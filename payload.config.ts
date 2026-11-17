@@ -7,6 +7,7 @@ import { accountPurgeEndpoint } from "./cms/accounts/endpoint";
 import { Brands } from "./cms/collections/brands";
 import { Categories } from "./cms/collections/categories";
 import { Customers } from "./cms/collections/customers";
+import { Orders } from "./cms/collections/orders";
 import { Products } from "./cms/collections/products";
 import { PromotionCodes } from "./cms/collections/promotion-codes";
 import { Promotions } from "./cms/collections/promotions";
@@ -43,6 +44,8 @@ export default closePayloadCollections(
       Users,
       // The shop's demo accounts, never allowed into the admin (issue #177).
       Customers,
+      // The demo orders, drafts included (issue #187).
+      Orders,
     ],
     // The cart's delivery values (issue #169).
     globals: [ShopSettings],

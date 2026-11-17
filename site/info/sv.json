@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Demobeställningar",
+        "paragraphs": [
+          "När du lägger en demobeställning sparar webbplatsen i sin databas den adress och det leveranssätt du anger redan i första steget, och när beställningen läggs de beställda delarna, deras priser, beloppen och datumet. Ingenting debiteras eller levereras, och inget betalsätt efterfrågas.",
+          "Under beställningen sätter webbplatsen en kaka i 2 timmar, checkout_v1, som bara servern kan läsa och som bara innehåller ett slumpmässigt nummer som anger din påbörjade beställning. Den är strikt nödvändig för beställningen.",
+          "En daglig uppgift raderar en beställning som aldrig lades 24 timmar efter dess senaste steg, och en beställning lagd utan konto 30 dagar efter att den lades. En beställning som läggs medan du är inloggad är kopplad till ditt konto; om kontot raderas, raderas beställningen 30 dagar efter att den lades."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "När du bläddrar i katalogen sätter webbplatsen ingen egen cookie.",

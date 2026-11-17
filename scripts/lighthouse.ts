@@ -40,8 +40,9 @@ import {
   SESSION_COOKIE,
   SIGNED_IN_COOKIE,
 } from "../site/account-rules.ts";
-import { accountPath } from "../site/addresses.ts";
+import { accountPath, checkoutPagePath } from "../site/addresses.ts";
 import { CART_COOKIE, serializeCart } from "../site/cart.ts";
+import { CHECKOUT_COOKIE, CHECKOUT_ROUTE } from "../site/checkout-rules.ts";
 import { COMMIT_HEADER } from "../site/commit.ts";
 import {
   belowThreshold,
@@ -116,6 +117,20 @@ type RunAccount = {
   header: Cookie;
 };
 type Cookie = { Cookie: string };
+
+// The checkout's delivery step (issue #187) is measured with the cart's
+// cookie, as the cart page is, and shows its form. The payment step is
+// measured with a draft of the run's own: startDraftForRun sends the
+// delivery step's form for a fictitious address with the same cart, and
+// the draft's checkout cookie goes with every request of its runs. The
+// first request checks the page shows the draft. No order is placed: the
+// draft is never turned into one, and the daily purge deletes it 24 hours
+// later. Its token is checked out of every saved report, like the bypass
+// secret.
+const CHECKOUT_PAGE = "checkout";
+const PAYMENT_PAGE = "payment";
+const CART_COOKIE_PAGES = [CART_PAGE, CHECKOUT_PAGE, PAYMENT_PAGE];
+type RunDraft = { token: string; header: Cookie };
 
 type Report = {
   requestedUrl: string;
@@ -215,15 +230,22 @@ async function request(
   return response;
 }
 
-// One form POST to the account route, as the site's own forms send it: from
-// the site's origin, without following the 303. A mitigation stops
-// everything, as for request(). It goes on a connection of its own (postForm).
-async function postAccount(
+// One form POST to the account or checkout route, as the site's own forms
+// send it: from the site's origin, without following the 303. A mitigation
+// stops everything, as for request(). It goes on a connection of its own
+// (postForm).
+const postAccount = (
+  fields: Record<string, string>,
+  extra: Record<string, string> = {},
+): Promise<Response> => postTo(ACCOUNT_ROUTE, fields, extra);
+
+async function postTo(
+  route: string,
   fields: Record<string, string>,
   extra: Record<string, string> = {},
 ): Promise<Response> {
   const response = await postForm(
-    new URL(ACCOUNT_ROUTE, base),
+    new URL(route, base),
     {
       ...headers,
       ...extra,
@@ -238,7 +260,7 @@ async function postAccount(
     response.headers.has("retry-after")
   ) {
     console.error(
-      `Stopped: ${ACCOUNT_ROUTE} answered ${response.status}; no retry, no further request.`,
+      `Stopped: ${route} answered ${response.status}; no retry, no further request.`,
     );
     process.exit(1);
   }
@@ -294,6 +316,43 @@ async function deleteRunAccount(account: RunAccount): Promise<void> {
       `::warning title=Lighthouse::The run's account was not deleted (${(error as Error).message}); the daily purge deletes it in 30 days.`,
     );
   }
+}
+
+/** Sends the delivery step for the run's cart and returns the draft's cookie. */
+async function startDraftForRun(): Promise<RunDraft> {
+  const response = await postTo(
+    CHECKOUT_ROUTE,
+    {
+      intent: "delivery",
+      name: "Lighthouse Run",
+      line1: "1 rue de la Mesure",
+      line2: "",
+      postalCode: "75001",
+      city: "Paris",
+      country: "FR",
+      method: "home",
+    },
+    cartHeader,
+  );
+  const location = response.headers.get("location");
+  const token = response.headers
+    .getSetCookie()
+    .map((cookie) => cookie.split(";")[0] ?? "")
+    .find((pair) => pair.startsWith(`${CHECKOUT_COOKIE}=`))
+    ?.slice(CHECKOUT_COOKIE.length + 1);
+  if (
+    response.status !== 303 ||
+    location !== checkoutPagePath("fr", "payment") ||
+    !token
+  )
+    throw new Error(
+      `The run's draft answered ${response.status} to ${location ?? "nowhere"}${token ? "" : ", with no checkout cookie"}.`,
+    );
+  console.log("Started the run's own draft for the payment page.");
+  return {
+    token,
+    header: { Cookie: `${cartHeader.Cookie}; ${CHECKOUT_COOKIE}=${token}` },
+  };
 }
 
 // The first request: one per address, which checks the deployment answers before
@@ -360,7 +419,7 @@ for (const { page, address } of pages) {
     : address;
   const { path, response } = await follow(
     requested,
-    page === CART_PAGE ? cartHeader : {},
+    CART_COOKIE_PAGES.includes(page) ? cartHeader : {},
   );
   const html = await response.text();
   if (response.status !== 200) {
@@ -385,6 +444,12 @@ for (const { page, address } of pages) {
       );
       process.exit(1);
     }
+  }
+  if (page === CHECKOUT_PAGE && !html.includes('data-checkout="delivery"')) {
+    console.error(
+      `::error title=Lighthouse::Stopped: ${path} shows no delivery form for its cart.`,
+    );
+    process.exit(1);
   }
   // Production: the public address must serve the deployed commit. No wait
   // and no retry: a mismatch fails the run (issue #67).
@@ -448,6 +513,7 @@ const staging = mkdtempSync(join(tmpdir(), "lighthouse-reports-"));
 rmSync(LHCI_DIR, { recursive: true, force: true });
 const profiles: string[] = [];
 let runAccount: RunAccount | null = null;
+let runDraft: RunDraft | null = null;
 try {
   const chrome = await chromePath();
   // One Lighthouse CI collect, adding its reports to the earlier ones.
@@ -488,15 +554,36 @@ try {
       throw new Error(`Lighthouse CI exited with ${lhci.status}.`);
   };
   const plain = figures.filter(
-    ({ page }) => ![SEEDED_PAGE, CART_PAGE, ACCOUNT_PAGE].includes(page),
+    ({ page }) =>
+      ![SEEDED_PAGE, ACCOUNT_PAGE, ...CART_COOKIE_PAGES].includes(page),
   );
   if (plain.length > 0)
     collect(
       plain.map(({ path }) => path),
       RUNS + 1,
     );
-  for (const { path } of figures.filter(({ page }) => page === CART_PAGE))
+  for (const { path } of figures.filter(
+    ({ page }) => page === CART_PAGE || page === CHECKOUT_PAGE,
+  ))
     collect([path], RUNS + 1, undefined, cartHeader);
+  for (const entry of figures.filter(({ page }) => page === PAYMENT_PAGE)) {
+    runDraft ??= await startDraftForRun();
+    // The first request, with the draft this time: the page must show it,
+    // and its HTML size is the payment page's with a draft.
+    const response = await request(entry.path, runDraft.header);
+    const html = await response.text();
+    if (
+      response.status !== 200 ||
+      mainTemplate(html) !== PAYMENT_PAGE ||
+      !html.includes('data-checkout="payment"')
+    )
+      throw new Error(
+        `${entry.path} answered ${response.status} without the run's draft.`,
+      );
+    entry.htmlBytes = Buffer.byteLength(html);
+    entry.cache = response.headers.get("x-vercel-cache") ?? "";
+    collect([entry.path], RUNS + 1, undefined, runDraft.header);
+  }
   for (const entry of figures.filter(({ page }) => page === ACCOUNT_PAGE)) {
     runAccount ??= await signUpForRun();
     // The first request, signed in this time: the page must show the
@@ -617,7 +704,9 @@ try {
       const { json, html } = reportFiles(
         report,
         secret,
-        runAccount ? [runAccount.token] : [],
+        [runAccount?.token, runDraft?.token].filter((token): token is string =>
+          Boolean(token),
+        ),
       );
       writeFileSync(join(staging, `${name}.report.json`), json);
       writeFileSync(join(staging, `${name}.report.html`), html);

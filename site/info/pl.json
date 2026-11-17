@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Zamówienia demonstracyjne",
+        "paragraphs": [
+          "Gdy składasz zamówienie demonstracyjne, witryna zapisuje w swojej bazie danych adres i sposób dostawy podane już w pierwszym kroku, a po złożeniu zamówienia zamówione części, ich ceny, kwoty i datę. Nic nie jest pobierane ani dostarczane i nie jest wymagana żadna metoda płatności.",
+          "Podczas zamówienia witryna zapisuje na 2 godziny plik cookie checkout_v1, który może odczytać tylko serwer i który zawiera jedynie losowy numer wskazujący Twoje rozpoczęte zamówienie. Jest on niezbędny do złożenia zamówienia.",
+          "Codzienne zadanie usuwa zamówienie, które nigdy nie zostało złożone, 24 godziny po jego ostatnim kroku, a zamówienie złożone bez konta 30 dni po złożeniu. Zamówienie złożone po zalogowaniu jest powiązane z Twoim kontem; jeśli konto zostanie usunięte, zamówienie zostanie usunięte 30 dni po złożeniu."
+        ]
+      },
+      {
         "heading": "Pliki cookie",
         "paragraphs": [
           "Przeglądanie katalogu nie zapisuje żadnego własnego pliku cookie witryny.",

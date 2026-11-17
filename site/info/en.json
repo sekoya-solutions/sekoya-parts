@@ -165,6 +165,14 @@
         ]
       },
       {
+        "heading": "Demo orders",
+        "paragraphs": [
+          "When you place a demo order, the site stores in its database the address and delivery method you give from the first step, then, once the order is placed, the parts ordered, their prices, the amounts and the date. Nothing is charged or delivered, and no payment method is asked for.",
+          "During the order, the site sets a cookie for 2 hours, checkout_v1, readable by the server alone, which holds only a random number naming your order in progress. It is strictly necessary to the order.",
+          "A daily task deletes an order never placed 24 hours after its last step, and an order placed without an account 30 days after it was placed. An order placed while signed in is linked to your account; if the account is deleted, the order is deleted 30 days after it was placed."
+        ]
+      },
+      {
         "heading": "Cookies",
         "paragraphs": [
           "Browsing the catalog sets no cookie of the site’s own.",

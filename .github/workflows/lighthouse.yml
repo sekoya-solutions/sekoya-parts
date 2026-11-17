@@ -56,14 +56,16 @@ jobs:
           DEPLOY_SHA: ${{ github.event.deployment.sha }}
         run: node scripts/docs-only.ts --superseded "$DEPLOY_SHA"
       - run: npm ci
-      # Single loads, one after another, on ten pages: the French home page,
+      # Single loads, one after another, on twelve pages: the French home page,
       # the first category it lists (issue #81), the heaviest product page, its
       # first reference page, its most popular model's page (issue #79) and the
       # first brand the brand index lists (issue #147), the cart page, with
       # a cart of three products sent as a cookie (issue #168), the account
       # page signed in with an account of its own that the run signs up and
-      # deletes (issue #178), and the sign-up and sign-out pages, signed out
-      # (issue #177).
+      # deletes (issue #178), the sign-up and sign-out pages, signed out
+      # (issue #177), and the checkout's delivery and payment steps with the
+      # same cart, the payment step with a draft of the run's own that is
+      # never placed (issue #187).
       # For each: one request to check the deployment answers (on production,
       # that the public address serves this commit), one Lighthouse warm-up
       # run that is not counted, then three measured runs (five before issue
@@ -96,6 +98,8 @@ jobs:
           account=/fr/mon-compte
           sign-up=/fr/inscription
           sign-out=/fr/deconnexion
+          checkout=/fr/commande
+          payment=/fr/paiement
       # The script writes only reports it has redacted and checked for the
       # secret. The repository is public: any signed-in GitHub user can
       # download them.

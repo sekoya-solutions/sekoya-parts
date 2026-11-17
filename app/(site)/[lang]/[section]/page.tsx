@@ -12,7 +12,9 @@
 // - the fit check's answer, at /<lang>/<fit word>?part=…&q=… (issue #161);
 // - the cart, at /<lang>/<cart word> (issue #168);
 // - the account pages, at /<lang>/<account word>, <sign-up word> and
-//   <sign-out word> (issue #177).
+//   <sign-out word> (issue #177);
+// - the checkout pages, at /<lang>/<checkout word>, <payment word> and
+//   <confirmation word> (issue #187).
 // Payload refuses a category slug equal to a search word, a brand word or a
 // page slug, in any language.
 import type { Metadata } from "next";
@@ -23,6 +25,7 @@ import {
 import {
   accountPageOf,
   BRAND_WORDS,
+  checkoutPageOf,
   FINDER_PARAMS,
   FIT_PARAMS,
   INFO_PAGES,
@@ -45,6 +48,10 @@ import {
   categoryMetadata,
   requestedPath,
 } from "../../../../site/category-page.tsx";
+import {
+  CheckoutPageView,
+  checkoutMetadata,
+} from "../../../../site/checkout-page.tsx";
 import { getDictionary } from "../../../../site/dictionary.ts";
 import { FinderPage } from "../../../../site/finder.tsx";
 import { FitPage } from "../../../../site/fit-page.tsx";
@@ -107,6 +114,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (isCartWord(section)) return cartMetadata(locale);
   // The account pages, which differ per visitor too (issue #177).
   if (accountPageOf(section)) return accountMetadata(locale, section);
+  // The checkout pages, which differ per visitor too (issue #187).
+  if (checkoutPageOf(section)) return checkoutMetadata(locale, section);
   if (infoPageOf(section)) return infoMetadata(locale, section);
   if (isBrandWord(section)) return brandIndexMetadata(locale, section);
   return categoryMetadata(locale, section, 1, requestedPath(lang, section));
@@ -155,6 +164,14 @@ export default async function SectionPage({ params, searchParams }: Props) {
   if (accountPageOf(section))
     return (
       <AccountPageView
+        locale={locale}
+        section={section}
+        searchParams={searchParams}
+      />
+    );
+  if (checkoutPageOf(section))
+    return (
+      <CheckoutPageView
         locale={locale}
         section={section}
         searchParams={searchParams}
