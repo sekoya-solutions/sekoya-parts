@@ -107,6 +107,27 @@ export function productImage(
   return { folder, n: ((productId - 1) % IMAGES_PER_CATEGORY) + 1 };
 }
 
+/** How many pictures the product page's gallery shows (issue #200). */
+export const GALLERY_IMAGES = 2;
+
+/**
+ * The product page's gallery (issue #200): the product's own image, then the
+ * next ones of its category, in turn. Always the same for a product, so its
+ * cached page never changes between visits. Empty for a category without
+ * images.
+ */
+export function productGallery(
+  categoryId: number,
+  productId: number,
+): ImageKey[] {
+  const first = productImage(categoryId, productId);
+  if (!first) return [];
+  return Array.from({ length: GALLERY_IMAGES }, (_, i) => ({
+    folder: first.folder,
+    n: ((first.n - 1 + i) % IMAGES_PER_CATEGORY) + 1,
+  }));
+}
+
 /** The image a category shows on the home page: its first. */
 export function categoryImage(categoryId: number): ImageKey | null {
   const folder = categoryFolder(categoryId);
