@@ -159,7 +159,8 @@
       {
         "heading": "Demokonto",
         "paragraphs": [
-          "Hvis du opretter en demokonto, gemmer webstedet i sin database, der ligger i Europa, kontoens brugernavn, en hash af adgangskoden (aldrig selve adgangskoden), datoen for det seneste login og dens åbne sessioner (et id og et udløbstidspunkt). Det beder ikke om nogen e-mailadresse. En daglig opgave sletter hver konto, hvis seneste login er mere end 30 dage gammelt.",
+          "Hvis du opretter en demokonto, gemmer webstedet i sin database, der ligger i Europa, kontoens brugernavn, en hash af adgangskoden (aldrig selve adgangskoden), datoen for det seneste login, dens åbne sessioner (et id og et udløbstidspunkt) og de adresser, du gemmer i den, højst fem (et navn, en postadresse og et land). Det beder ikke om nogen e-mailadresse. En daglig opgave sletter hver konto, hvis seneste login er mere end 30 dage gammelt, sammen med dens adresser.",
+          "På siden »Min konto« kan du redigere eller fjerne hver adresse, og »Slet min konto« sletter kontoen, dens adresser og dens sessioner med det samme og for altid.",
           "Mens du er logget ind, sætter webstedet to cookies i 2 timer: payload-token, som kun serveren kan læse, og som bærer din session, og account_v1, som kun angiver, at en session er åben, så sidehovedet kan vise det. De er strengt nødvendige for kontoen. Når du logger ud, slettes begge; din kurv bevares."
         ]
       },

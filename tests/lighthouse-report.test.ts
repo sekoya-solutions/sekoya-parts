@@ -30,6 +30,7 @@ import {
   PRODUCTION_URL,
   pageArgument,
   pageArguments,
+  postForm,
   redact,
   refusedRequests,
   reportFiles,
@@ -253,6 +254,25 @@ describe("reportFiles", () => {
     // The HTML report embeds the redacted result.
     expect(html).toContain("<!doctype html>");
     expect(html).toContain('"formFactor":"mobile"');
+  });
+
+  it("keeps the account page's session cookie out, and refuses a report still holding it", () => {
+    const token = "a-session-token-of-the-run";
+    const withCookie = () => {
+      const report = lhr();
+      Object.assign(report.configSettings.extraHeaders, {
+        Cookie: `payload-token=${token}`,
+      });
+      return report;
+    };
+    const { json, html } = reportFiles(withCookie(), SECRET, [token]);
+    for (const text of [json, html]) expect(text).not.toContain(token);
+
+    const leaking = { ...withCookie(), requestedUrl: `https://x/?t=${token}` };
+    expect(() => reportFiles(leaking, SECRET, [token])).toThrow(
+      /session token/,
+    );
+    expect(() => reportFiles(lhr(), SECRET, [""])).toThrow();
   });
 });
 
@@ -762,5 +782,55 @@ describe("mainTemplate", () => {
       mainTemplate('<div data-template="home"></div><main id="main">'),
     ).toBeNull();
     expect(mainTemplate("<p>no main</p>")).toBeNull();
+  });
+});
+
+describe("postForm", () => {
+  it("sends each POST on a connection of its own and reads every cookie of the answer", async () => {
+    const { createServer } = await import("node:http");
+    const sockets = new Set<unknown>();
+    const bodies: string[] = [];
+    const server = createServer({ keepAlive: true }, (req, res) => {
+      sockets.add(req.socket);
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        bodies.push(`${req.method} ${req.headers.origin} ${body}`);
+        res.writeHead(303, {
+          Location: "/fr/mon-compte",
+          "Set-Cookie": ["payload-token=abc; HttpOnly", "account_v1=1"],
+        });
+        res.end();
+      });
+    });
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    try {
+      const { port } = server.address() as { port: number };
+      const url = new URL(`http://127.0.0.1:${port}/api/account`);
+      for (const n of [1, 2]) {
+        const response = await postForm(
+          url,
+          { Origin: "https://site", "Content-Type": "text/plain" },
+          `n=${n}`,
+        );
+        expect(response.status).toBe(303);
+        expect(response.headers.get("location")).toBe("/fr/mon-compte");
+        expect(response.headers.getSetCookie()).toEqual([
+          "payload-token=abc; HttpOnly",
+          "account_v1=1",
+        ]);
+      }
+      expect(bodies).toEqual([
+        "POST https://site n=1",
+        "POST https://site n=2",
+      ]);
+      // Two POSTs, two connections: none is taken from a pool.
+      expect(sockets.size).toBe(2);
+    } finally {
+      server.closeAllConnections();
+      await new Promise((resolve) => server.close(resolve));
+    }
   });
 });

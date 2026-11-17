@@ -6,6 +6,13 @@ import {
   passwordProblem,
   usernameProblem,
 } from "../../site/account-rules.ts";
+import {
+  ADDRESS_FIELDS,
+  COUNTRIES,
+  FIELD_RULES,
+  isCountry,
+  MAX_ADDRESSES,
+} from "../../site/saved-addresses.ts";
 import { editorCollectionAccess } from "../access.ts";
 
 export const CUSTOMER_COLLECTION = "customers";
@@ -50,6 +57,32 @@ export const Customers: CollectionConfig = {
       index: true,
       admin: { readOnly: true },
       access: { create: () => false, update: () => false },
+    },
+    {
+      // Saved addresses (issue #178). Payload stores them in their own
+      // table, customers_addresses, whose rows go with the account through
+      // its foreign key's ON DELETE CASCADE: "Delete my account" and the
+      // purge need nothing more. The site writes them through
+      // cms/accounts/saved-addresses.ts, which holds the cap under a lock;
+      // maxRows holds it in the admin.
+      name: "addresses",
+      type: "array",
+      maxRows: MAX_ADDRESSES,
+      fields: [
+        ...ADDRESS_FIELDS.map((name) => ({
+          name,
+          type: "text" as const,
+          required: FIELD_RULES[name].required,
+          maxLength: FIELD_RULES[name].max,
+        })),
+        {
+          name: "country",
+          type: "text",
+          required: true,
+          validate: (value: unknown) =>
+            isCountry(value) || `One of ${COUNTRIES.join(", ")}.`,
+        },
+      ],
     },
   ],
   hooks: {

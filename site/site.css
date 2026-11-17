@@ -740,7 +740,8 @@
     display: block;
     font-weight: 600;
   }
-  .account-form input {
+  .account-form input,
+  .account-form select {
     width: 100%;
     min-height: 2.75rem;
     margin-top: 0.25rem;
@@ -766,6 +767,38 @@
   }
   .account-button:hover {
     background-color: var(--color-action-hover);
+  }
+  /* "Delete my account" (issue #178): outlined, so it never reads as the
+     page's main action. */
+  .account-button-danger {
+    border: 2px solid var(--color-navy);
+    background-color: var(--color-white);
+    color: var(--color-navy);
+  }
+  .account-button-danger:hover {
+    background-color: var(--color-navy);
+    color: var(--color-white);
+  }
+  /* The saved addresses (issue #178): one card each, then its edit link and
+     remove button, as tall as the other controls to tap. */
+  .address-list {
+    display: grid;
+    gap: 1rem;
+    max-width: 32rem;
+  }
+  .address-card {
+    padding: 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    overflow-wrap: anywhere;
+  }
+  .address-action {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--color-action);
+    font-weight: 600;
+    text-decoration: underline;
   }
 
   /* The information pages' text (issue #143). */

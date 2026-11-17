@@ -159,7 +159,8 @@
       {
         "heading": "Cuenta de demostración",
         "paragraphs": [
-          "Si crea una cuenta de demostración, el sitio guarda en su base de datos, alojada en Europa, su nombre de usuario, un hash de su contraseña (nunca la contraseña en sí), la fecha de su último inicio de sesión y sus sesiones abiertas (un identificador y una hora de caducidad). No pide ninguna dirección de correo. Una tarea diaria elimina cada cuenta cuyo último inicio de sesión tenga más de 30 días.",
+          "Si crea una cuenta de demostración, el sitio guarda en su base de datos, alojada en Europa, su nombre de usuario, un hash de su contraseña (nunca la contraseña en sí), la fecha de su último inicio de sesión, sus sesiones abiertas (un identificador y una hora de caducidad) y las direcciones que guarde en ella, cinco como máximo (un nombre, una dirección postal y un país). No pide ninguna dirección de correo. Una tarea diaria elimina cada cuenta cuyo último inicio de sesión tenga más de 30 días, junto con sus direcciones.",
+          "En la página «Mi cuenta» puede modificar o eliminar cada dirección, y «Eliminar mi cuenta» borra de inmediato y de forma definitiva la cuenta, sus direcciones y sus sesiones.",
           "Mientras tiene la sesión iniciada, el sitio instala dos cookies durante 2 horas: payload-token, que solo puede leer el servidor y que lleva su sesión, y account_v1, que solo indica que hay una sesión abierta, para que la cabecera lo muestre. Son estrictamente necesarias para la cuenta. Al cerrar la sesión se eliminan las dos; su carrito se conserva."
         ]
       },

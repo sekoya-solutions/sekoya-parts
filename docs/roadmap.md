@@ -332,8 +332,14 @@ Epic [#138](https://github.com/sekoya-solutions/sekoya-parts/issues/138), approv
      - sign-up closes with a message past 10,000 accounts: the sign-up page and route check the count, and a database trigger holds the cap when two sign-ups race;
      - each sign-in records its date, and a daily cron, `/api/accounts/purge` at 02:00 UTC, deletes every account whose last sign-in is more than 30 days old, with its sessions (owner decision, 2026-11-16, moved from #178);
      - the privacy page says what an account stores, for how long, and what its two cookies hold, in the ten languages;
-     - Lighthouse measures the three account pages, signed out.
-   - **The account page** ([#178](https://github.com/sekoya-solutions/sekoya-parts/issues/178)): profile, password change, saved addresses and "delete my account", at the account address.
+     - Lighthouse measured the three account pages, signed out; since [#178](https://github.com/sekoya-solutions/sekoya-parts/issues/178), the account page is measured signed in.
+   - **The account page** ([#178](https://github.com/sekoya-solutions/sekoya-parts/issues/178)), at the account address, for a signed-in customer, as forms that work without JavaScript, posting to `/api/account`:
+     - the username and the sign-out button;
+     - at most 5 saved addresses (owner decision, 2026-11-16): an optional name such as "Home", a full name, two street lines, the second optional, a postal code, a city, and a country among 15 where the ten languages are spoken, named in the page's language by `Intl.DisplayNames`. No phone number. Each is added, edited (`?address=<id>` shows it as a form) and removed. Each write locks the account's row, so two tabs never pass the cap or lose an address;
+     - a password change, which asks for the current password through Payload's sign-in, so its lockout counts the failures, keeps this browser's session and ends the others;
+     - "Delete my account", which asks for the password, deletes the account, its addresses and its sessions at once, and signs the browser out; the cart is kept. The addresses go with their account through their foreign key's `ON DELETE CASCADE`, so the daily purge deletes them too;
+     - the privacy page lists the saved addresses and how to delete them, in the ten languages;
+     - Lighthouse measures the account page signed in: each run signs up an account of its own, with a random username and password kept in memory only, sends its session as a cookie, checks the session token is in no saved report, and deletes the account when the runs end, on previews and on production (owner decision, 2026-11-16). If a run dies before that, the daily purge deletes the account 30 days later.
 10. **Mock checkout:** delivery address and method, a demo payment step with no card field, and a confirmation; orders stored in Payload, with prices read again from the catalog, and the order history on the account page.
 
 ## Decisions open for the owner

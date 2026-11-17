@@ -2,7 +2,9 @@
 // every language at /<lang>/<word>:
 // - the account address, where the header's link leads: the sign-in form for
 //   a visitor who is not signed in, the username and a sign-out button for a
-//   customer. The account page's own content (issue #178) comes here;
+//   customer, then since issue #178 the account page itself: the saved
+//   addresses, with one shown as a form to edit when ?address=<id> names
+//   it, the password change and "Delete my account";
 // - the sign-up page;
 // - the sign-out page, which confirms the sign-out and asks for it.
 //
@@ -21,7 +23,10 @@ import { CUSTOMER_COLLECTION } from "../cms/collections/customers.ts";
 import type { Locale } from "../cms/locales.ts";
 import {
   ACCOUNT_NOTICE_PARAM,
+  ACCOUNT_ROUTE,
   type AccountNotice,
+  ADDRESS_EDIT_PARAM,
+  DONE_NOTICES,
   isAccountNotice,
   MAX_ACCOUNTS,
   PASSWORD_MAX,
@@ -34,13 +39,23 @@ import {
   type AccountPage,
   accountPageOf,
   accountPagePath,
+  accountPath,
   perLocale,
 } from "./addresses.ts";
 import { type Dictionary, fill, getDictionary } from "./dictionary.ts";
 import { SiteFrame } from "./frame.tsx";
-
-/** Where every account form posts. */
-export const ACCOUNT_ROUTE = "/api/account";
+import {
+  ADDRESS_FIELDS,
+  type AddressField,
+  addressLines,
+  countryOptions,
+  DEFAULT_COUNTRY,
+  FIELD_RULES,
+  isCountry,
+  MAX_ADDRESSES,
+  POSTAL_CODE,
+  type SavedAddress,
+} from "./saved-addresses.ts";
 
 const TITLES: Record<AccountPage, keyof Dictionary> = {
   account: "accountTitle",
@@ -75,6 +90,24 @@ function noticeText(dictionary: Dictionary, notice: AccountNotice): string {
       return dictionary.signUpClosed;
     case "signed-out":
       return dictionary.signOutDone;
+    case "current":
+      return dictionary.accountCurrentWrong;
+    case "password-changed":
+      return dictionary.passwordChanged;
+    case "address-saved":
+      return dictionary.addressSaved;
+    case "address-removed":
+      return dictionary.addressRemoved;
+    case "address-invalid":
+      return dictionary.addressInvalid;
+    case "address-full":
+      return fill(dictionary.addressesFull, { max: MAX_ADDRESSES });
+    case "address-missing":
+      return dictionary.addressMissing;
+    case "session":
+      return dictionary.accountSession;
+    case "deleted":
+      return dictionary.accountDeleted;
     default:
       return dictionary.accountError;
   }
@@ -90,7 +123,7 @@ function Notice({
   if (!notice) return null;
   return (
     <p
-      role={notice === "signed-out" ? "status" : "alert"}
+      role={DONE_NOTICES.includes(notice) ? "status" : "alert"}
       data-account-notice={notice}
       className="mt-4 font-bold"
     >
@@ -211,6 +244,389 @@ function SignedIn({
   );
 }
 
+/** A saved address's id and fields, as Payload reads them back. */
+type StoredAddress = SavedAddress & { id: string };
+
+/** The signed-in customer's saved addresses, in the order they were added. */
+async function storedAddresses(customerId: number): Promise<StoredAddress[]> {
+  const payload = await getPayload({ config });
+  const doc = await payload.findByID({
+    collection: CUSTOMER_COLLECTION,
+    id: customerId,
+    depth: 0,
+    overrideAccess: true,
+    disableErrors: true,
+  });
+  return (doc?.addresses ?? []).flatMap((row) =>
+    row.id && isCountry(row.country)
+      ? [
+          {
+            id: row.id,
+            label: row.label ?? "",
+            name: row.name,
+            line1: row.line1,
+            line2: row.line2 ?? "",
+            postalCode: row.postalCode,
+            city: row.city,
+            country: row.country,
+          },
+        ]
+      : [],
+  );
+}
+
+const FIELD_LABELS: Record<AddressField, keyof Dictionary> = {
+  label: "addressLabel",
+  name: "addressName",
+  line1: "addressLine1",
+  line2: "addressLine2",
+  postalCode: "addressPostalCode",
+  city: "addressCity",
+};
+
+const AUTOCOMPLETE: Record<AddressField, string | undefined> = {
+  label: "off",
+  name: "name",
+  line1: "address-line1",
+  line2: "address-line2",
+  postalCode: "postal-code",
+  city: "address-level2",
+};
+
+/**
+ * The fields of an address form, filled with an address to edit. `prefix`
+ * keeps the ids of the add form and of the edit form apart.
+ */
+function AddressFields({
+  prefix,
+  address,
+  locale,
+  dictionary,
+}: {
+  prefix: string;
+  address: SavedAddress | null;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <>
+      {ADDRESS_FIELDS.map((name) => {
+        const id = `${prefix}-${name}`;
+        const rule = FIELD_RULES[name];
+        return (
+          <p key={name}>
+            <label htmlFor={id}>{dictionary[FIELD_LABELS[name]]}</label>
+            <input
+              id={id}
+              name={name}
+              type="text"
+              autoComplete={AUTOCOMPLETE[name]}
+              maxLength={rule.max}
+              required={rule.required}
+              defaultValue={address?.[name] ?? ""}
+              pattern={name === "postalCode" ? POSTAL_CODE.source : undefined}
+            />
+          </p>
+        );
+      })}
+      <p>
+        <label htmlFor={`${prefix}-country`}>{dictionary.addressCountry}</label>
+        <select
+          id={`${prefix}-country`}
+          name="country"
+          autoComplete="country"
+          required
+          defaultValue={address?.country ?? DEFAULT_COUNTRY[locale]}
+        >
+          {countryOptions(locale).map(({ code, name }) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </p>
+    </>
+  );
+}
+
+function AddressCard({
+  address,
+  locale,
+  dictionary,
+}: {
+  address: StoredAddress;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  const named = address.label || address.name;
+  return (
+    <li data-address={address.id} className="address-card">
+      {address.label && <p className="font-bold">{address.label}</p>}
+      <p>
+        {addressLines(address, locale).map(({ key, text }) => (
+          <span key={key} className="block">
+            {text}
+          </span>
+        ))}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-4">
+        <a
+          href={`${accountPath(locale)}?${ADDRESS_EDIT_PARAM}=${address.id}`}
+          className="address-action"
+        >
+          {dictionary.addressEdit}
+          <span className="sr-only">: {named}</span>
+        </a>
+        <form method="post" action={ACCOUNT_ROUTE}>
+          <Hidden locale={locale} intent="address-remove" />
+          <input type="hidden" name="id" value={address.id} />
+          <button type="submit" className="address-action">
+            {dictionary.addressRemove}
+            <span className="sr-only">: {named}</span>
+          </button>
+        </form>
+      </div>
+    </li>
+  );
+}
+
+function AddressEditForm({
+  address,
+  locale,
+  dictionary,
+}: {
+  address: StoredAddress;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <li data-address={address.id} className="address-card">
+      <form
+        method="post"
+        action={ACCOUNT_ROUTE}
+        className="account-form"
+        data-account-form="address-edit"
+        aria-labelledby="address-edit-title"
+      >
+        <h3 id="address-edit-title" className="text-lg font-bold">
+          {dictionary.addressEditTitle}
+        </h3>
+        <Hidden locale={locale} intent="address-edit" />
+        <input type="hidden" name="id" value={address.id} />
+        <AddressFields
+          prefix="address-edit"
+          address={address}
+          locale={locale}
+          dictionary={dictionary}
+        />
+        <div className="flex flex-wrap items-center gap-4">
+          <button type="submit" className="account-button">
+            {dictionary.addressSaveButton}
+          </button>
+          <a href={accountPath(locale)}>{dictionary.addressCancel}</a>
+        </div>
+      </form>
+    </li>
+  );
+}
+
+function Addresses({
+  addresses,
+  editing,
+  locale,
+  dictionary,
+}: {
+  addresses: StoredAddress[];
+  editing: string | null;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  const full = addresses.length >= MAX_ADDRESSES;
+  return (
+    <section aria-labelledby="addresses-title" className="mt-10">
+      <h2 id="addresses-title" className="text-2xl font-bold">
+        {dictionary.addressesTitle}
+      </h2>
+      <p className="mt-2 text-slate">
+        {fill(dictionary.addressesCount, {
+          count: addresses.length,
+          max: MAX_ADDRESSES,
+        })}{" "}
+        {dictionary.addressDemoHint}
+      </p>
+      {addresses.length === 0 ? (
+        <p className="mt-4" data-addresses="none">
+          {dictionary.addressesNone}
+        </p>
+      ) : (
+        <ul className="address-list mt-4" data-list="addresses">
+          {addresses.map((address) =>
+            address.id === editing ? (
+              <AddressEditForm
+                key={address.id}
+                address={address}
+                locale={locale}
+                dictionary={dictionary}
+              />
+            ) : (
+              <AddressCard
+                key={address.id}
+                address={address}
+                locale={locale}
+                dictionary={dictionary}
+              />
+            ),
+          )}
+        </ul>
+      )}
+      {full ? (
+        <p className="mt-4" data-addresses="full">
+          {fill(dictionary.addressesFull, { max: MAX_ADDRESSES })}
+        </p>
+      ) : (
+        <form
+          method="post"
+          action={ACCOUNT_ROUTE}
+          className="account-form mt-6"
+          data-account-form="address-add"
+          aria-labelledby="address-add-title"
+        >
+          <h3 id="address-add-title" className="text-lg font-bold">
+            {dictionary.addressAddTitle}
+          </h3>
+          <Hidden locale={locale} intent="address-add" />
+          <AddressFields
+            prefix="address-new"
+            address={null}
+            locale={locale}
+            dictionary={dictionary}
+          />
+          <button type="submit" className="account-button">
+            {dictionary.addressAddButton}
+          </button>
+        </form>
+      )}
+    </section>
+  );
+}
+
+function PasswordChange({
+  locale,
+  dictionary,
+}: {
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <section aria-labelledby="password-title" className="mt-10">
+      <h2 id="password-title" className="text-2xl font-bold">
+        {dictionary.passwordTitle}
+      </h2>
+      <form
+        method="post"
+        action={ACCOUNT_ROUTE}
+        className="account-form mt-4"
+        data-account-form="password"
+      >
+        <Hidden locale={locale} intent="password" />
+        <PasswordField
+          id="password-current"
+          name="current"
+          label={dictionary.passwordCurrent}
+          autoComplete="current-password"
+        />
+        <PasswordField
+          id="password-new"
+          name="password"
+          label={dictionary.passwordNew}
+          autoComplete="new-password"
+          hint={dictionary.signUpPasswordHint}
+        />
+        <PasswordField
+          id="password-confirm"
+          name="confirm"
+          label={dictionary.passwordNewConfirm}
+          autoComplete="new-password"
+        />
+        <p className="text-slate">{dictionary.passwordOtherSessions}</p>
+        <button type="submit" className="account-button">
+          {dictionary.passwordButton}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function DeleteAccount({
+  locale,
+  dictionary,
+}: {
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <section aria-labelledby="delete-title" className="mt-10">
+      <h2 id="delete-title" className="text-2xl font-bold">
+        {dictionary.deleteTitle}
+      </h2>
+      <p className="mt-2">{dictionary.deleteText}</p>
+      <form
+        method="post"
+        action={ACCOUNT_ROUTE}
+        className="account-form mt-4"
+        data-account-form="delete"
+      >
+        <Hidden locale={locale} intent="delete" />
+        <PasswordField
+          id="delete-password"
+          name="password"
+          label={dictionary.deletePassword}
+          autoComplete="current-password"
+        />
+        <button type="submit" className="account-button account-button-danger">
+          {dictionary.deleteButton}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+/** The account page of a signed-in customer (issue #178). */
+async function AccountHome({
+  customer,
+  editing,
+  locale,
+  dictionary,
+}: {
+  customer: SignedInCustomer;
+  editing: string | null;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  const addresses = await storedAddresses(customer.id);
+  return (
+    <div data-account="signed-in">
+      <section aria-labelledby="profile-title" className="mt-6">
+        <h2 id="profile-title" className="text-2xl font-bold">
+          {dictionary.accountProfileTitle}
+        </h2>
+        <p className="mt-2 text-lg" data-account-username>
+          {fill(dictionary.accountSignedInAs, { username: customer.username })}
+        </p>
+        <SignOutForm locale={locale} dictionary={dictionary} />
+      </section>
+      <Addresses
+        addresses={addresses}
+        editing={editing}
+        locale={locale}
+        dictionary={dictionary}
+      />
+      <PasswordChange locale={locale} dictionary={dictionary} />
+      <DeleteAccount locale={locale} dictionary={dictionary} />
+    </div>
+  );
+}
+
 function SignInForm({
   locale,
   dictionary,
@@ -314,6 +730,7 @@ async function AccountContents({
   const [requestHeaders, query] = await Promise.all([headers(), searchParams]);
   const raw = query[ACCOUNT_NOTICE_PARAM];
   const notice = isAccountNotice(raw) ? raw : null;
+  const edit = query[ADDRESS_EDIT_PARAM];
   const customer = await signedInCustomer(new Headers(requestHeaders));
 
   if (page === "account")
@@ -321,8 +738,9 @@ async function AccountContents({
       <>
         <Notice notice={notice} dictionary={dictionary} />
         {customer ? (
-          <SignedIn
+          <AccountHome
             customer={customer}
+            editing={typeof edit === "string" ? edit : null}
             locale={locale}
             dictionary={dictionary}
           />

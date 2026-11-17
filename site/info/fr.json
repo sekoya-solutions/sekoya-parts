@@ -159,7 +159,8 @@
       {
         "heading": "Compte de démonstration",
         "paragraphs": [
-          "Si vous créez un compte de démonstration, le site enregistre dans sa base de données, hébergée en Europe, son nom d’utilisateur, une empreinte de son mot de passe (jamais le mot de passe lui-même), la date de sa dernière connexion et ses sessions ouvertes (un identifiant et une heure d’expiration). Il ne demande aucune adresse e-mail. Une tâche quotidienne supprime chaque compte dont la dernière connexion date de plus de 30 jours.",
+          "Si vous créez un compte de démonstration, le site enregistre dans sa base de données, hébergée en Europe, son nom d’utilisateur, une empreinte de son mot de passe (jamais le mot de passe lui-même), la date de sa dernière connexion, ses sessions ouvertes (un identifiant et une heure d’expiration) et les adresses que vous y enregistrez, cinq au plus (un nom, une adresse postale et un pays). Il ne demande aucune adresse e-mail. Une tâche quotidienne supprime chaque compte dont la dernière connexion date de plus de 30 jours, avec ses adresses.",
+          "Sur la page Mon compte, vous pouvez modifier ou supprimer chaque adresse, et « Supprimer mon compte » efface tout de suite et définitivement le compte, ses adresses et ses sessions.",
           "Pendant que vous êtes connecté, le site dépose deux cookies pour 2 heures : payload-token, lisible par le serveur seul, qui porte votre session, et account_v1, qui indique seulement qu’une session est ouverte, pour que l’en-tête l’affiche. Ils sont strictement nécessaires au compte. Se déconnecter supprime les deux ; votre panier est conservé."
         ]
       },
