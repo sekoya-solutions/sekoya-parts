@@ -1,0 +1,26 @@
+# Development
+
+How to run the site and its tests on a development machine. The commands are the same as CI's jobs ([ADR 0004](adr/0004-testing-and-ci.md)); the timings were measured on a Windows machine.
+
+## Running the site
+
+`npm run dev` first applies any pending migration to the database `.env.local` names, the Neon `dev` branch, then starts the development server; a failed migration stops it before the server starts. Vercel's Preview and Production builds migrate the `preview` branch and `main` the same way, so each database follows the schema of the code that uses it.
+
+## Unit tests
+
+`npm run test:local` runs the unit tests as CI's "Generator and tests" job does, on a throwaway PostgreSQL 18 database: migrations, the small catalog with seed 1, then Vitest. Pass Vitest's arguments after `--`, for example `npm run test:local -- tests/cart.test.ts`. A full run takes about 50 s on a Windows development machine: 38 to 48 s for the 817 tests in the first runs, about 10 s of them in Vitest.
+
+- **Tools:** PostgreSQL 18.6 in `.tools/pgsql`, as for the end-to-end tests below; the command names it when it is missing and downloads nothing itself.
+- **Isolation:** the same as the end-to-end tests below, with its own cluster folder and port, so the two commands can run at the same time. The database tests that write the whole catalog or a user run here as in CI, and no test sends anything to DeepL or Algolia.
+- `npm test` still runs Vitest against the database `.env.local` names, the Neon `dev` branch, and skips those database tests.
+
+## End-to-end tests
+
+`npm run test:e2e:local` runs the end-to-end tests as CI's "End-to-end tests" job does, on a throwaway PostgreSQL 18 database: migrations, the small catalog with seed 1, a production build, then Playwright. Pass Playwright's arguments after `--`, for example `npm run test:e2e:local -- e2e/intro.spec.ts`.
+
+- **Tools,** downloaded once into the git-ignored `.tools/` folder; the command names any that is missing and downloads nothing itself:
+  - PostgreSQL 18.6 in `.tools/pgsql`: EDB's `postgresql-18.6-1-windows-x64-binaries.zip` from `get.enterprisedb.com`, unpacked so that `.tools/pgsql/bin` holds `pg_ctl`;
+  - Chrome Headless Shell in `.tools/ms-playwright`: `PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright npx playwright install --only-shell chromium`.
+- **Connections:** the cluster allows 10 connections per CPU plus 20, at least PostgreSQL's default of 100: the production build prerenders in up to one worker per CPU, each with its own pool of 10 (issue #156).
+- **Isolation:** the database is a new cluster on a free local port, with a password generated for the run, deleted when the run ends, fails or is interrupted. Every variable `.env.example` names is set by the command itself, so `.env.local`, the Neon branches and the Algolia, DeepL and Vercel keys are never used.
+- **Windows:** the command makes the `.next` folder case-sensitive, as on Linux, before building: otherwise `/FR` and `/fr` share one prerendered file.
