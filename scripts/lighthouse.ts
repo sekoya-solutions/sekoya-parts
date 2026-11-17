@@ -20,6 +20,7 @@
 // and checked for the secret before it is saved, and Lighthouse CI's own
 // reports are deleted at the end.
 import { spawnSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import {
   appendFileSync,
   copyFileSync,
@@ -32,6 +33,14 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+import {
+  ACCOUNT_NOTICE_PARAM,
+  ACCOUNT_ROUTE,
+  SESSION_COOKIE,
+  SIGNED_IN_COOKIE,
+} from "../site/account-rules.ts";
+import { accountPath } from "../site/addresses.ts";
 import { CART_COOKIE, serializeCart } from "../site/cart.ts";
 import { COMMIT_HEADER } from "../site/commit.ts";
 import {
@@ -88,6 +97,24 @@ const cartHeader = {
     })),
   )}`,
 };
+
+// The account page (issue #178) is measured signed in, as a customer sees
+// it, with an account of its own: signUpForRun signs one up through the
+// site's account route before the first request, with a random username
+// and password made here and kept in memory only, and its session is sent
+// as a cookie with every request of its runs. The first request checks the
+// page shows it signed in. The account is deleted through "Delete my
+// account" once the runs end, whatever their outcome; if that fails, the
+// daily purge deletes it 30 days later. The session token is checked out of
+// every saved report, like the bypass secret.
+const ACCOUNT_PAGE = "account";
+type RunAccount = {
+  username: string;
+  password: string;
+  token: string;
+  header: Cookie;
+};
+type Cookie = { Cookie: string };
 
 type Report = {
   requestedUrl: string;
@@ -185,6 +212,89 @@ async function request(
     process.exit(1);
   }
   return response;
+}
+
+// One form POST to the account route, as the site's own forms send it: from
+// the site's origin, without following the 303. A mitigation stops
+// everything, as for request().
+async function postAccount(
+  fields: Record<string, string>,
+  extra: Record<string, string> = {},
+): Promise<Response> {
+  const response = await fetch(new URL(ACCOUNT_ROUTE, base), {
+    method: "POST",
+    headers: {
+      ...headers,
+      ...extra,
+      Origin: new URL(base).origin,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ lang: "fr", ...fields }),
+    redirect: "manual",
+  });
+  if (
+    response.status === 403 ||
+    response.status === 429 ||
+    response.headers.has("retry-after")
+  ) {
+    console.error(
+      `Stopped: ${ACCOUNT_ROUTE} answered ${response.status}; no retry, no further request.`,
+    );
+    process.exit(1);
+  }
+  await response.body?.cancel();
+  return response;
+}
+
+/** Signs up the run's own account and returns its session cookie. */
+async function signUpForRun(): Promise<RunAccount> {
+  const username = `lighthouse-${randomBytes(6).toString("hex")}`;
+  const password = randomBytes(24).toString("base64url");
+  const response = await postAccount({
+    intent: "sign-up",
+    username,
+    password,
+    confirm: password,
+  });
+  const location = response.headers.get("location");
+  const token = response.headers
+    .getSetCookie()
+    .map((cookie) => cookie.split(";")[0] ?? "")
+    .find((pair) => pair.startsWith(`${SESSION_COOKIE}=`))
+    ?.slice(SESSION_COOKIE.length + 1);
+  if (response.status !== 303 || location !== accountPath("fr") || !token)
+    throw new Error(
+      `The run's sign-up answered ${response.status} to ${location ?? "nowhere"}${token ? "" : ", with no session"}.`,
+    );
+  console.log("Signed up the run's own account for the account page.");
+  return {
+    username,
+    password,
+    token,
+    header: { Cookie: `${SESSION_COOKIE}=${token}; ${SIGNED_IN_COOKIE}=1` },
+  };
+}
+
+/** Deletes the run's account; a failure is reported, and the purge remains. */
+async function deleteRunAccount(account: RunAccount): Promise<void> {
+  const deleted = `${accountPath("fr")}?${ACCOUNT_NOTICE_PARAM}=deleted`;
+  try {
+    const response = await postAccount(
+      { intent: "delete", password: account.password },
+      account.header,
+    );
+    const location = response.headers.get("location");
+    if (response.status === 303 && location === deleted)
+      console.log("Deleted the run's account.");
+    else
+      console.log(
+        `::warning title=Lighthouse::The run's account was not deleted (${response.status} to ${location ?? "nowhere"}); the daily purge deletes it in 30 days.`,
+      );
+  } catch (error) {
+    console.log(
+      `::warning title=Lighthouse::The run's account was not deleted (${(error as Error).message}); the daily purge deletes it in 30 days.`,
+    );
+  }
 }
 
 // The first request: one per address, which checks the deployment answers before
@@ -338,6 +448,7 @@ const configFile = join(configDir, "lighthouserc.json");
 const staging = mkdtempSync(join(tmpdir(), "lighthouse-reports-"));
 rmSync(LHCI_DIR, { recursive: true, force: true });
 const profiles: string[] = [];
+let runAccount: RunAccount | null = null;
 try {
   const chrome = await chromePath();
   // One Lighthouse CI collect, adding its reports to the earlier ones.
@@ -378,7 +489,7 @@ try {
       throw new Error(`Lighthouse CI exited with ${lhci.status}.`);
   };
   const plain = figures.filter(
-    ({ page }) => page !== SEEDED_PAGE && page !== CART_PAGE,
+    ({ page }) => ![SEEDED_PAGE, CART_PAGE, ACCOUNT_PAGE].includes(page),
   );
   if (plain.length > 0)
     collect(
@@ -387,6 +498,24 @@ try {
     );
   for (const { path } of figures.filter(({ page }) => page === CART_PAGE))
     collect([path], RUNS + 1, undefined, cartHeader);
+  for (const entry of figures.filter(({ page }) => page === ACCOUNT_PAGE)) {
+    runAccount ??= await signUpForRun();
+    // The first request, signed in this time: the page must show the
+    // account, and its HTML size is the signed-in page's.
+    const response = await request(entry.path, runAccount.header);
+    const html = await response.text();
+    if (
+      response.status !== 200 ||
+      mainTemplate(html) !== ACCOUNT_PAGE ||
+      !html.includes('data-account="signed-in"')
+    )
+      throw new Error(
+        `${entry.path} answered ${response.status} without the signed-in account page.`,
+      );
+    entry.htmlBytes = Buffer.byteLength(html);
+    entry.cache = response.headers.get("x-vercel-cache") ?? "";
+    collect([entry.path], RUNS + 1, undefined, runAccount.header);
+  }
   for (const { path } of figures.filter(({ page }) => page === SEEDED_PAGE)) {
     // The warm-up without a history, then each run from a seeded profile.
     collect([path], 1);
@@ -486,7 +615,11 @@ try {
       entry.elements = elementsOf(report) ?? entry.elements;
 
       const name = `${path.replace(/^\/|\/$/g, "").replace(/\W+/g, "-") || "home"}-${run === 0 ? "warm-up" : `run-${run}`}`;
-      const { json, html } = reportFiles(report, secret);
+      const { json, html } = reportFiles(
+        report,
+        secret,
+        runAccount ? [runAccount.token] : [],
+      );
       writeFileSync(join(staging, `${name}.report.json`), json);
       writeFileSync(join(staging, `${name}.report.html`), html);
     }
@@ -497,6 +630,7 @@ try {
     console.log(`Saved ${file}, checked for the secret.`);
   }
 } finally {
+  if (runAccount) await deleteRunAccount(runAccount);
   for (const profile of profiles)
     rmSync(profile, { recursive: true, force: true });
   rmSync(configDir, { recursive: true, force: true });

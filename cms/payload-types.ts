@@ -281,6 +281,18 @@ export interface User {
 export interface Customer {
   id: number;
   lastSignInAt?: string | null;
+  addresses?:
+    | {
+        label?: string | null;
+        name: string;
+        line1: string;
+        line2?: string | null;
+        postalCode: string;
+        city: string;
+        country: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email?: string | null;
@@ -510,6 +522,18 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface CustomersSelect<T extends boolean = true> {
   lastSignInAt?: T;
+  addresses?:
+    | T
+    | {
+        label?: T;
+        name?: T;
+        line1?: T;
+        line2?: T;
+        postalCode?: T;
+        city?: T;
+        country?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;

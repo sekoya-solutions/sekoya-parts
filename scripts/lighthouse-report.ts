@@ -515,13 +515,30 @@ export function assertNoSecret(
     throw new Error(`${what} holds the bypass header; nothing is saved.`);
 }
 
-/** The JSON and HTML reports of one run, redacted, then checked. */
-export function reportFiles<T extends Report>(lhr: T, secret: string | null) {
+/**
+ * The JSON and HTML reports of one run, redacted, then checked for the
+ * bypass secret and for each other value given, such as the session token of
+ * the account page's runs (issue #178).
+ */
+export function reportFiles<T extends Report>(
+  lhr: T,
+  secret: string | null,
+  others: readonly string[] = [],
+) {
   const clean = redact(lhr);
   const json = JSON.stringify(clean);
   const html = ReportGenerator.generateReportHtml(clean as never);
-  assertNoSecret(json, secret, "The JSON report");
-  assertNoSecret(html, secret, "The HTML report");
+  for (const [text, what] of [
+    [json, "The JSON report"],
+    [html, "The HTML report"],
+  ] as const) {
+    assertNoSecret(text, secret, what);
+    for (const other of others) {
+      if (other === "") throw new Error("An empty value to check against.");
+      if (text.includes(other))
+        throw new Error(`${what} holds a session token; nothing is saved.`);
+    }
+  }
   return { json, html };
 }
 

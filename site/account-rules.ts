@@ -92,9 +92,34 @@ export const ACCOUNT_NOTICES = [
   "closed",
   "signed-out",
   "error",
+  // The account page's forms (issue #178).
+  "current",
+  "password-changed",
+  "address-saved",
+  "address-removed",
+  "address-invalid",
+  "address-full",
+  "address-missing",
+  "session",
+  "deleted",
 ] as const;
 
 export type AccountNotice = (typeof ACCOUNT_NOTICES)[number];
+
+/** The notices that confirm what a form did, rather than refuse it. */
+export const DONE_NOTICES: readonly AccountNotice[] = [
+  "signed-out",
+  "password-changed",
+  "address-saved",
+  "address-removed",
+  "deleted",
+];
+
+/**
+ * The account page's query parameter naming the saved address shown as a
+ * form to edit (issue #178), so editing works without JavaScript.
+ */
+export const ADDRESS_EDIT_PARAM = "address";
 
 export const isAccountNotice = (value: unknown): value is AccountNotice =>
   typeof value === "string" &&
@@ -119,3 +144,6 @@ export function signInRefusal(error: unknown): AccountNotice | null {
     return "wrong";
   return null;
 }
+
+/** Where every account form posts: app/(site)/api/account/route.ts. */
+export const ACCOUNT_ROUTE = "/api/account";

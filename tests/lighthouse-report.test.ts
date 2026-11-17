@@ -254,6 +254,25 @@ describe("reportFiles", () => {
     expect(html).toContain("<!doctype html>");
     expect(html).toContain('"formFactor":"mobile"');
   });
+
+  it("keeps the account page's session cookie out, and refuses a report still holding it", () => {
+    const token = "a-session-token-of-the-run";
+    const withCookie = () => {
+      const report = lhr();
+      Object.assign(report.configSettings.extraHeaders, {
+        Cookie: `payload-token=${token}`,
+      });
+      return report;
+    };
+    const { json, html } = reportFiles(withCookie(), SECRET, [token]);
+    for (const text of [json, html]) expect(text).not.toContain(token);
+
+    const leaking = { ...withCookie(), requestedUrl: `https://x/?t=${token}` };
+    expect(() => reportFiles(leaking, SECRET, [token])).toThrow(
+      /session token/,
+    );
+    expect(() => reportFiles(lhr(), SECRET, [""])).toThrow();
+  });
 });
 
 describe("toolbarRequests", () => {

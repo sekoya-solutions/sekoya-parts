@@ -60,8 +60,10 @@ jobs:
       # the first category it lists (issue #81), the heaviest product page, its
       # first reference page, its most popular model's page (issue #79) and the
       # first brand the brand index lists (issue #147), the cart page, with
-      # a cart of three products sent as a cookie (issue #168), and the three
-      # account pages, signed out (issue #177).
+      # a cart of three products sent as a cookie (issue #168), the account
+      # page signed in with an account of its own that the run signs up and
+      # deletes (issue #178), and the sign-up and sign-out pages, signed out
+      # (issue #177).
       # For each: one request to check the deployment answers (on production,
       # that the public address serves this commit), one Lighthouse warm-up
       # run that is not counted, then three measured runs (five before issue

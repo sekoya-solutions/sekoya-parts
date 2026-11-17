@@ -159,7 +159,8 @@
       {
         "heading": "Account dimostrativo",
         "paragraphs": [
-          "Se crei un account dimostrativo, il sito conserva nel suo database, ospitato in Europa, il nome utente, un hash della password (mai la password stessa), la data dell’ultimo accesso e le sessioni aperte (un identificativo e un’ora di scadenza). Non chiede alcun indirizzo e-mail. Un’attività quotidiana elimina ogni account il cui ultimo accesso risale a più di 30 giorni prima.",
+          "Se crei un account dimostrativo, il sito conserva nel suo database, ospitato in Europa, il nome utente, un hash della password (mai la password stessa), la data dell’ultimo accesso, le sessioni aperte (un identificativo e un’ora di scadenza) e gli indirizzi che vi salvi, cinque al massimo (un nome, un indirizzo postale e un paese). Non chiede alcun indirizzo e-mail. Un’attività quotidiana elimina ogni account il cui ultimo accesso risale a più di 30 giorni prima, insieme ai suoi indirizzi.",
+          "Nella pagina «Il mio account» puoi modificare o rimuovere ogni indirizzo, e «Elimina il mio account» elimina subito e in modo definitivo l’account, i suoi indirizzi e le sue sessioni.",
           "Mentre hai effettuato l’accesso, il sito imposta due cookie per 2 ore: payload-token, leggibile solo dal server, che porta la tua sessione, e account_v1, che indica solo che una sessione è aperta, perché l’intestazione possa mostrarlo. Sono strettamente necessari all’account. Uscire li elimina entrambi; il carrello viene conservato."
         ]
       },
