@@ -45,11 +45,6 @@ Standing rules for every AI agent working on this repository. The owner's genera
 ## 4. Documentation
 
 - **Docs layout:** `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/experiments/` (one report per experiment, with its setup, results and conclusion), `docs/development.md` (running the site and its tests locally), and [docs/roadmap.md](docs/roadmap.md) (a summary of the epics and their issues).
-- **Roadmap (owner rule, 2026-11-14):** a summary of the epics and their issues, what each delivers, never a status board. Read it at the start of each session.
-  - **No status in it:** no "done", "in progress" or "next" markers. Status is read and set on the board only, and on the issues' and epics' ticks.
-  - **Written once, in the issue's own pull request:** the issue's entry describes what it delivers, written for the merged state. A result known only after the merge (a production check, a deployment) goes in the issue's Result section, never in the roadmap.
-  - **Never a pull request of its own:** no issue or pull request is opened only to update the roadmap. Its summary also changes when the plan changes (a step added, split or reordered), in the pull request that changes the plan.
-- **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
 - **Markdown checks:** `npm run lint:md`, with `.tools/node` first on the `PATH`; the Markdown lint check runs it again on each pull request and is required on `main`.
 
 ## 5. Git and GitHub
@@ -59,7 +54,6 @@ Standing rules for every AI agent working on this repository. The owner's genera
   - **A worktree's preview (issue #193):** the preview tool reads only the main checkout's `.claude/launch.json` and starts every command in the main checkout, whichever folder the session works in. A worktree session runs `npm run preview:add` in its worktree, which also copies the main checkout's `.env.local` there when it has none, and starts the entry that command prints with `preview_start`. The entry runs that worktree's `scripts/preview.ts` (Payload's migrations, then `next dev`) on its own port from 3002, so previews of different worktrees run side by side, and each run of the command drops the entries of removed worktrees. Stop the preview before `npm run test:e2e:local`, which deletes `.next` on Windows and stops while a development server holds it.
 - **Labels:** besides the `type:` and `area:` labels, `accessibility` and the triage labels (`duplicate`, `invalid`, `question`, `wontfix`) can be added.
 - **Board:** the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3).
-- **Tracking:** keeping the tracking in step also covers the roadmap's summary, written in the issue's own pull request only (section 4), the finished state's documentation included. An issue outside every epic still appears in it.
 
 ## 6. Maintaining this file
 
