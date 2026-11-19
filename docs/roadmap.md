@@ -4,7 +4,7 @@ A summary of Sekoya Parts' epics and their issues: what each phase and step deli
 
 ## Summary
 
-- **Repository:** rules in `AGENTS.md`, the pull request template, the chat-history opt-in, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3), which alone holds each issue's status ([#126](https://github.com/sekoya-solutions/sekoya-parts/issues/126)).
+- **Repository:** rules in `AGENTS.md`, the pull request template, labels, branch protection on `main`, and the [Sekoya Parts board](https://github.com/users/sekoya-solutions/projects/3), which alone holds each issue's status ([#126](https://github.com/sekoya-solutions/sekoya-parts/issues/126)).
 - **Stack decided:** the fourteen Architecture Decision Records (ADRs) are accepted. They are listed in the [ADR index](adr/README.md) and summed up in the stack line of `AGENTS.md`, section 1. The Stack ADRs epic ([#3](https://github.com/sekoya-solutions/sekoya-parts/issues/3)) is closed; ADR 0013 and ADR 0014 came with Phase 4 ([#139](https://github.com/sekoya-solutions/sekoya-parts/issues/139)).
 - **Phase 1:** epic [#30](https://github.com/sekoya-solutions/sekoya-parts/issues/30).
   - Node 26.13.1 is verified and unpacked into `.tools/node` on the owner's machine, and the toolchain files are written ([#31](https://github.com/sekoya-solutions/sekoya-parts/issues/31)).
@@ -375,7 +375,7 @@ None. Hosting stays on Vercel's Hobby plan as a personal, non-commercial demonst
 
 ## Working notes for a new session
 
-- **Where decisions live:** `AGENTS.md` for the standing rules, the ADRs for technical decisions, this file for the plan. The latest chat-history entries arrive with the session-start context; older ones are in `docs/chat-history/`, which only exists locally.
+- **Where decisions live:** `AGENTS.md` for the standing rules, the ADRs for technical decisions, this file for the plan.
 - **Branches and parallel sessions:** `AGENTS.md`, sections 3 and 5: rebase before re-running CI, branch from `origin/main`, and one git worktree per session ([#174](https://github.com/sekoya-solutions/sekoya-parts/issues/174)). A worktree session opens its own branch in the built-in browser: `npm run preview:add` adds its `next-dev-<worktree>` entry, on its own port, to the main checkout's `.claude/launch.json` and drops the entries of removed worktrees, and `npm run test:e2e:local` stops while a development server of the same checkout holds `.next` ([#193](https://github.com/sekoya-solutions/sekoya-parts/issues/193)).
 - **Each pull request:**
   - write its body to a file without a byte-order mark and pass it with `--body-file`;
