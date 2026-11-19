@@ -44,13 +44,13 @@ Standing rules for every AI agent working on this repository. The owner's genera
 
 ## 4. Documentation
 
-- **Docs as code:** all documentation is Markdown in this repository, the single source of truth. Layout: `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/experiments/` (one report per experiment, with its setup, results and conclusion), `docs/development.md` (running the site and its tests locally), and [docs/roadmap.md](docs/roadmap.md) (a summary of the epics and their issues).
+- **Docs layout:** `docs/adr/` (one ADR per significant choice, indexed in [docs/adr/README.md](docs/adr/README.md)), `docs/specs/` (feature specs, created when needed), `docs/experiments/` (one report per experiment, with its setup, results and conclusion), `docs/development.md` (running the site and its tests locally), and [docs/roadmap.md](docs/roadmap.md) (a summary of the epics and their issues).
 - **Roadmap (owner rule, 2026-11-14):** a summary of the epics and their issues, what each delivers, never a status board. Read it at the start of each session.
   - **No status in it:** no "done", "in progress" or "next" markers. Status is read and set on the board only, and on the issues' and epics' ticks.
   - **Written once, in the issue's own pull request:** the issue's entry describes what it delivers, written for the merged state. A result known only after the merge (a production check, a deployment) goes in the issue's Result section, never in the roadmap.
   - **Never a pull request of its own:** no issue or pull request is opened only to update the roadmap. Its summary also changes when the plan changes (a step added, split or reordered), in the pull request that changes the plan.
 - **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
-- **Markdown checks:** before each commit that touches Markdown, run `npm run lint:md` with `.tools/node` first on the `PATH`, and fix every finding; the Markdown lint check runs it again on each pull request and is required on `main`. The linter does not see issue and pull request bodies, so read those to check their headings, lists, tables and checkboxes.
+- **Markdown checks:** `npm run lint:md`, with `.tools/node` first on the `PATH`; the Markdown lint check runs it again on each pull request and is required on `main`.
 
 ## 5. Git and GitHub
 
