@@ -1,11 +1,10 @@
 # Agent Instructions — sekoya-parts
 
-Standing rules for every AI agent working on this repository. Read this file and the [Architecture Decision Records (ADRs)](docs/adr/README.md) before working; ADRs are the source of truth for technical decisions.
+Standing rules for every AI agent working on this repository. The owner's general rules, valid in every project, are in `~/.claude/AGENTS.md`; this file adds the rules specific to this repository and takes precedence where the two conflict. Read this file and the [Architecture Decision Records (ADRs)](docs/adr/README.md) before working; ADRs are the source of truth for technical decisions.
 
 ## 1. Project context
 
 - **Sekoya Parts:** a spare-parts e-commerce catalog, built as a personal portfolio project. It demonstrates the **feasibility** of a very large catalog and, since Phase 4, of a demo shop around it.
-- **Owner:** Tech Lead, 15+ years of experience, who decides every technical choice and reviews the code. AI coding agents write the code and documentation under the owner's direction, following the rules in this file.
 - **Owner decisions so far:**
   - **Catalog:** about 100,000 products. One product is compatible with up to 1,000,000 appliance models (500,000 or 200,000 if that proves a problem); the other products have few.
   - **Four page templates:** home, category listing, product page, and one page per appliance model. Phase 4 adds brand, information and shop pages (epic #138).
@@ -24,12 +23,7 @@ Standing rules for every AI agent working on this repository. Read this file and
 
 ## 2. Working with the owner
 
-- **Early-collaboration pace (until the owner relaxes it):** one step at a time, low autonomy. Ask before acting when unsure about the order of steps, who should decide something, or whether a tool or action is acceptable.
-- **Never stop idle (owner rule, 2026-11-14):** a turn never ends with work silently waiting. When a step waits on the owner (an account, a key, a decision), start every part of the issue that does not need it, and end the turn by asking the owner, explicitly, for the exact step that blocks the rest. An issue that is open but not started counts as waiting. The ask spells out everything the step needs: which variable names go in which file, where each value is found, and what to reply once done.
-- **A local check that cannot run stops the work (owner rule, 2026-11-16):** when a test, build or tool that a step relies on fails to run locally for a reason outside the change (a tool, the environment, a worktree setup), stop and ask the owner how to proceed, with the cause and the options. Never skip it, leave it to CI or push around it on your own.
-- **Decisions for the owner:** explain each option in plain language (what a visitor sees, or what changes in the code), give pros and cons, and recommend one when it is clearly better, briefly saying why. Ask one or two questions per turn, never a long list.
-- **ADRs first:** every significant technical choice is written as an ADR with the options considered, and only the owner marks it Accepted. Experiments and implementation come after.
-- **No software installs without approval:** never install, upgrade or uninstall software on the owner's machine. Use portable tools only, in the git-ignored `.tools/` folder. This repository gets its own versions, chosen for its stack; never copy a tool from another project. Before any download, state the file name, source and size, and wait for approval. One exception: the Lighthouse reports artifacts of this repository's own GitHub Actions runs are always downloaded without asking, into the session's scratchpad (owner decision, 2026-11-13).
+- **Downloads:** standing exception to the general download rule: the Lighthouse reports artifacts of this repository's own GitHub Actions runs are always downloaded without asking, into the session's scratchpad (owner decision, 2026-11-13).
 - **Vercel's agent plugin is read, not installed (owner decision, 2026-11-13):** [vercel/vercel-plugin](https://github.com/vercel/vercel-plugin) is not installed, because it needs Bun, sends usage telemetry by default, adds hooks at session start and has a deploy command that bypasses the Git-driven deployments. When a step needs it, read one file from the repository as guidance; the ADRs prevail over it. Useful here:
   - `agents/performance-optimizer.md`: Core Web Vitals, caching, images and fonts, for Lighthouse work;
   - `skills/vercel-firewall/SKILL.md`: firewall rules, rate limiting and bot management, for Bot Protection;
@@ -37,32 +31,17 @@ Standing rules for every AI agent working on this repository. Read this file and
   - `skills/react-best-practices/SKILL.md`: React and Next.js performance rules, for reviewing components.
   - Vercel's documentation search, `npx vercel@latest docs search "<query>"`, needs no login, but it downloads the Vercel CLI, so the download rule above applies the first time.
 - **Read the Vercel dashboard yourself (owner rule, 2026-11-16):** the owner's Chrome has the Claude in Chrome extension, signed in to Vercel. When a step needs the dashboard (logs, firewall traffic and rules, settings), read it there rather than asking the owner. Changing a setting or a rule still waits for the owner's go, and the owner types any secret.
-- **Never get the owner blocked (owner rule):** an agent's requests leave from the owner's IP address, so a block, ban, challenge or throttle on it also hits the owner's own browsing and accounts. On 2026-11-11, an agent testing the production rate-limiting rule sent 310 requests in parallel; Vercel's platform protection challenged the IP address, and a second test of 400 requests sent while still blocked only prolonged the block.
-  - No bursts, load tests or request loops against any site or API, this project's included. A check is a few single requests, spaced out.
+- **Production checks:** the general "never get the owner blocked" rules apply. On 2026-11-11, an agent testing the production rate-limiting rule sent 310 requests in parallel; Vercel's platform protection challenged the IP address, and a second test of 400 requests sent while still blocked only prolonged the block.
   - Checks of this project's production send the "Agent checks" secret from `.env.local` as the `x-vercel-protection-bypass` header, as on previews: Bot Protection challenges curl (owner decision, 2026-11-14, issue #135). Never in a URL or a reply.
-  - Before any check that could trigger a firewall, rate limit, bot protection, anti-abuse system or quota, explain the risk and wait for the owner's go. Prefer reading the configuration, dashboards or logs over triggering a protection to see it work.
-  - At the first sign of mitigation (403, 429, a challenge page, a `Retry-After` header or a quota error), stop: no retry and no second test. Report it to the owner, with what was sent.
-  - Stay within each service's terms and published limits, and never change identity (user agent, address, account) to get around a limit.
-- **Spell out acronyms** the first time they appear in a document or reply.
 
 ## 3. Quality rules
 
-- **Robustness over apparent success:** a change must be correct by its logic, not because it worked once. This bar is the same for small requests.
-  - **Root cause first:** trace the real mechanism, reading framework or library documentation and source when behavior depends on it.
-  - **No reliance on timing or luck:** depend on real signals and invariants, never on fixed delays, ordering that merely happens to hold, or retries that hide a failure.
-  - **Unhappy paths:** work out what happens when something is slow, fails, is missing or is interrupted, on a slow phone or network as well as a fast desktop. A change must not make any of these worse.
-  - **Prove it:** add a regression test that fails without the change and passes with it. When something cannot be tested automatically, say so and say what was checked instead.
-  - **No half-measures shipped as fixes:** if the only solution is a workaround or heuristic, tell the owner before implementing it, with its limits and the robust alternative.
-  - **Claim only what is guaranteed** in comments, documentation, pull request text and ticked checkboxes.
+- **Unhappy paths** include a slow phone or network as well as a fast desktop.
 - **Measure the right pages (owner rule, 2026-11-16):** a check that reaches a page through a link, Lighthouse's included, reads the link from the list that holds it (its `data-list` marker), never "the first link" of a page, and verifies that the page it lands on is the expected template, named by `data-template` on its `<main>` (`site/templates.ts`). Lighthouse stops when a measured page is not the template its check names, and `e2e/lighthouse-pages.spec.ts` resolves the workflow's addresses on every CI run. Every new template gets its name there. Before asking for a merge, read the addresses in the Lighthouse comment, not only its scores.
 - **Automate repeatable steps (owner rule):** when planning a check, a test or an environment, work out what must happen again on each preview, deployment, database reset or run, and automate it from the start, with secrets per environment. Never plan a recurring manual step for the owner, and never use a default or committed password.
-- **Small, reviewable changes:** weigh optional cleanup or tooling against its measurable benefit, and ask before doing work whose benefit is unclear.
-- **Wait on signals, never a fixed sleep (owner rule):** wait for CI, a deployment or a background job with a background command that ends when the awaited event happens, so its exit notifies the agent. It sends one light request at a time, at most every 30 seconds, and gives up after a time cap. For a pull request's CI, it watches the merge state (`CLEAN`, or a failed check) rather than only the checks already reported, since the required "Lighthouse" check appears only after Vercel deploys. A fixed delay is used only when nothing can be observed, and the reply says so.
+- **Waiting on a pull request's CI:** the background watch watches the merge state (`CLEAN`, or a failed check) rather than only the checks already reported, since the required "Lighthouse" check appears only after Vercel deploys. A background watch is not polling.
 - **Pushing during CI (owner rule, 2026-11-14):** ask every question whose answer changes a pull request, design choices and facts alike (such as a name a source note needs), before writing code and in any case before the first push, so a pull request needs few pushes (clarified 2026-11-16). Push a code fix as soon as an early check fails, without waiting for Lighthouse: a code push cancels the older commits' CI and Lighthouse runs. A documentation-only push may go up at any time: CI never lets it interrupt a running check (issue #123, ADR 0004).
 - **Rebase before re-running CI (owner rule, 2026-11-16):** before re-running a pull request's CI, or asking the owner to, `git fetch` and check the branch against `origin/main` and the pull request's merge state. When `main` has moved on, rebase and push rather than re-run: a re-run measures the old commit and its preview (issue #174).
-- **Cost-efficient execution:** no repeated CI polling by the agent itself (a background watch, as above, is not polling) and no redundant reads. Give self-contained, mechanical or read-heavy subtasks to a subagent on an economical model (Sonnet or Haiku) when quality holds, and say so in the reply (model and task). Keep design decisions, ADRs, hard debugging and final review on the main model.
-- **Public repository:** never commit secrets, keys, tokens or personal data. Environment files stay git-ignored (only `.env.example` may be committed).
-- **No machine-specific absolute paths in committed files:** use paths relative to the repository, `%USERPROFILE%` or `~`.
 
 ## 4. Documentation
 
@@ -71,16 +50,13 @@ Standing rules for every AI agent working on this repository. Read this file and
   - **No status in it:** no "done", "in progress" or "next" markers. Status is read and set on the board only, and on the issues' and epics' ticks.
   - **Written once, in the issue's own pull request:** the issue's entry describes what it delivers, written for the merged state. A result known only after the merge (a production check, a deployment) goes in the issue's Result section, never in the roadmap.
   - **Never a pull request of its own:** no issue or pull request is opened only to update the roadmap. Its summary also changes when the plan changes (a step added, split or reordered), in the pull request that changes the plan.
-- **ADR index integrity:** exactly one index row per ADR, with title, link and status matching the ADR file.
 - **ADRs stay simple (owner rule):** an ADR records the facts that decide and the decision. When the owner asks for more detail, answer in the conversation instead of growing the ADR.
-- Standard Markdown only (relative links, no tool-specific syntax), diagrams as Mermaid code blocks, so documents render on GitHub and in Obsidian.
 - **Markdown checks:** before each commit that touches Markdown, run `npm run lint:md` with `.tools/node` first on the `PATH`, and fix every finding; the Markdown lint check runs it again on each pull request and is required on `main`. The linter does not see issue and pull request bodies, so read those to check their headings, lists, tables and checkboxes.
 
 ## 5. Git and GitHub
 
 - Repository `sekoya-solutions/sekoya-parts` (public). Branch protection on `main`: a pull request is required, for admins too; only squash merges are allowed, and merged branches are deleted. Required CI checks are added once CI exists.
-- **Every change follows:** GitHub issue with acceptance criteria → branch from up-to-date `main` (`feat/<n>-slug`, `fix/<n>-slug`, `chore/<n>-slug`, `docs/<n>-slug`) → pull request from [the template](.github/pull_request_template.md), with `Closes #<n>` → the owner's explicit go → `gh pr merge --squash`. Never commit to `main` directly, and never merge without that go.
-- **Branch from an up-to-date `main` (owner rule, 2026-11-16):** start every branch with `git fetch`, then `git switch -c <branch> origin/main`, never from whatever is checked out (issue #174).
+- **Every change** follows the general Git workflow, with the pull request created from [the template](.github/pull_request_template.md).
 - **One worktree per session (owner rule, 2026-11-16):** each session working on this repository at the same time as another works in its own git worktree, never two in one working tree, so neither switches branches or changes files under the other. On 2026-11-16, a session sharing the main folder created its branch while another session's fix branch was checked out, and its pull request carried that fix (issue #174). Each new worktree gets its own dependencies with `npm ci` (owner decision, 2026-11-16): a `node_modules` linked to the main checkout makes Turbopack refuse to build, so the build and the end-to-end tests could not run locally. About 1.2 GB per worktree, mostly copied from npm's cache, freed when the worktree is removed. It also gets a `.tools` folder of its own holding three junctions, `node`, `pgsql` and `ms-playwright`, to the main checkout's `.tools` (issue #209): `npm run test:local` and `npm run test:e2e:local` find their tools in the checkout they run in, and keep their throwaway clusters in the worktree. Remove the junctions before removing the worktree, so the main checkout's tools stay intact.
   - **A worktree's preview (issue #193):** the preview tool reads only the main checkout's `.claude/launch.json` and starts every command in the main checkout, whichever folder the session works in. A worktree session runs `npm run preview:add` in its worktree, which also copies the main checkout's `.env.local` there when it has none, and starts the entry that command prints with `preview_start`. The entry runs that worktree's `scripts/preview.ts` (Payload's migrations, then `next dev`) on its own port from 3002, so previews of different worktrees run side by side, and each run of the command drops the entries of removed worktrees. Stop the preview before `npm run test:e2e:local`, which deletes `.next` on Windows and stops while a development server holds it.
 - **Labels:** every issue gets one `type:` label and at least one `area:` label. Do not use the GitHub default labels `bug`, `documentation` and `enhancement`, which overlap with `type:` labels; `accessibility` and the triage labels (`duplicate`, `invalid`, `question`, `wontfix`) can be added.
@@ -92,16 +68,11 @@ Standing rules for every AI agent working on this repository. Read this file and
 
   Before reporting a step or a phase done, check that the issues, the epic and the board agree, and fix any gap first. An issue outside every epic still appears in the roadmap's summary.
 - **Finish an issue before merging (owner rule):** do every step the issue lists before asking for the merge go, including steps on outside services that can run from the branch (such as loading a database), and write the pull request's documentation, the roadmap's summary included, for the finished state. Only a step that needs the merged code (such as a production deployment) waits for the merge: name it as such in the issue and the pull request, and never tick a criterion before it is true.
-- **Acceptance criteria and test plans:** tick each item as soon as it is verified (acceptance criteria against the merged result), and never close an issue before its pull request is merged.
-- **Issue and pull request bodies:** write them to a file without a byte-order mark and pass it with `--body-file`. After every edit, fetch the saved body and check its line, heading and checkbox counts. Before merging, check that `closingIssuesReferences` lists the issue.
-- Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`). Keep AI tool attribution as the tool emits it (for example Claude Code's `Co-Authored-By` trailer).
 
 ## 6. Chat history
 
 - This repository opts in to the claude-chat-history hooks: its log is in [docs/chat-history/](docs/chat-history/README.md). When the session-start context says the hooks are active, write each turn's summary file as it describes, and never append entries by hand. In a tool without Claude Code hooks, append entries by hand as that README describes.
-- **A session logs into the project it was opened in (owner rule):** work on another project belongs in a session opened in that project, so its turns land in that project's log.
 
 ## 7. Maintaining this file
 
-- When the owner gives a general rule or a project-wide decision, add or update it here in the same turn, in the right section.
-- Keep this file concise and deduplicated: edit an existing rule rather than adding a contradicting one.
+- Project-specific rules go here; rules for every project go in `~/.claude/AGENTS.md` (see its "Maintaining these rules" section).
